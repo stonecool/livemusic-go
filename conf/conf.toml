@@ -1,0 +1,40 @@
+[Server]
+#debug or release
+RunMode = "debug"
+HttpPort = 8000
+ReadTimeout = 60
+WriteTimeout = 60
+
+[Database]
+Type = "mysql"
+User = "root"
+Password = "123456"
+Host = "127.0.0.1:3306"
+DatabaseName = "livehouse"
+TablePrefix = ""
+Charset = "utf8mb4"
+ParseTime = true
+Loc = "Local"
+
+[Redis]
+Host = "127.0.0.1:6379"
+Password = ""
+MaxIdle = 30
+MaxActive = 30
+IdleTimeout = 200
+
+[AccountTemplateMap.WX]
+Name = "微信公众号"
+Type = 0
+LoginURL = "https://mp.weixin.qq.com/cgi-bin/appmsg"
+LoginHttpMethod = "POST"
+URL = "https://mp.weixin.qq.com/cgi-bin/appmsg"
+HttpMethod = "GET"
+
+[AccountTemplateMap.WB]
+Name = "微博"
+Type = 0
+LoginURL = "https://mp.weixin.qq.com/cgi-bin/appmsg"
+LoginHttpMethod = "POST"
+URL = "https://mp.weixin.qq.com/cgi-bin/appmsg"
+HttpMethod = "GET"
