@@ -61,7 +61,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 //	@Produce	json
 //	@Success	200	{object}	http.Response
 //	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/crawlTemplates/{id} [get]
+//	@Router		/api/v1/crawlAccounts/{id} [get]
 func GetCrawlAccount(ctx *gin.Context) {
 	type Form struct {
 		ID int `valid:"Required;Min(1)"`
