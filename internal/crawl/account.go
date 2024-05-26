@@ -3,8 +3,8 @@ package crawl
 import (
 	"encoding/json"
 	"github.com/gocolly/colly"
-	"github.com/stonecool/1701livehouse-server/internal/model"
-	"github.com/stonecool/1701livehouse-server/pkg/cache"
+	"github.com/stonecool/livemusic-go/internal/model"
+	"github.com/stonecool/livemusic-go/pkg/cache"
 	"log"
 	"reflect"
 )

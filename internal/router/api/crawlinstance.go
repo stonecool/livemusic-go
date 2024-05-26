@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/stonecool/1701livehouse-server/internal/crawl"
-	http2 "github.com/stonecool/1701livehouse-server/internal/http"
+	"github.com/stonecool/livemusic-go/internal/crawl"
+	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
 	"net/http"
 	"reflect"

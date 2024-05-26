@@ -1,22 +1,23 @@
-module github.com/stonecool/1701livehouse-server
+module github.com/stonecool/livemusic-go
 
 go 1.20
 
 require (
+	github.com/BurntSushi/toml v1.3.2
 	github.com/beego/beego/v2 v2.1.6
+	github.com/chromedp/cdproto v0.0.0-20240312231614-1e5096e63154
+	github.com/chromedp/chromedp v0.9.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gocolly/colly v1.2.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.3
 	github.com/unknwon/com v1.0.1
-	gopkg.in/ini.v1 v1.67.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/gorm v1.25.1
 )
 
 require (
-	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/PuerkitoBio/goquery v1.8.1 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
@@ -26,8 +27,6 @@ require (
 	github.com/bytedance/sonic v1.11.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
-	github.com/chromedp/cdproto v0.0.0-20240312231614-1e5096e63154 // indirect
-	github.com/chromedp/chromedp v0.9.5 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect

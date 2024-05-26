@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"github.com/stonecool/1701livehouse-server/internal/config"
+	"github.com/stonecool/livemusic-go/internal/config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"

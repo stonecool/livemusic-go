@@ -2,8 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	_ "github.com/stonecool/1701livehouse-server/docs/swagger"
-	"github.com/stonecool/1701livehouse-server/internal/router/api"
+	_ "github.com/stonecool/livemusic-go/docs/swagger"
+	"github.com/stonecool/livemusic-go/internal/router/api"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )

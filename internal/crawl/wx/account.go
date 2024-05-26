@@ -2,9 +2,9 @@ package wx
 
 import (
 	"fmt"
-	"github.com/stonecool/1701livehouse-server/internal/config"
-	"github.com/stonecool/1701livehouse-server/internal/crawl"
-	"github.com/stonecool/1701livehouse-server/internal/util"
+	"github.com/stonecool/livemusic-go/internal/config"
+	"github.com/stonecool/livemusic-go/internal/crawl"
+	"github.com/stonecool/livemusic-go/internal/util"
 )
 
 type Account struct {
