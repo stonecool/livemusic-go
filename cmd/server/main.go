@@ -12,6 +12,10 @@ import (
 	"time"
 )
 
+func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+}
+
 func GetAppPath() string {
 	file, _ := exec.LookPath(os.Args[0])
 	path, _ := filepath.Abs(file)
@@ -22,8 +26,6 @@ func GetAppPath() string {
 
 func main() {
 	gin.SetMode("debug")
-
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	engine := gin.New()
 	if err := router.InitRouter(engine); err != nil {
@@ -39,9 +41,10 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	//log.Printf("[info] start http server listening %s", endPoint)
 	err := server.ListenAndServe()
 	if err != nil {
+		log.Fatalf("init server error:%v\n", err)
 		return
 	}
+
 }

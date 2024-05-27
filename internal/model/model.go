@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/config"
+	"github.com/stonecool/livemusic-go/internal"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -21,22 +21,22 @@ type Model struct {
 // init initializes the database instance
 func init() {
 	var dialector gorm.Dialector
-	if config.Database.Type == "mysql" {
+	if internal.Database.Type == "mysql" {
 		dialector = mysql.Open(fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s&parseTime=%t&loc=%s",
-			config.Database.User,
-			config.Database.Password,
-			config.Database.Host,
-			config.Database.DatabaseName,
-			config.Database.Charset,
-			config.Database.ParseTime,
-			config.Database.Loc))
+			internal.Database.User,
+			internal.Database.Password,
+			internal.Database.Host,
+			internal.Database.DatabaseName,
+			internal.Database.Charset,
+			internal.Database.ParseTime,
+			internal.Database.Loc))
 	}
 
 	var err error
 	db, err = gorm.Open(dialector, &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
-			TablePrefix:   config.Database.TablePrefix,
+			TablePrefix:   internal.Database.TablePrefix,
 			//NameReplacer:
 			//NoLowerCase:
 		},
