@@ -47,6 +47,74 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/crawlAccounts": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Add crawl template",
+                "parameters": [
+                    {
+                        "description": "created template object",
+                        "name": "template",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.addAccountForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/crawlAccounts/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get a single crawl account",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/crawlInstances": {
             "post": {
                 "consumes": [
@@ -59,7 +127,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "created instance object",
-                        "name": "template",
+                        "name": "instance",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -115,80 +183,12 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/crawlTemplates": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Add crawl template",
-                "parameters": [
-                    {
-                        "description": "created template object",
-                        "name": "template",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.addTemplateForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/http.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/crawlTemplates/{id}": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Get a single crawl template",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/http.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/templates": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get multiple templates",
+                "summary": "Get multiple accounts",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -207,30 +207,20 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.addInstanceForm": {
+        "api.addAccountForm": {
             "type": "object",
             "properties": {
-                "form_data": {
+                "account_type": {
                     "type": "string"
-                },
-                "headers": {
-                    "type": "object",
-                    "additionalProperties": true
-                },
-                "name": {
-                    "type": "string"
-                },
-                "query_params": {
-                    "type": "string"
-                },
-                "template_id": {
-                    "type": "integer"
                 }
             }
         },
-        "api.addTemplateForm": {
+        "api.addInstanceForm": {
             "type": "object",
             "properties": {
+                "account_id": {
+                    "type": "integer"
+                },
                 "form_data": {
                     "type": "string"
                 },
@@ -238,25 +228,10 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": true
                 },
-                "http_method": {
-                    "type": "string"
-                },
-                "login_http_method": {
-                    "type": "string"
-                },
-                "login_url": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 },
                 "query_params": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "integer"
-                },
-                "url": {
                     "type": "string"
                 }
             }

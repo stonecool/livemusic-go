@@ -6,16 +6,10 @@ import (
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
 	"net/http"
-	"reflect"
 )
 
 type addAccountForm struct {
-	Name        string                 `json:"name" valid:"Required;MaxSize(255)"`
-	TemplateId  string                 `json:"template_id" valid:"Required;MaxSize(255)"`
-	Type        uint8                  `json:"type" valid:"Required;Range(0, 1)"`
-	Headers     map[string]interface{} `json:"headers"`
-	QueryParams string                 `json:"query_params" valid:"MaxSize(255)"`
-	FormData    string                 `json:"form_data" valid:"MaxSize(255)"`
+	AccountType string `json:"account_type" valid:"Required;MaxSize(255)"`
 }
 
 // AddCrawlAccount
@@ -26,7 +20,7 @@ type addAccountForm struct {
 //	@Produce	json
 //	@Success	200	{object}	http.Response
 //	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/crawlTemplates [post]
+//	@Router		/api/v1/crawlAccounts [post]
 func AddCrawlAccount(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
@@ -40,11 +34,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 	}
 
 	account := crawl.Account{
-		Name:        form.Name,
-		TemplateId:  form.TemplateId,
-		Headers:     form.Headers,
-		QueryParams: form.QueryParams,
-		FormData:    form.FormData,
+		AccountType: form.AccountType,
 	}
 
 	if err := account.Add(); err != nil {
@@ -80,17 +70,17 @@ func GetCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	template, err := crawl.GetCrawlAccountByID(form.ID)
-	if err != nil {
-		context.Response(http.StatusBadRequest, 0, nil)
-		return
-	}
-
-	if reflect.ValueOf(*template).IsZero() {
-		context.Response(http.StatusOK, -1, nil)
-		return
-	}
-
+	//template, err := crawl.GetCrawlAccountByID(form.ID)
+	//if err != nil {
+	//	context.Response(http.StatusBadRequest, 0, nil)
+	//	return
+	//}
+	//
+	//if reflect.ValueOf(*template).IsZero() {
+	//	context.Response(http.StatusOK, -1, nil)
+	//	return
+	//}
+	//
 	context.Response(http.StatusOK, 0, template)
 }
 

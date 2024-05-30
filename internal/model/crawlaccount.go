@@ -7,25 +7,18 @@ import (
 type CrawlAccount struct {
 	Model
 
-	TemplateId  string
-	Name        string
-	Username    string
-	Password    string
-	Headers     string
-	QueryParams string
-	FormData    string
+	AccountType string
+	AccountId   string
+	AccountName string
+	Cookies     string
 	State       uint8
 }
 
 // AddCrawlAccount Adds a new crawl account
 func AddCrawlAccount(data map[string]interface{}) (int, error) {
 	account := CrawlAccount{
-		TemplateId: data["template_id"].(string),
-		Name:       data["name"].(string),
-		Username:   data["username"].(string),
-		Password:   data["password"].(string),
-		Headers:    data["headers"].(string),
-		State:      data["state"].(uint8),
+		AccountType: data["account_type"].(string),
+		State:       data["state"].(uint8),
 	}
 
 	if err := db.Create(&account).Error; err != nil {
@@ -46,9 +39,9 @@ func GetCrawlAccount(id int) (*CrawlAccount, error) {
 }
 
 // GetCrawlAccounts Gets all account
-func GetCrawlAccounts() ([]*CrawlAccount, error) {
+func GetCrawlAccountsByType(accountType string) ([]*CrawlAccount, error) {
 	var accounts []CrawlAccount
-	if err := db.Where("deleted_at != 0").Find(&accounts).Error; err != nil {
+	if err := db.Where("deleted_at != 0 AND account_type = ?", accountType).Find(&accounts).Error; err != nil {
 		return nil, err
 	}
 

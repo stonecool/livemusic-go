@@ -1,3 +1,3 @@
 # livemusic-go
 
-swag.exe init -d .\cmd\server\
+swag.exe init -g .\cmd\server\main.go -o .\docs\swagger\

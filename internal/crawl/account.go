@@ -1,50 +1,24 @@
 package crawl
 
 import (
-	"encoding/json"
 	"github.com/gocolly/colly"
 	"github.com/stonecool/livemusic-go/internal/model"
-	"github.com/stonecool/livemusic-go/pkg/cache"
 	"log"
 	"reflect"
 )
 
 type Account struct {
 	ID          int                    `json:"id"`
-	TemplateId  string                 `json:"template_id"`
-	Name        string                 `json:"name"`
-	Username    string                 `json:"username"`
-	Password    string                 `json:"password"`
+	AccountType string                 `json:"account_type"`
+	AccountId   string                 `json:"account_id"`
+	AccountName string                 `json:"account_name"`
 	Headers     map[string]interface{} `json:"headers"`
-	QueryParams string                 `json:"query_params"`
-	FormData    string                 `json:"form_data"`
 	State       uint8                  `json:"state"`
-
-	Collector *colly.Collector
-	Ch        chan CmdRequest
-}
-
-var accountCache *cache.Memo
-
-func init() {
-	accountCache = cache.New(getCrawlAccountByID)
 }
 
 func (a *Account) Add() error {
-	headers, err := json.Marshal(a.Headers)
-	if err != nil {
-		log.Printf("json marshal error: %s", err)
-		return err
-	}
-
 	account := map[string]interface{}{
-		"template_id":  a.TemplateId,
-		"name":         a.Name,
-		"username":     a.Username,
-		"password":     a.Password,
-		"headers":      string(headers),
-		"query_params": a.QueryParams,
-		"form_data":    a.FormData,
+		"account_type": a.AccountType,
 		"state":        uint8(0),
 	}
 
@@ -64,28 +38,19 @@ func (a *Account) GetHeaders() (map[string]interface{}, error) {
 // GetQueryParams
 func (a *Account) GetQueryParams() (map[string]interface{}, error) {
 	params := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(a.QueryParams), &params); err != nil {
-		return nil, err
-	}
+	//if err := json.Unmarshal([]byte(a.QueryParams), &params); err != nil {
+	//	return nil, err
+	//}
 
 	return params, nil
 }
 
 // GetFormData
 func (a *Account) GetFormData() string {
-
-	return a.FormData
+	return ""
 }
 
-func GetCrawlAccountByID(id int) (*Account, error) {
-	if t, err := accountCache.Get(id); err != nil {
-		return nil, err
-	} else {
-		return t.(*Account), nil
-	}
-}
-
-func getCrawlAccountByID(id int) (interface{}, error) {
+func GetCrawlAccountByID(id int) (interface{}, error) {
 	var p *model.CrawlAccount
 	p, err := model.GetCrawlAccount(id)
 	if err != nil {
@@ -98,11 +63,8 @@ func getCrawlAccountByID(id int) (interface{}, error) {
 	}
 
 	account := Account{
-		ID:        p.ID,
-		Name:      p.Name,
-		Headers:   make(map[string]interface{}),
-		Collector: colly.NewCollector(),
-		Ch:        make(chan CmdRequest),
+		ID:      p.ID,
+		Headers: make(map[string]interface{}),
 	}
 
 	return &account, nil
@@ -113,7 +75,7 @@ func (a *Account) GetId() int {
 }
 
 func (a *Account) GetChan() chan CmdRequest {
-	return a.Ch
+	return nil
 }
 
 func (a *Account) GetState() State {

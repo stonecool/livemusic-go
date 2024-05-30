@@ -1,23 +1,21 @@
 package crawl
 
 import (
-	"fmt"
 	"log"
-	"time"
 )
 
 func newAccount(id int) (IAccount, error) {
-	account, err := GetCrawlAccountByID(id)
-
-	if err != nil {
-		return nil, err
-	}
+	//account, err := GetCrawlAccountByID(id)
+	//
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	//if account.TemplateId == "WX" {
 	//	return &wx.Account{Account: *account}, nil
 	//}
 
-	return account, nil
+	return nil, nil
 }
 
 func Test(id int) error {
@@ -83,30 +81,32 @@ func start(account IAccount) {
 }
 
 func startCrawl(instance *Instance) error {
-	if instance == nil {
-		return fmt.Errorf("instance is nil")
-	}
+	//if instance == nil {
+	//	return fmt.Errorf("instance is nil")
+	//}
+	//
+	//account, err := GetCrawlAccountByID(instance.AccountId)
+	//if err != nil {
+	//	log.Printf("%s", err)
+	//	return err
+	//}
+	//
+	//ticker := time.NewTicker(30 * time.Second)
+	//defer ticker.Stop()
 
-	account, err := GetCrawlAccountByID(instance.AccountId)
-	if err != nil {
-		log.Printf("%s", err)
-		return err
-	}
+	//for {
+	//	select {
+	//	case <-ticker.C:
+	//		if account.State == 1 {
+	//			return nil
+	//		}
+	//
+	//		account.GetChan() <- CmdRequest{
+	//			cmd:      CmdCrawl,
+	//			instance: instance,
+	//		}
+	//	}
+	//}
 
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			if account.State == 1 {
-				return nil
-			}
-
-			account.GetChan() <- CmdRequest{
-				cmd:      CmdCrawl,
-				instance: instance,
-			}
-		}
-	}
+	return nil
 }

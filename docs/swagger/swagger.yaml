@@ -1,6 +1,13 @@
 definitions:
+  api.addAccountForm:
+    properties:
+      account_type:
+        type: string
+    type: object
   api.addInstanceForm:
     properties:
+      account_id:
+        type: integer
       form_data:
         type: string
       headers:
@@ -9,30 +16,6 @@ definitions:
       name:
         type: string
       query_params:
-        type: string
-      template_id:
-        type: integer
-    type: object
-  api.addTemplateForm:
-    properties:
-      form_data:
-        type: string
-      headers:
-        additionalProperties: true
-        type: object
-      http_method:
-        type: string
-      login_http_method:
-        type: string
-      login_url:
-        type: string
-      name:
-        type: string
-      query_params:
-        type: string
-      type:
-        type: integer
-      url:
         type: string
     type: object
   http.Response:
@@ -67,6 +50,50 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Get a single crawl instance
+  /api/v1/crawlAccounts:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: created template object
+        in: body
+        name: template
+        required: true
+        schema:
+          $ref: '#/definitions/api.addAccountForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Add crawl template
+  /api/v1/crawlAccounts/{id}:
+    get:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Get a single crawl account
   /api/v1/crawlInstances:
     post:
       consumes:
@@ -74,7 +101,7 @@ paths:
       parameters:
       - description: created instance object
         in: body
-        name: template
+        name: instance
         required: true
         schema:
           $ref: '#/definitions/api.addInstanceForm'
@@ -111,50 +138,6 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Get a single crawl instance
-  /api/v1/crawlTemplates:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: created template object
-        in: body
-        name: template
-        required: true
-        schema:
-          $ref: '#/definitions/api.addTemplateForm'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: Add crawl template
-  /api/v1/crawlTemplates/{id}:
-    get:
-      parameters:
-      - default: 1
-        description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: Get a single crawl template
   /api/v1/templates:
     get:
       produces:
@@ -168,5 +151,5 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/http.Response'
-      summary: Get multiple templates
+      summary: Get multiple accounts
 swagger: "2.0"
