@@ -5,7 +5,7 @@ import (
 )
 
 func newAccount(id int) (IAccount, error) {
-	//account, err := GetCrawlAccountByID(id)
+	//account, err := GetAccountByID(id)
 	//
 	//if err != nil {
 	//	return nil, err
@@ -85,7 +85,7 @@ func startCrawl(instance *Instance) error {
 	//	return fmt.Errorf("instance is nil")
 	//}
 	//
-	//account, err := GetCrawlAccountByID(instance.AccountId)
+	//account, err := GetAccountByID(instance.AccountId)
 	//if err != nil {
 	//	log.Printf("%s", err)
 	//	return err

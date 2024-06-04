@@ -3,8 +3,16 @@ package crawl
 type AccountTemplateType uint8
 
 const (
-	NoLogin AccountTemplateType = iota // no need login before crawl
-	Login                              // need login before crawl
+	NoLogin AccountTemplateType = iota // no need login before Crawl
+	Login                              // need login before Crawl
+)
+
+type AccountState uint8
+
+const (
+	AccountStateUnLogged AccountState = iota
+	AccountStateLogged
+	AccountStateLoggedExpired
 )
 
 type Cmd uint8

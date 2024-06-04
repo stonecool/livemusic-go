@@ -1,5 +1,5 @@
 -- 爬虫账号
-CREATE TABLE `crawl_account` (
+CREATE TABLE `account` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `account_type`      VARCHAR(100) NOT NULL COMMENT 'account_type',
     `account_id`        VARCHAR(100) NOT NULL COMMENT 'account_id',

@@ -1,0 +1,57 @@
+package crawl
+
+import (
+	"github.com/stonecool/livemusic-go/internal"
+	"reflect"
+)
+
+type Crawl struct {
+	config  *internal.AccountConfig
+	account *Account
+}
+
+func (c *Crawl) GetId() string {
+	return c.account.AccountId
+}
+
+func (c *Crawl) GetName() string {
+	return c.account.AccountName
+}
+
+func (c *Crawl) CheckLogin() (bool, error) {
+	return false, nil
+}
+
+func (c *Crawl) Login() (bool, error) {
+	return false, nil
+}
+
+// websocket
+// 先启动，如果有cookie，尝试自动登录
+// 如果自动登录失败，返回“未登录”
+// 扫码登录
+// GetCrawl
+func GetCrawl(a *Account) ICrawl {
+	// FIXME
+	if a == nil || reflect.ValueOf(a).IsZero() {
+		return nil
+	}
+
+	cfg, ok := internal.AccountConfigMap[a.AccountType]
+	if !ok {
+		return nil
+	}
+
+	var crawl ICrawl
+	switch a.AccountType {
+	case "WxPublicAccount":
+		crawl = &WxPublicAccountCrawl{
+			Crawl: Crawl{
+				config:  &cfg,
+				account: a,
+			},
+		}
+	}
+
+	return crawl
+}

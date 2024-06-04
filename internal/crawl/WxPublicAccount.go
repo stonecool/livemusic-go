@@ -1,16 +1,11 @@
-package wx
+package crawl
 
-import (
-	"github.com/stonecool/livemusic-go/internal/crawl"
-)
-
-type Account struct {
-	crawl.Account
+type Account1 struct {
 }
 
 // TODO plugin
 func (a *Account) login() error {
-	//cfg, ok := config.AccountTemplateMap["WX"]
+	//cfg, ok := config.AccountConfigMap["WX"]
 	//if !ok {
 	//	return fmt.Errorf("miss config")
 	//}
@@ -25,7 +20,7 @@ func (a *Account) login() error {
 	return nil
 }
 
-func (a *Account) Crawl(instance *crawl.Instance) error {
+func (a *Account) Crawl1(instance *Instance) error {
 	return nil
 }
 

@@ -15,12 +15,48 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/crawl/{id}": {
+        "/api/v1/accounts": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Add a crawl account",
+                "parameters": [
+                    {
+                        "description": "created account object",
+                        "name": "form",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.addAccountForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/accounts/{id}": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get a single crawl instance",
+                "summary": "Get a single crawl account",
                 "parameters": [
                     {
                         "type": "integer",
@@ -47,48 +83,12 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/crawlAccounts": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Add crawl template",
-                "parameters": [
-                    {
-                        "description": "created template object",
-                        "name": "template",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.addAccountForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/http.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/crawlAccounts/{id}": {
+        "/api/v1/crawl/{id}": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get a single crawl account",
+                "summary": "Get a single crawl instance",
                 "parameters": [
                     {
                         "type": "integer",

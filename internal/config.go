@@ -12,13 +12,13 @@ var config conf
 var Server = &config.Server
 var Database = &config.Database
 var Redis = &config.Redis
-var AccountTemplateMap = config.AccountTemplateMap
+var AccountConfigMap map[string]AccountConfig
 
 type conf struct {
-	Server             server
-	Database           database
-	Redis              redis
-	AccountTemplateMap map[string]accountTemplate
+	Server           server
+	Database         database
+	Redis            redis
+	AccountConfigMap map[string]AccountConfig
 }
 
 type server struct {
@@ -48,13 +48,12 @@ type redis struct {
 	IdleTimeout int
 }
 
-type accountTemplate struct {
-	Name            string
-	Type            uint8
-	LoginURL        string
-	LoginHttpMethod string
-	URL             string
-	HttpMethod      string
+type AccountConfig struct {
+	Name          string
+	Type          uint8
+	CheckLoginURL string
+	LoginURL      string
+	HttpMethod    string
 }
 
 func init() {
@@ -69,4 +68,5 @@ func init() {
 	}
 
 	log.Println(config)
+	AccountConfigMap = config.AccountConfigMap
 }

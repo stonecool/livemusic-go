@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type CrawlAccount struct {
+type Account struct {
 	Model
 
 	AccountType string
@@ -14,23 +14,23 @@ type CrawlAccount struct {
 	State       uint8
 }
 
-// AddCrawlAccount Adds a new crawl account
-func AddCrawlAccount(data map[string]interface{}) (int, error) {
-	account := CrawlAccount{
+// AddAccount Adds a new crawl account
+func AddAccount(data map[string]interface{}) (*Account, error) {
+	account := Account{
 		AccountType: data["account_type"].(string),
 		State:       data["state"].(uint8),
 	}
 
 	if err := db.Create(&account).Error; err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return account.ID, nil
+	return &account, nil
 }
 
-// GetCrawlAccount Gets a crawl account by id
-func GetCrawlAccount(id int) (*CrawlAccount, error) {
-	var account CrawlAccount
+// GetAccount Gets a crawl account by id
+func GetAccount(id int) (*Account, error) {
+	var account Account
 	if err := db.Where("id = ?", id).First(&account).Error; err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -39,13 +39,13 @@ func GetCrawlAccount(id int) (*CrawlAccount, error) {
 }
 
 // GetCrawlAccounts Gets all account
-func GetCrawlAccountsByType(accountType string) ([]*CrawlAccount, error) {
-	var accounts []CrawlAccount
+func GetAccountsByType(accountType string) ([]*Account, error) {
+	var accounts []Account
 	if err := db.Where("deleted_at != 0 AND account_type = ?", accountType).Find(&accounts).Error; err != nil {
 		return nil, err
 	}
 
-	ret := make([]*CrawlAccount, len(accounts), len(accounts))
+	ret := make([]*Account, len(accounts), len(accounts))
 	for i, _ := range accounts {
 		ret[i] = &accounts[i]
 	}

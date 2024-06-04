@@ -29,6 +29,50 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/v1/accounts:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: created account object
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.addAccountForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Add a crawl account
+  /api/v1/accounts/{id}:
+    get:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Get a single crawl account
   /api/v1/crawl/{id}:
     get:
       parameters:
@@ -50,50 +94,6 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Get a single crawl instance
-  /api/v1/crawlAccounts:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: created template object
-        in: body
-        name: template
-        required: true
-        schema:
-          $ref: '#/definitions/api.addAccountForm'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: Add crawl template
-  /api/v1/crawlAccounts/{id}:
-    get:
-      parameters:
-      - default: 1
-        description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: Get a single crawl account
   /api/v1/crawlInstances:
     post:
       consumes:

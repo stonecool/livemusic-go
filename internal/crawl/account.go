@@ -8,63 +8,46 @@ import (
 )
 
 type Account struct {
-	ID          int                    `json:"id"`
-	AccountType string                 `json:"account_type"`
-	AccountId   string                 `json:"account_id"`
-	AccountName string                 `json:"account_name"`
-	Headers     map[string]interface{} `json:"headers"`
-	State       uint8                  `json:"state"`
+	ID          int    `json:"id"`
+	AccountType string `json:"account_type"`
+	AccountId   string `json:"account_id"`
+	AccountName string `json:"account_name"`
+	cookies     map[string]interface{}
+	State       uint8 `json:"state"`
 }
 
-func (a *Account) Add() error {
-	account := map[string]interface{}{
-		"account_type": a.AccountType,
-		"state":        uint8(0),
+func AddAccount(accountType string) (*Account, error) {
+	data := map[string]interface{}{
+		"account_type": accountType,
+		"state":        AccountStateUnLogged,
 	}
 
-	if templateId, err := model.AddCrawlAccount(account); err != nil {
-		return err
+	if m, err := model.AddAccount(data); err != nil {
+		return nil, err
 	} else {
-		a.ID = templateId
-		return nil
+		account := Account{
+			ID:          m.ID,
+			AccountType: m.AccountType,
+			State:       m.State,
+		}
+
+		return &account, nil
 	}
 }
 
-// GetHeaders
-func (a *Account) GetHeaders() (map[string]interface{}, error) {
-	return a.Headers, nil
-}
-
-// GetQueryParams
-func (a *Account) GetQueryParams() (map[string]interface{}, error) {
-	params := make(map[string]interface{})
-	//if err := json.Unmarshal([]byte(a.QueryParams), &params); err != nil {
-	//	return nil, err
-	//}
-
-	return params, nil
-}
-
-// GetFormData
-func (a *Account) GetFormData() string {
-	return ""
-}
-
-func GetCrawlAccountByID(id int) (interface{}, error) {
-	var p *model.CrawlAccount
-	p, err := model.GetCrawlAccount(id)
+func GetAccountByID(id int) (*Account, error) {
+	m, err := model.GetAccount(id)
 	if err != nil {
 		log.Printf("error: %s", err)
 		return nil, err
 	}
 
-	if reflect.ValueOf(*p).IsZero() {
+	if reflect.ValueOf(*m).IsZero() {
 		return &Account{}, nil
 	}
 
 	account := Account{
-		ID:      p.ID,
-		Headers: make(map[string]interface{}),
+		ID: m.ID,
 	}
 
 	return &account, nil
