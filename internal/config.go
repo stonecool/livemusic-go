@@ -49,11 +49,12 @@ type redis struct {
 }
 
 type AccountConfig struct {
-	Name          string
-	Type          uint8
-	CheckLoginURL string
-	LoginURL      string
-	HttpMethod    string
+	Name           string
+	Type           uint8
+	CheckLoginURL  string
+	LoginURL       string
+	HttpMethod     string
+	QRCodeSelector string
 }
 
 func init() {

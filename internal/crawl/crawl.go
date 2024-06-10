@@ -1,6 +1,7 @@
 package crawl
 
 import (
+	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"reflect"
 )
@@ -14,8 +15,16 @@ func (c *Crawl) GetId() string {
 	return c.account.AccountId
 }
 
+func (c *Crawl) setId(id string) {
+	c.account.AccountId = id
+}
+
 func (c *Crawl) GetName() string {
 	return c.account.AccountName
+}
+
+func (c *Crawl) SetName(name string) {
+	c.account.AccountName = name
 }
 
 func (c *Crawl) CheckLogin() (bool, error) {
@@ -24,6 +33,29 @@ func (c *Crawl) CheckLogin() (bool, error) {
 
 func (c *Crawl) Login() (bool, error) {
 	return false, nil
+}
+
+func (c *Crawl) GetLoginURL() string {
+	return c.config.LoginURL
+}
+
+func (c *Crawl) GetQRCode(data []byte) {
+
+}
+
+func (c *Crawl) GetQRCodeSelector() string {
+	return ""
+}
+
+func (c *Crawl) WaitLogin() chromedp.ActionFunc {
+	return nil
+}
+
+func (c *Crawl) SaveCookies([]byte) {
+}
+
+func (c *Crawl) GetLoginSelector() string {
+	return ""
 }
 
 // websocket

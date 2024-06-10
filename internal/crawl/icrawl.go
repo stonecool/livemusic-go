@@ -1,5 +1,7 @@
 package crawl
 
+import "github.com/chromedp/chromedp"
+
 type ICrawl interface {
 	GetId() string
 
@@ -13,7 +15,17 @@ type ICrawl interface {
 
 	Login() (bool, error)
 
-	CheckLogin() (bool, error)
+	CheckLogin() chromedp.ActionFunc
+
+	GetLoginURL() string
+
+	GetQRCode([]byte)
+
+	GetQRCodeSelector() string
+
+	WaitLogin() chromedp.ActionFunc
+
+	SaveCookies([]byte)
 
 	//Crawl(instance *Instance) error
 	//

@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/crawl"
 	"log"
 	"os"
 	"time"
 )
 
 // QRCodeLogin
-func QRCodeLogin(loginURL string, cookieFilePath, qrCodeFilePath string, qrcodeSel, loggedSel string, checkLoginStatus chromedp.ActionFunc) error {
+func QRCodeLogin(iCrawl crawl.ICrawl) error {
 	ctx, _ := chromedp.NewExecAllocator(
 		context.Background(),
 
@@ -39,11 +40,12 @@ func QRCodeLogin(loginURL string, cookieFilePath, qrCodeFilePath string, qrcodeS
 	defer cancel()
 
 	err := chromedp.Run(ctx,
-		loadCookies(cookieFilePath),
-		checkLoginStatus,
-		saveCode(loginURL, qrcodeSel, qrCodeFilePath),
-		saveCookies(cookieFilePath, loggedSel),
-		checkLoginStatus,
+		getQRCode(iCrawl),
+		iCrawl.WaitLogin(),
+		iCrawl.CheckLogin(),
+		saveCookies(iCrawl),
+		// TODO if every err should stop?
+		chromedp.Stop(),
 	)
 
 	if err != nil {
@@ -52,6 +54,52 @@ func QRCodeLogin(loginURL string, cookieFilePath, qrCodeFilePath string, qrcodeS
 	}
 
 	return nil
+}
+
+// getQRCode get qr code
+func getQRCode(iCrawl crawl.ICrawl) chromedp.ActionFunc {
+	return func(ctx context.Context) (err error) {
+		chromedp.Navigate(iCrawl.GetLoginURL())
+		if err = chromedp.WaitVisible(iCrawl.GetQRCodeSelector(), chromedp.ByID).Do(ctx); err != nil {
+			return
+		}
+
+		var code []byte
+		if err = chromedp.Screenshot(iCrawl.GetQRCodeSelector(), &code, chromedp.ByID).Do(ctx); err != nil {
+			return
+		}
+
+		iCrawl.GetQRCode(code)
+		return
+	}
+}
+
+// TODO Ref:https://github.com/chromedp/chromedp/issues/484
+func getCode1(selector string) chromedp.ActionFunc {
+	return func(ctx context.Context) (err error) {
+		// 1. 用于存储图片的字节切片
+		var code []byte
+
+		template := `
+			var img = document.querySelector('%s');
+			var c = document.createElement('canvas');
+			
+			c.height = img.naturalHeight;
+			c.width = img.naturalWidth;
+			var ctx = c.getContext('2d');
+			ctx.drawImage(img, 0, 0, c.width, c.height);
+			c.toDataURL('image/png');`
+
+		chromedp.Evaluate(fmt.Sprintf(template, selector), &code)
+
+		// 3. 保存文件
+		if err = os.WriteFile("code.png", code, 0755); err != nil {
+			log.Printf("%s", err)
+			return
+		}
+
+		return
+	}
 }
 
 func loadCookies(path string) chromedp.ActionFunc {
@@ -80,83 +128,19 @@ func loadCookies(path string) chromedp.ActionFunc {
 	}
 }
 
-func saveCookies(path, sel string) chromedp.ActionFunc {
+func saveCookies(iCrawl crawl.ICrawl) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
-		if path == "" || sel == "" {
-			return
-		}
-
-		if err = chromedp.WaitVisible(sel, chromedp.ByID).Do(ctx); err != nil {
-			return
-		}
-
 		cookies, err := network.GetCookies().Do(ctx)
 		if err != nil {
 			return
 		}
 
-		cookiesData, err := network.GetCookiesReturns{Cookies: cookies}.MarshalJSON()
+		data, err := network.GetCookiesReturns{Cookies: cookies}.MarshalJSON()
 		if err != nil {
 			return
 		}
 
-		if err = os.WriteFile(path, cookiesData, 0755); err != nil {
-			return
-		}
-
-		return
-	}
-}
-
-// saveCode save qr code
-func saveCode(url, sel, path string) chromedp.ActionFunc {
-	return func(ctx context.Context) (err error) {
-		if url == "" || sel == "" || path == "" {
-			return
-		}
-
-		chromedp.Navigate(url)
-		if err = chromedp.WaitVisible(sel, chromedp.ByID).Do(ctx); err != nil {
-			return
-		}
-
-		var code []byte
-		if err = chromedp.Screenshot(sel, &code, chromedp.ByID).Do(ctx); err != nil {
-			return
-		}
-
-		if err = os.WriteFile(path, code, 0755); err != nil {
-			return
-		}
-
-		log.Printf("save qr code at:%s\n", path)
-		return
-	}
-}
-
-// TODO Ref:https://github.com/chromedp/chromedp/issues/484
-func getCode1(selector string) chromedp.ActionFunc {
-	return func(ctx context.Context) (err error) {
-		// 1. 用于存储图片的字节切片
-		var code []byte
-
-		template := `
-			var img = document.querySelector('%s');
-			var c = document.createElement('canvas');
-			
-			c.height = img.naturalHeight;
-			c.width = img.naturalWidth;
-			var ctx = c.getContext('2d');
-			ctx.drawImage(img, 0, 0, c.width, c.height);
-			c.toDataURL('image/png');`
-
-		chromedp.Evaluate(fmt.Sprintf(template, selector), &code)
-
-		// 3. 保存文件
-		if err = os.WriteFile("code.png", code, 0755); err != nil {
-			log.Printf("%s", err)
-			return
-		}
+		iCrawl.SaveCookies(data)
 
 		return
 	}
