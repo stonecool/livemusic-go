@@ -7,11 +7,11 @@ import (
 	"log"
 )
 
-type WxPublicAccountCrawl struct {
+type WxCrawl struct {
 	Crawl
 }
 
-func (c *WxPublicAccountCrawl) Login() (bool, error) {
+func (c *WxCrawl) Login() (bool, error) {
 	//var lastLoggedPath = "https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN&token=2098303583"
 	//get cookie to colly
 
@@ -24,7 +24,7 @@ func (c *WxPublicAccountCrawl) Login() (bool, error) {
 	return false, nil
 }
 
-func (c *WxPublicAccountCrawl) WaitLogin() chromedp.ActionFunc {
+func (c *WxCrawl) WaitLogin() chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		if err = chromedp.WaitVisible(`#app > div.main_bd_new`, chromedp.ByID).Do(ctx); err != nil {
 			return
@@ -34,7 +34,7 @@ func (c *WxPublicAccountCrawl) WaitLogin() chromedp.ActionFunc {
 	}
 }
 
-func (c *WxPublicAccountCrawl) CheckLogin() chromedp.ActionFunc {
+func (c *WxCrawl) CheckLogin() chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		chromedp.Navigate(c.config.LoginURL)
 

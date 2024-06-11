@@ -14,27 +14,23 @@ import (
 	"time"
 )
 
-type addInstanceForm struct {
-	Name        string                 `json:"name" valid:"Required;MaxSize(255)"`
-	AccountId   int                    `json:"account_id" valid:"Required;Min(1)"`
-	Headers     map[string]interface{} `json:"headers"`
-	QueryParams string                 `json:"query_params" valid:"MaxSize(255)"`
-	FormData    string                 `json:"form_data" valid:"MaxSize(255)"`
+type addCrawlForm struct {
+	CrawlType string `json:"crawl_type" valid:"Required;MaxSize(255)"`
 }
 
-// AddCrawlInstance
+// AddCrawl
 //
-//	@Summary	Add crawl instance
+//	@Summary	Add a crawl
 //	@Accept		json
-//	@Param		instance	body	api.addInstanceForm	true	"created instance object"
+//	@Param		form	body	api.addCrawlForm	true	"created crawl object"
 //	@Produce	json
 //	@Success	200	{object}	http.Response
 //	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/crawlInstances [post]
-func AddCrawlInstance(ctx *gin.Context) {
+//	@Router		/api/v1/crawls [post]
+func AddCrawl(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addInstanceForm
+		form    addCrawlForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
@@ -43,40 +39,37 @@ func AddCrawlInstance(ctx *gin.Context) {
 		return
 	}
 
-	if _, err := crawl.GetAccountByID(form.AccountId); err != nil {
-		context.Response(http.StatusBadRequest, http2.ErrorNotExists, nil)
+	crawlType := form.CrawlType
+	_, ok := internal.AccountConfigMap[crawlType]
+	if !ok {
+		context.Response(http.StatusBadRequest, http2.Error, nil)
 		return
 	}
 
-	instance := crawl.Instance{
-		Name:      form.Name,
-		AccountId: form.AccountId,
-	}
-
-	if err := instance.Add(); err != nil {
-		context.Response(http.StatusBadRequest, -1, nil)
+	if account, err := crawl.AddCrawl(form.CrawlType); err != nil {
+		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, 0, instance)
+		context.Response(http.StatusCreated, http2.Success, account)
 	}
 }
 
-// GetCrawlInstance
+// GetCrawl
 //
-//	@Summary	Get a single crawl instance
+//	@Summary	Get a single crawl
 //	@Param		id	path	int	true	"ID"	default(1)
 //	@Produce	json
 //	@Success	200	{object}	http.Response
 //	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/crawlInstances/{id} [get]
-func GetCrawlInstance(ctx *gin.Context) {
-	type Form struct {
+//	@Router		/api/v1/crawls/{id} [get]
+func GetCrawl(ctx *gin.Context) {
+	type getForm struct {
 		ID int `valid:"Required;Min(1)"`
 	}
 
 	var (
-		context  = http2.Context{Context: ctx}
-		form     Form
-		instance *crawl.Instance
+		context = http2.Context{Context: ctx}
+		form    getForm
+		m       *crawl.Crawl
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
@@ -86,32 +79,33 @@ func GetCrawlInstance(ctx *gin.Context) {
 		return
 	}
 
-	instance, err := crawl.GetCrawlInstanceByID(form.ID)
+	m, err := crawl.GetCrawlByID(form.ID)
 	if err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 		return
 	}
 
-	if reflect.ValueOf(*instance).IsZero() {
+	if reflect.ValueOf(*m).IsZero() {
 		context.Response(http.StatusOK, -1, nil)
 		return
 	}
 
-	context.Response(http.StatusOK, 0, instance)
+	context.Response(http.StatusOK, 0, m)
 }
 
-// GetCrawlInstances
-func GetCrawlInstances(ctx *gin.Context) {
+// GetCrawls
+//
+//	@Summary	Get multiple accounts
+//	@Produce	json
+//	@Success	200	{object}	http.Response
+//	@Failure	500	{object}	http.Response
+//	@Router		/api/v1/crawls [get]
+func GetCrawls(ctx *gin.Context) {
 
 }
 
-// EditCrawlInstance
-func EditCrawlInstance(ctx *gin.Context) {
-
-}
-
-// DeleteCrawlInstance
-func DeleteCrawlInstance(ctx *gin.Context) {
+// DeleteCrawl
+func DeleteCrawl(ctx *gin.Context) {
 
 }
 

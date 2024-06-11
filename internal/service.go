@@ -1,4 +1,4 @@
-package crawl
+package internal
 
 //func Test(id int) error {
 //	crawl := GetCrawl(nil)
@@ -59,33 +59,33 @@ package crawl
 //	}
 //}
 
-func startCrawl(instance *Instance) error {
-	//if instance == nil {
-	//	return fmt.Errorf("instance is nil")
-	//}
-	//
-	//account, err := GetAccountByID(instance.AccountId)
-	//if err != nil {
-	//	log.Printf("%s", err)
-	//	return err
-	//}
-	//
-	//ticker := time.NewTicker(30 * time.Second)
-	//defer ticker.Stop()
+//func startCrawl(instance *Instance) error {
+//if instance == nil {
+//	return fmt.Errorf("instance is nil")
+//}
+//
+//account, err := GetCrawlByID(instance.AccountId)
+//if err != nil {
+//	log.Printf("%s", err)
+//	return err
+//}
+//
+//ticker := time.NewTicker(30 * time.Second)
+//defer ticker.Stop()
 
-	//for {
-	//	select {
-	//	case <-ticker.C:
-	//		if account.State == 1 {
-	//			return nil
-	//		}
-	//
-	//		account.GetChan() <- CmdRequest{
-	//			cmd:      CmdCrawl,
-	//			instance: instance,
-	//		}
-	//	}
-	//}
+//for {
+//	select {
+//	case <-ticker.C:
+//		if account.State == 1 {
+//			return nil
+//		}
+//
+//		account.GetChan() <- CmdRequest{
+//			cmd:      CmdCrawl,
+//			instance: instance,
+//		}
+//	}
+//}
 
-	return nil
-}
+//	return nil
+//}

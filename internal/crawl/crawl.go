@@ -3,13 +3,66 @@ package crawl
 import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/model"
+	"log"
 	"reflect"
 )
 
 type Crawl struct {
-	config  *internal.AccountConfig
-	account *Account
-	ch      chan []byte
+	ID          int    `json:"id"`
+	AccountType string `json:"account_type"`
+	AccountId   string `json:"account_id"`
+	AccountName string `json:"account_name"`
+	cookies     map[string]interface{}
+	State       uint8 `json:"state"`
+	config      *internal.AccountConfig
+	account     *Crawl
+	ch          chan []byte
+}
+
+func AddCrawl(crawlType string) (*Crawl, error) {
+	data := map[string]interface{}{
+		"crawl_type": crawlType,
+		"state":      internal.CsNotLoggedIn,
+	}
+
+	if m, err := model.AddCrawl(data); err != nil {
+		return nil, err
+	} else {
+		crawl := Crawl{
+			ID:          m.ID,
+			AccountType: m.CrawlType,
+			State:       m.State,
+		}
+
+		return &crawl, nil
+	}
+}
+
+func GetCrawlByID(id int) (*Crawl, error) {
+	m, err := model.GetCrawl(id)
+	if err != nil {
+		log.Printf("error: %s", err)
+		return nil, err
+	}
+
+	if reflect.ValueOf(*m).IsZero() {
+		return &Crawl{}, nil
+	}
+
+	crawl := Crawl{
+		ID: m.ID,
+	}
+
+	return &crawl, nil
+}
+
+func (c *Crawl) GetCookies() []byte {
+	return nil
+}
+
+func (c *Crawl) GetChan() chan []byte {
+	return nil
 }
 
 func (c *Crawl) GetId() string {
@@ -59,20 +112,12 @@ func (c *Crawl) GetLoginSelector() string {
 	return ""
 }
 
-func (c *Crawl) GetCookies() []byte {
-	return c.account.GetCookies()
-}
-
-func (c *Crawl) GetChan() chan []byte {
-	return nil
-}
-
 // websocket
 // 先启动，如果有cookie，尝试自动登录
 // 如果自动登录失败，返回“未登录”
 // 扫码登录
-// GetCrawl
-func GetCrawl(a *Account) ICrawl {
+// getCrawl
+func getCrawl(a *Crawl) ICrawl {
 	// FIXME
 	if a == nil || reflect.ValueOf(a).IsZero() {
 		return nil
@@ -86,7 +131,7 @@ func GetCrawl(a *Account) ICrawl {
 	var crawl ICrawl
 	switch a.AccountType {
 	case "WxPublicAccount":
-		crawl = &WxPublicAccountCrawl{
+		crawl = &WxCrawl{
 			Crawl: Crawl{
 				config:  &cfg,
 				account: a,
