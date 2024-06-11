@@ -3,7 +3,6 @@ package util
 import (
 	"context"
 	"fmt"
-	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/crawl"
 	"log"
@@ -43,7 +42,7 @@ func QRCodeLogin(iCrawl crawl.ICrawl) error {
 		getQRCode(iCrawl),
 		iCrawl.WaitLogin(),
 		iCrawl.CheckLogin(),
-		saveCookies(iCrawl),
+		setCookies(iCrawl),
 		// TODO if every err should stop?
 		chromedp.Stop(),
 	)
@@ -102,46 +101,46 @@ func getCode1(selector string) chromedp.ActionFunc {
 	}
 }
 
-func loadCookies(path string) chromedp.ActionFunc {
-	return func(ctx context.Context) (err error) {
-		if path == "" {
-			return
-		}
+// checkLogin
+func checkLogin(iCrawl crawl.ICrawl) error {
+	ctx, _ := chromedp.NewExecAllocator(
+		context.Background(),
 
-		if _, _err := os.Stat(path); os.IsNotExist(_err) {
-			return
-		}
+		append(
+			chromedp.DefaultExecAllocatorOptions[:],
+			//chromedp.NoDefaultBrowserCheck,
+			chromedp.Flag("headless", false),
+			//chromedp.Flag("hide-scrollbars", false),
+			//chromedp.Flag("mute-audio", false),
+			//chromedp.Flag("ignore-certificate-errors", true),
+			//chromedp.Flag("disable-web-security", true),
+			//chromedp.Flag("disable-gpu", false),
+			//chromedp.NoFirstRun,
+			//chromedp.Flag("enable-automation", false),
+			//chromedp.Flag("disable-extensions", false),
+		)...,
+	)
 
-		cookiesData, err := os.ReadFile(path)
-		if err != nil {
-			log.Printf("%s", err)
-			return
-		}
+	// create chrome instance
+	ctx, cancel := chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
+	defer cancel()
 
-		cookiesParams := network.SetCookiesParams{}
-		if err = cookiesParams.UnmarshalJSON(cookiesData); err != nil {
-			log.Printf("%s", err)
-			return
-		}
+	// create a timeout
+	ctx, cancel = context.WithTimeout(ctx, 150*time.Second)
+	defer cancel()
 
-		return network.SetCookies(cookiesParams.Cookies).Do(ctx)
+	err := chromedp.Run(ctx,
+		getCookies(iCrawl),
+		iCrawl.WaitLogin(),
+		iCrawl.CheckLogin(),
+		// TODO if every err should stop?
+		chromedp.Stop(),
+	)
+
+	if err != nil {
+		log.Fatal(err)
+		return err
 	}
-}
 
-func saveCookies(iCrawl crawl.ICrawl) chromedp.ActionFunc {
-	return func(ctx context.Context) (err error) {
-		cookies, err := network.GetCookies().Do(ctx)
-		if err != nil {
-			return
-		}
-
-		data, err := network.GetCookiesReturns{Cookies: cookies}.MarshalJSON()
-		if err != nil {
-			return
-		}
-
-		iCrawl.SaveCookies(data)
-
-		return
-	}
+	return nil
 }

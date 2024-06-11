@@ -2,11 +2,16 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/crawl"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
+	"go.uber.org/zap"
+	"log"
 	"net/http"
 	"reflect"
+	"time"
 )
 
 type addInstanceForm struct {
@@ -108,4 +113,54 @@ func EditCrawlInstance(ctx *gin.Context) {
 // DeleteCrawlInstance
 func DeleteCrawlInstance(ctx *gin.Context) {
 
+}
+
+func CrawlWS(ctx *gin.Context) {
+	type Form struct {
+		ID int `valid:"Required;Min(1)"`
+	}
+
+	var (
+		context = http2.Context{Context: ctx}
+		form    Form
+	)
+
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	httpCode, errCode := Valid(&form)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		return
+	}
+	defer func(conn *websocket.Conn) {
+		err := conn.Close()
+		if err != nil {
+			internal.Logger.Warn("defer ws connect error", zap.Error(err))
+			return
+		}
+	}(conn)
+
+	for {
+		mt, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			break
+		}
+
+		err = conn.WriteMessage(mt, message)
+		if err != nil {
+			internal.Logger.Warn("ws write error", zap.Error(err))
+			return
+		}
+		time.Sleep(time.Second)
+	}
 }

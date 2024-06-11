@@ -2,16 +2,12 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/crawl"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
-	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"reflect"
-	"time"
 )
 
 type addAccountForm struct {
@@ -107,38 +103,4 @@ func GetAccounts(ctx *gin.Context) {
 // DeleteAccount
 func DeleteAccount(ctx *gin.Context) {
 
-}
-
-func CrawlWS(ctx *gin.Context) {
-	var upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-
-	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
-	if err != nil {
-		return
-	}
-	defer func(conn *websocket.Conn) {
-		err := conn.Close()
-		if err != nil {
-			internal.Logger.Warn("defer ws connect error", zap.Error(err))
-			return
-		}
-	}(conn)
-
-	for {
-		mt, message, err := conn.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			break
-		}
-
-		err = conn.WriteMessage(mt, message)
-		if err != nil {
-			internal.Logger.Warn("ws write error", zap.Error(err))
-			return
-		}
-		time.Sleep(time.Second)
-	}
 }

@@ -88,3 +88,7 @@ func (a *Account) LoginRequestCallback(request *colly.Request) error {
 func (a *Account) LoginResponseCallback(response *colly.Response) error {
 	return nil
 }
+
+func (a *Account) GetCookies() []byte {
+	return nil
+}

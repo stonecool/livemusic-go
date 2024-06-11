@@ -17,7 +17,7 @@ func InitRouter(engine *gin.Engine) error {
 	apiV1.GET("/accounts/:id", api.GetAccount)
 	apiV1.GET("/accounts", api.GetAccounts)
 	apiV1.DELETE("/accounts/:id", api.DeleteAccount)
-	apiV1.GET("/crawls/ws", api.CrawlWS)
+	apiV1.GET("/crawls/ws/:id", api.CrawlWS)
 
 	// 爬虫实例
 	apiV1.POST("/crawlInstances", api.AddCrawlInstance)

@@ -27,6 +27,10 @@ type ICrawl interface {
 
 	SaveCookies([]byte)
 
+	GetCookies() []byte
+
+	GetChan() chan []byte
+
 	//Crawl(instance *Instance) error
 	//
 	//GetLoginRequestData() []byte

@@ -9,6 +9,7 @@ import (
 type Crawl struct {
 	config  *internal.AccountConfig
 	account *Account
+	ch      chan []byte
 }
 
 func (c *Crawl) GetId() string {
@@ -58,6 +59,14 @@ func (c *Crawl) GetLoginSelector() string {
 	return ""
 }
 
+func (c *Crawl) GetCookies() []byte {
+	return c.account.GetCookies()
+}
+
+func (c *Crawl) GetChan() chan []byte {
+	return nil
+}
+
 // websocket
 // 先启动，如果有cookie，尝试自动登录
 // 如果自动登录失败，返回“未登录”
@@ -81,6 +90,7 @@ func GetCrawl(a *Account) ICrawl {
 			Crawl: Crawl{
 				config:  &cfg,
 				account: a,
+				ch:      make(chan []byte),
 			},
 		}
 	}

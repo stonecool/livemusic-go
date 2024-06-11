@@ -24,6 +24,16 @@ func (c *WxPublicAccountCrawl) Login() (bool, error) {
 	return false, nil
 }
 
+func (c *WxPublicAccountCrawl) WaitLogin() chromedp.ActionFunc {
+	return func(ctx context.Context) (err error) {
+		if err = chromedp.WaitVisible(`#app > div.main_bd_new`, chromedp.ByID).Do(ctx); err != nil {
+			return
+		}
+
+		return
+	}
+}
+
 func (c *WxPublicAccountCrawl) CheckLogin() chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		chromedp.Navigate(c.config.LoginURL)
@@ -44,16 +54,6 @@ func (c *WxPublicAccountCrawl) CheckLogin() chromedp.ActionFunc {
 		}
 
 		log.Println("login succeed.")
-
-		return
-	}
-}
-
-func (c *WxPublicAccountCrawl) WaitLogin() chromedp.ActionFunc {
-	return func(ctx context.Context) (err error) {
-		if err = chromedp.WaitVisible(`#app > div.main_bd_new`, chromedp.ByID).Do(ctx); err != nil {
-			return
-		}
 
 		return
 	}
