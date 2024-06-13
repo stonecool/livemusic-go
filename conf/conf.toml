@@ -23,18 +23,8 @@ MaxIdle = 30
 MaxActive = 30
 IdleTimeout = 200
 
-[AccountTemplateMap.WxPublicAccount]
+[CrawlAccountMap.wx]
 Name = "微信公众号"
 Type = 0
 LoginURL = "https://mp.weixin.qq.com/cgi-bin/loginpage"
-LoginHttpMethod = ""
-URL = "https://mp.weixin.qq.com/cgi-bin/appmsg"
-HttpMethod = "GET"
-
-[AccountTemplateMap.WB]
-Name = "微博"
-Type = 0
-LoginURL = "https://mp.weixin.qq.com/cgi-bin/appmsg"
-LoginHttpMethod = "POST"
-URL = "https://mp.weixin.qq.com/cgi-bin/appmsg"
-HttpMethod = "GET"
+CheckLoginURL = "https://mp.weixin.qq.com/cgi-bin/appmsg"

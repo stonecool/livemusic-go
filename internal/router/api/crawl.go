@@ -40,7 +40,7 @@ func AddCrawl(ctx *gin.Context) {
 	}
 
 	crawlType := form.CrawlType
-	_, ok := internal.AccountConfigMap[crawlType]
+	_, ok := internal.CrawlAccountMap[crawlType]
 	if !ok {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 		return

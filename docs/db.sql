@@ -1,16 +1,16 @@
--- 爬虫账号
-CREATE TABLE `account` (
+-- 爬虫
+CREATE TABLE `crawl` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `account_type`      VARCHAR(100) NOT NULL COMMENT 'account_type',
-    `account_id`        VARCHAR(100) NOT NULL COMMENT 'account_id',
-    `account_name`      VARCHAR(100) NOT NULL COMMENT 'account_name',
-    `cookies`           TEXT COMMENT 'cookies',
-    `state`             TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'state',
     `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
     `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
+    `crawl_type`        VARCHAR(100) NOT NULL COMMENT 'crawl_type',
+    `account_id`        VARCHAR(100) NOT NULL COMMENT 'account_id',
+    `account_name`      VARCHAR(100) NOT NULL COMMENT 'account_name',
+    `cookies`           BLOB COMMENT 'cookies',
+    `state`             TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'state',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl account';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl';
 
 -- 爬虫
 CREATE TABLE `crawl_instance` (

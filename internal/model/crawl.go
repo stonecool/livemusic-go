@@ -10,7 +10,7 @@ type Crawl struct {
 	CrawlType   string
 	AccountId   string
 	AccountName string
-	Cookies     string
+	Cookies     []byte
 	State       uint8
 }
 

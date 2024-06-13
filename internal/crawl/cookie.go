@@ -1,15 +1,14 @@
-package util
+package crawl
 
 import (
 	"context"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/crawl"
 	"log"
 )
 
 // getCookies
-func getCookies(iCrawl crawl.ICrawl) chromedp.ActionFunc {
+func getCookies(iCrawl ICrawl) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookiesParams := network.SetCookiesParams{}
 		if err = cookiesParams.UnmarshalJSON(iCrawl.GetCookies()); err != nil {
@@ -22,7 +21,7 @@ func getCookies(iCrawl crawl.ICrawl) chromedp.ActionFunc {
 }
 
 // setCookies
-func setCookies(iCrawl crawl.ICrawl) chromedp.ActionFunc {
+func setCookies(iCrawl ICrawl) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookies, err := network.GetCookies().Do(ctx)
 		if err != nil {

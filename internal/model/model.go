@@ -12,10 +12,10 @@ import (
 var db *gorm.DB
 
 type Model struct {
-	ID        int `gorm:"primary key" json:"id"`
-	CreatedAt int `json:"created_at"`
-	UpdatedAt int `json:"updated_at"`
-	DeletedAt int `json:"deleted_at"`
+	ID        int `gorm:"primary key"`
+	CreatedAt int
+	UpdatedAt int
+	DeletedAt int
 }
 
 // init initializes the database instance

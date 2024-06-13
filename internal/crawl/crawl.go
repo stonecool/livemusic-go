@@ -10,29 +10,28 @@ import (
 
 type Crawl struct {
 	ID          int    `json:"id"`
-	AccountType string `json:"account_type"`
+	CrawlType   string `json:"crawl_type"`
 	AccountId   string `json:"account_id"`
 	AccountName string `json:"account_name"`
-	cookies     map[string]interface{}
+	cookies     []byte
 	State       uint8 `json:"state"`
-	config      *internal.AccountConfig
-	account     *Crawl
+	config      *internal.CrawlAccount
 	ch          chan []byte
 }
 
 func AddCrawl(crawlType string) (*Crawl, error) {
 	data := map[string]interface{}{
 		"crawl_type": crawlType,
-		"state":      internal.CsNotLoggedIn,
+		"state":      uint8(internal.CsNotLoggedIn),
 	}
 
 	if m, err := model.AddCrawl(data); err != nil {
 		return nil, err
 	} else {
 		crawl := Crawl{
-			ID:          m.ID,
-			AccountType: m.CrawlType,
-			State:       m.State,
+			ID:        m.ID,
+			CrawlType: m.CrawlType,
+			State:     m.State,
 		}
 
 		return &crawl, nil
@@ -51,7 +50,9 @@ func GetCrawlByID(id int) (*Crawl, error) {
 	}
 
 	crawl := Crawl{
-		ID: m.ID,
+		ID:        m.ID,
+		CrawlType: m.CrawlType,
+		State:     m.State,
 	}
 
 	return &crawl, nil
@@ -66,19 +67,19 @@ func (c *Crawl) GetChan() chan []byte {
 }
 
 func (c *Crawl) GetId() string {
-	return c.account.AccountId
+	return c.AccountId
 }
 
 func (c *Crawl) setId(id string) {
-	c.account.AccountId = id
+	c.AccountId = id
 }
 
 func (c *Crawl) GetName() string {
-	return c.account.AccountName
+	return c.AccountName
 }
 
 func (c *Crawl) SetName(name string) {
-	c.account.AccountName = name
+	c.AccountName = name
 }
 
 func (c *Crawl) CheckLogin() (bool, error) {
@@ -123,19 +124,18 @@ func getCrawl(a *Crawl) ICrawl {
 		return nil
 	}
 
-	cfg, ok := internal.AccountConfigMap[a.AccountType]
+	cfg, ok := internal.CrawlAccountMap[a.CrawlType]
 	if !ok {
 		return nil
 	}
 
 	var crawl ICrawl
-	switch a.AccountType {
-	case "WxPublicAccount":
+	switch a.CrawlType {
+	case "wx":
 		crawl = &WxCrawl{
 			Crawl: Crawl{
-				config:  &cfg,
-				account: a,
-				ch:      make(chan []byte),
+				config: &cfg,
+				ch:     make(chan []byte),
 			},
 		}
 	}

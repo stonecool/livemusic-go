@@ -1,17 +1,16 @@
-package util
+package crawl
 
 import (
 	"context"
 	"fmt"
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/crawl"
 	"log"
 	"os"
 	"time"
 )
 
 // QRCodeLogin
-func QRCodeLogin(iCrawl crawl.ICrawl) error {
+func QRCodeLogin(iCrawl ICrawl) error {
 	ctx, _ := chromedp.NewExecAllocator(
 		context.Background(),
 
@@ -56,7 +55,7 @@ func QRCodeLogin(iCrawl crawl.ICrawl) error {
 }
 
 // getQRCode get qr code
-func getQRCode(iCrawl crawl.ICrawl) chromedp.ActionFunc {
+func getQRCode(iCrawl ICrawl) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		chromedp.Navigate(iCrawl.GetLoginURL())
 		if err = chromedp.WaitVisible(iCrawl.GetQRCodeSelector(), chromedp.ByID).Do(ctx); err != nil {
@@ -102,7 +101,7 @@ func getCode1(selector string) chromedp.ActionFunc {
 }
 
 // checkLogin
-func checkLogin(iCrawl crawl.ICrawl) error {
+func checkLogin(iCrawl ICrawl) error {
 	ctx, _ := chromedp.NewExecAllocator(
 		context.Background(),
 

@@ -3,7 +3,6 @@ package crawl
 import (
 	"context"
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/util"
 	"log"
 )
 
@@ -15,7 +14,7 @@ func (c *WxCrawl) Login() (bool, error) {
 	//var lastLoggedPath = "https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN&token=2098303583"
 	//get cookie to colly
 
-	err := util.QRCodeLogin(c) //"#header > div.banner > div > div > div.login__type__container.login__type__container__scan > img",
+	err := QRCodeLogin(c) //"#header > div.banner > div > div > div.login__type__container.login__type__container__scan > img",
 
 	if err != nil {
 		return false, err
