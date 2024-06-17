@@ -31,6 +31,8 @@ type ICrawl interface {
 
 	GetChan() chan []byte
 
+	Start() error
+
 	//Crawl(instance *Instance) error
 	//
 	//GetLoginRequestData() []byte

@@ -101,12 +101,15 @@ func GetCrawl(ctx *gin.Context) {
 //	@Failure	500	{object}	http.Response
 //	@Router		/api/v1/crawls [get]
 func GetCrawls(ctx *gin.Context) {
-
 }
 
 // DeleteCrawl
 func DeleteCrawl(ctx *gin.Context) {
+}
 
+type WebsocketClient struct {
+	crawl *crawl.ICrawl
+	conn  websocket.Conn
 }
 
 func CrawlWS(ctx *gin.Context) {

@@ -3,6 +3,7 @@ package crawl
 import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/model"
 	"log"
 	"reflect"
@@ -17,6 +18,12 @@ type Crawl struct {
 	State       uint8 `json:"state"`
 	config      *internal.CrawlAccount
 	ch          chan []byte
+}
+
+var crawlInstances *cache.Memo
+
+func init() {
+	crawlInstances = cache.New(getCrawl)
 }
 
 func AddCrawl(crawlType string) (*Crawl, error) {
@@ -70,10 +77,6 @@ func (c *Crawl) GetId() string {
 	return c.AccountId
 }
 
-func (c *Crawl) setId(id string) {
-	c.AccountId = id
-}
-
 func (c *Crawl) GetName() string {
 	return c.AccountName
 }
@@ -113,24 +116,33 @@ func (c *Crawl) GetLoginSelector() string {
 	return ""
 }
 
+func (c *Crawl) Start() error {
+	return nil
+}
+
 // websocket
 // 先启动，如果有cookie，尝试自动登录
 // 如果自动登录失败，返回“未登录”
 // 扫码登录
 // getCrawl
-func getCrawl(a *Crawl) ICrawl {
-	// FIXME
-	if a == nil || reflect.ValueOf(a).IsZero() {
-		return nil
+func getCrawl(id int) (interface{}, error) {
+	c, err := GetCrawlByID(id)
+	if err != nil {
+		return nil, err
 	}
 
-	cfg, ok := internal.CrawlAccountMap[a.CrawlType]
+	// FIXME
+	if c == nil || reflect.ValueOf(c).IsZero() {
+		return nil, nil
+	}
+
+	cfg, ok := internal.CrawlAccountMap[c.CrawlType]
 	if !ok {
-		return nil
+		return nil, nil
 	}
 
 	var crawl ICrawl
-	switch a.CrawlType {
+	switch c.CrawlType {
 	case "wx":
 		crawl = &WxCrawl{
 			Crawl: Crawl{
@@ -140,5 +152,10 @@ func getCrawl(a *Crawl) ICrawl {
 		}
 	}
 
-	return crawl
+	err = crawl.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	return crawl, nil
 }
