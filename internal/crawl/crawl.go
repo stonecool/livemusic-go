@@ -29,7 +29,7 @@ func init() {
 func AddCrawl(crawlType string) (*Crawl, error) {
 	data := map[string]interface{}{
 		"crawl_type": crawlType,
-		"state":      uint8(internal.CsNotLoggedIn),
+		"state":      uint8(0),
 	}
 
 	if m, err := model.AddCrawl(data); err != nil {

@@ -14,6 +14,7 @@ require (
 	github.com/swaggo/swag v1.16.3
 	github.com/unknwon/com v1.0.1
 	go.uber.org/zap v1.27.0
+	google.golang.org/protobuf v1.34.2
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/gorm v1.25.1
 )
@@ -60,6 +61,5 @@ require (
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/tools v0.18.0 // indirect
-	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

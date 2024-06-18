@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "./internal";
+
+enum CrawlState {
+  Uninitialized = 0;
+  NotLogged = 1;
+  Ready = 2;
+}
+
+enum CrawlCmd {
+  Initial = 0;
+  Login = 1;
+  LoginAck = 2;
+  StateAck = 3;
+}
+
+message Message {
+  CrawlCmd cmd = 1;
+  optional CrawlState state = 2;
+  optional  bytes data = 3;
+}
+
+
+
