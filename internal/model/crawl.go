@@ -11,14 +11,12 @@ type Crawl struct {
 	AccountId   string
 	AccountName string
 	Cookies     []byte
-	State       uint8
 }
 
 // AddCrawl Adds a new crawl
 func AddCrawl(data map[string]interface{}) (*Crawl, error) {
 	crawl := Crawl{
 		CrawlType: data["crawl_type"].(string),
-		State:     data["state"].(uint8),
 	}
 
 	if err := db.Create(&crawl).Error; err != nil {
@@ -28,8 +26,8 @@ func AddCrawl(data map[string]interface{}) (*Crawl, error) {
 	return &crawl, nil
 }
 
-// GetCrawl Gets a crawl by id
-func GetCrawl(id int) (*Crawl, error) {
+// GetCrawlByID Gets a crawl by id
+func GetCrawlByID(id int) (*Crawl, error) {
 	var crawl Crawl
 	if err := db.Where("id = ?", id).First(&crawl).Error; err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
@@ -38,7 +36,7 @@ func GetCrawl(id int) (*Crawl, error) {
 	return &crawl, nil
 }
 
-// GetCrawlAccounts Gets crawls by type
+// GetCrawlsByType Gets crawls by type
 func GetCrawlsByType(crawlType string) ([]*Crawl, error) {
 	var crawls []Crawl
 	if err := db.Where("deleted_at != 0 AND account_type = ?", crawlType).Find(&crawls).Error; err != nil {

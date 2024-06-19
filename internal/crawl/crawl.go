@@ -23,7 +23,7 @@ type Crawl struct {
 var crawlInstances *cache.Memo
 
 func init() {
-	crawlInstances = cache.New(getCrawl)
+	crawlInstances = cache.New(getCrawlByID)
 }
 
 func AddCrawl(crawlType string) (*Crawl, error) {
@@ -46,23 +46,12 @@ func AddCrawl(crawlType string) (*Crawl, error) {
 }
 
 func GetCrawlByID(id int) (*Crawl, error) {
-	m, err := model.GetCrawl(id)
+	crawl, err := crawlInstances.Get(id)
 	if err != nil {
-		log.Printf("error: %s", err)
 		return nil, err
+	} else {
+		return crawl.(*Crawl), nil
 	}
-
-	if reflect.ValueOf(*m).IsZero() {
-		return &Crawl{}, nil
-	}
-
-	crawl := Crawl{
-		ID:        m.ID,
-		CrawlType: m.CrawlType,
-		State:     m.State,
-	}
-
-	return &crawl, nil
 }
 
 func (c *Crawl) GetCookies() []byte {
@@ -116,46 +105,42 @@ func (c *Crawl) GetLoginSelector() string {
 	return ""
 }
 
-func (c *Crawl) Start() error {
-	return nil
+func (c *Crawl) Start() {
 }
 
 // websocket
 // 先启动，如果有cookie，尝试自动登录
 // 如果自动登录失败，返回“未登录”
 // 扫码登录
-// getCrawl
-func getCrawl(id int) (interface{}, error) {
-	c, err := GetCrawlByID(id)
+// getCrawlByID
+func getCrawlByID(id int) (interface{}, error) {
+	m, err := model.GetCrawlByID(id)
 	if err != nil {
+		log.Printf("error: %s", err)
 		return nil, err
 	}
 
-	// FIXME
-	if c == nil || reflect.ValueOf(c).IsZero() {
-		return nil, nil
+	if reflect.ValueOf(*m).IsZero() {
+		return &Crawl{}, nil
 	}
 
-	cfg, ok := internal.CrawlAccountMap[c.CrawlType]
+	cfg, ok := internal.CrawlAccountMap[m.CrawlType]
 	if !ok {
 		return nil, nil
 	}
 
 	var crawl ICrawl
-	switch c.CrawlType {
+	switch m.CrawlType {
 	case "wx":
 		crawl = &WxCrawl{
 			Crawl: Crawl{
+				ID:     m.ID,
 				config: &cfg,
 				ch:     make(chan []byte),
 			},
 		}
 	}
 
-	err = crawl.Start()
-	if err != nil {
-		return nil, err
-	}
-
+	go crawl.Start()
 	return crawl, nil
 }
