@@ -33,7 +33,7 @@ type ICrawl interface {
 
 	Start()
 
-	//Crawl(instance *Instance) error
+	//crawl(instance *Instance) error
 	//
 	//GetLoginRequestData() []byte
 	//

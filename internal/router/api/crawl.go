@@ -2,16 +2,12 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/crawl"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
-	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"reflect"
-	"time"
 )
 
 type addCrawlForm struct {
@@ -79,7 +75,7 @@ func GetCrawl(ctx *gin.Context) {
 		return
 	}
 
-	m, err := crawl.GetCrawlByID(form.ID)
+	c, err := crawl.GetCrawlByID(form.ID)
 	if err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 		return
@@ -90,7 +86,7 @@ func GetCrawl(ctx *gin.Context) {
 		return
 	}
 
-	context.Response(http.StatusOK, 0, m)
+	context.Response(http.StatusOK, 0, c)
 }
 
 // GetCrawls
@@ -105,11 +101,6 @@ func GetCrawls(ctx *gin.Context) {
 
 // DeleteCrawl
 func DeleteCrawl(ctx *gin.Context) {
-}
-
-type WebsocketClient struct {
-	crawl *crawl.ICrawl
-	conn  websocket.Conn
 }
 
 func CrawlWS(ctx *gin.Context) {
@@ -129,35 +120,16 @@ func CrawlWS(ctx *gin.Context) {
 		return
 	}
 
-	var upgrader = websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-
-	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	c, err := crawl.GetCrawlByID(form.ID)
 	if err != nil {
 		return
 	}
-	defer func(conn *websocket.Conn) {
-		err := conn.Close()
-		if err != nil {
-			internal.Logger.Warn("defer ws connect error", zap.Error(err))
-			return
-		}
-	}(conn)
 
-	for {
-		mt, message, err := conn.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			break
-		}
-
-		err = conn.WriteMessage(mt, message)
-		if err != nil {
-			internal.Logger.Warn("ws write error", zap.Error(err))
-			return
-		}
-		time.Sleep(time.Second)
+	client, err := crawl.NewClient(c, ctx)
+	if err != nil {
+		return
 	}
+
+	go client.Read()
+	go client.Write()
 }

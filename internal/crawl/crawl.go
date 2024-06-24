@@ -38,19 +38,9 @@ func AddCrawl(crawlType string) (*Crawl, error) {
 		crawl := Crawl{
 			ID:        m.ID,
 			CrawlType: m.CrawlType,
-			State:     m.State,
 		}
 
 		return &crawl, nil
-	}
-}
-
-func GetCrawlByID(id int) (*Crawl, error) {
-	crawl, err := crawlInstances.Get(id)
-	if err != nil {
-		return nil, err
-	} else {
-		return crawl.(*Crawl), nil
 	}
 }
 
@@ -74,8 +64,8 @@ func (c *Crawl) SetName(name string) {
 	c.AccountName = name
 }
 
-func (c *Crawl) CheckLogin() (bool, error) {
-	return false, nil
+func (c *Crawl) CheckLogin() chromedp.ActionFunc {
+	return nil
 }
 
 func (c *Crawl) Login() (bool, error) {
@@ -106,12 +96,57 @@ func (c *Crawl) GetLoginSelector() string {
 }
 
 func (c *Crawl) Start() {
+	log.Printf("Start crawl:%d\n", c.GetId())
+
+	//for {
+	//	select {
+	//	case cmd := <-c.GetChan():
+	//		switch cmd.cmd {
+	//		case CmdReady:
+	//			if crawl.GetState() != StateInitial {
+	//				log.Printf("state not initial")
+	//				continue
+	//			}
+	//
+	//			ret, err := crawl.Login()
+	//			if err != nil {
+	//				log.Printf("error:%s", err)
+	//				continue
+	//			}
+	//
+	//			if ret {
+	//				crawl.SetState(StateReady)
+	//			}
+	//		case CmdRun:
+	//			if crawl.GetState() != StateReady {
+	//				log.Printf("state not ready")
+	//				continue
+	//			}
+	//
+	//			crawl.SetState(StateRunning)
+	//		case CmdSuspend:
+	//			if crawl.GetState() != StateRunning {
+	//				log.Printf("state not running")
+	//				continue
+	//			}
+	//
+	//			crawl.SetState(StateReady)
+	//		case CmdCrawl:
+	//			if crawl.GetState() != StateRunning {
+	//				log.Printf("state not running")
+	//				continue
+	//			}
+	//
+	//			err := crawl.crawl(cmd.instance)
+	//			if err != nil {
+	//				log.Printf("error:%s", err)
+	//				// TODO
+	//			}
+	//		}
+	//	}
+	//}
 }
 
-// websocket
-// 先启动，如果有cookie，尝试自动登录
-// 如果自动登录失败，返回“未登录”
-// 扫码登录
 // getCrawlByID
 func getCrawlByID(id int) (interface{}, error) {
 	m, err := model.GetCrawlByID(id)
@@ -143,4 +178,14 @@ func getCrawlByID(id int) (interface{}, error) {
 
 	go crawl.Start()
 	return crawl, nil
+}
+
+// GetCrawlByID
+func GetCrawlByID(id int) (*Crawl, error) {
+	crawl, err := crawlInstances.Get(id)
+	if err != nil {
+		return nil, err
+	} else {
+		return crawl.(*Crawl), nil
+	}
 }
