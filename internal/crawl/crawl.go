@@ -44,20 +44,28 @@ func AddCrawl(crawlType string) (*Crawl, error) {
 	}
 }
 
-func (c *Crawl) GetCookies() []byte {
-	return nil
-}
-
-func (c *Crawl) GetChan() chan []byte {
-	return nil
-}
-
 func (c *Crawl) GetId() string {
 	return c.AccountId
 }
 
 func (c *Crawl) GetName() string {
 	return c.AccountName
+}
+
+func (c *Crawl) GetState() internal.CrawlState {
+	return internal.CrawlState_Ready
+}
+
+func (c *Crawl) SetState(state internal.CrawlState) {
+	//c.State = state.
+}
+
+func (c *Crawl) GetCookies() []byte {
+	return nil
+}
+
+func (c *Crawl) GetChan() chan *internal.Message {
+	return nil
 }
 
 func (c *Crawl) SetName(name string) {
@@ -98,53 +106,38 @@ func (c *Crawl) GetLoginSelector() string {
 func (c *Crawl) Start() {
 	log.Printf("Start crawl:%d\n", c.GetId())
 
-	//for {
-	//	select {
-	//	case cmd := <-c.GetChan():
-	//		switch cmd.cmd {
-	//		case CmdReady:
-	//			if crawl.GetState() != StateInitial {
-	//				log.Printf("state not initial")
-	//				continue
-	//			}
-	//
-	//			ret, err := crawl.Login()
-	//			if err != nil {
-	//				log.Printf("error:%s", err)
-	//				continue
-	//			}
-	//
-	//			if ret {
-	//				crawl.SetState(StateReady)
-	//			}
-	//		case CmdRun:
-	//			if crawl.GetState() != StateReady {
-	//				log.Printf("state not ready")
-	//				continue
-	//			}
-	//
-	//			crawl.SetState(StateRunning)
-	//		case CmdSuspend:
-	//			if crawl.GetState() != StateRunning {
-	//				log.Printf("state not running")
-	//				continue
-	//			}
-	//
-	//			crawl.SetState(StateReady)
-	//		case CmdCrawl:
-	//			if crawl.GetState() != StateRunning {
-	//				log.Printf("state not running")
-	//				continue
-	//			}
-	//
-	//			err := crawl.crawl(cmd.instance)
-	//			if err != nil {
-	//				log.Printf("error:%s", err)
-	//				// TODO
-	//			}
-	//		}
-	//	}
-	//}
+	for {
+		select {
+		case msg := <-c.GetChan():
+			switch msg.Cmd {
+			case internal.CrawlCmd_Initial:
+				if c.GetState() != internal.CrawlState_Ready {
+					log.Printf("state not initial")
+					continue
+				}
+
+				ret, err := c.Login()
+				if err != nil {
+					log.Printf("error:%s", err)
+					continue
+				}
+
+				if ret {
+					c.SetState(internal.CrawlState_NotLogged)
+				}
+			case internal.CrawlCmd_Login:
+				if c.GetState() != internal.CrawlState_NotLogged {
+					log.Printf("state not ready")
+					continue
+				}
+
+				c.SetState(internal.CrawlState_Ready)
+
+			default:
+				log.Printf("error:%v", msg.Cmd)
+			}
+		}
+	}
 }
 
 // getCrawlByID

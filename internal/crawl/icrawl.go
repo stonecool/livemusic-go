@@ -1,17 +1,18 @@
 package crawl
 
-import "github.com/chromedp/chromedp"
+import (
+	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal"
+)
 
 type ICrawl interface {
 	GetId() string
 
 	GetName() string
 
-	//GetChan() chan CmdRequest
-	//
-	//GetState() State
-	//
-	//SetState(state State)
+	GetState() internal.CrawlState
+
+	SetState(state internal.CrawlState)
 
 	Login() (bool, error)
 
@@ -29,7 +30,7 @@ type ICrawl interface {
 
 	GetCookies() []byte
 
-	GetChan() chan []byte
+	GetChan() chan *internal.Message
 
 	Start()
 

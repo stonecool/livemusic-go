@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/stonecool/livemusic-go/internal"
+	"google.golang.org/protobuf/proto"
 	"log"
 	"time"
 )
@@ -27,6 +29,11 @@ type Client struct {
 	conn  *websocket.Conn
 }
 
+var (
+	newline = []byte{'\n'}
+	space   = []byte{' '}
+)
+
 func NewClient(crawl ICrawl, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -35,15 +42,11 @@ func NewClient(crawl ICrawl, ctx *gin.Context) (*Client, error) {
 
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
+		log.Printf("error: %v", err)
 		return nil, err
 	}
 
-	client := &Client{
-		crawl: crawl,
-		conn:  conn,
-	}
-
-	return client, nil
+	return &Client{crawl: crawl, conn: conn}, nil
 }
 
 func (c *Client) Read() {
@@ -71,7 +74,7 @@ func (c *Client) Read() {
 	})
 
 	for {
-		msgType, msg, err := c.conn.ReadMessage()
+		dataType, data, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
@@ -79,13 +82,21 @@ func (c *Client) Read() {
 			break
 		}
 
-		switch msgType {
+		switch dataType {
 		case websocket.TextMessage:
-			fmt.Println("Received Text Message:", string(msg))
+			fmt.Println("Received Text Message:", string(data))
 
 		case websocket.BinaryMessage:
-			fmt.Println("Received Binary Message:", msg)
+			fmt.Println("Received Binary Message:", data)
 
+			message := &internal.Message{}
+
+			if err := proto.Unmarshal(data, message); err != nil {
+				log.Printf("unmarshal data error:%v\n", err)
+				continue
+			}
+
+			c.crawl.GetChan() <- message
 		default:
 			fmt.Println("Received Unknown Message Type")
 		}
@@ -96,34 +107,39 @@ func (c *Client) Write() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		c.conn.Close()
+		err := c.conn.Close()
+		if err != nil {
+			return
+		}
 	}()
 	for {
 		select {
-		//case message, ok := <-c.send:
-		//	c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-		//	if !ok {
-		//		// The hub closed the channel.
-		//		c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-		//		return
-		//	}
-		//
-		//	w, err := c.conn.NextWriter(websocket.TextMessage)
-		//	if err != nil {
-		//		return
-		//	}
-		//	w.Write(message)
-		//
-		//	// Add queued chat messages to the current websocket message.
-		//	n := len(c.send)
-		//	for i := 0; i < n; i++ {
-		//		w.Write(newline)
-		//		w.Write(<-c.send)
-		//	}
-		//
-		//	if err := w.Close(); err != nil {
-		//		return
-		//	}
+		case message, ok := <-c.crawl.GetChan():
+			if !ok {
+				err := c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				if err != nil {
+					return
+				}
+				return
+			}
+
+			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				return
+			}
+
+			w, err := c.conn.NextWriter(websocket.TextMessage)
+			if err != nil {
+				return
+			}
+
+			_, err = w.Write(message.Data)
+			if err != nil {
+				return
+			}
+
+			if err := w.Close(); err != nil {
+				return
+			}
 		case <-ticker.C:
 			err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err != nil {
