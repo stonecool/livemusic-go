@@ -17,7 +17,7 @@ type Crawl struct {
 	cookies     []byte
 	State       uint8 `json:"state"`
 	config      *internal.CrawlAccount
-	ch          chan []byte
+	ch          chan *internal.Message
 }
 
 var crawlInstances *cache.Memo
@@ -103,43 +103,6 @@ func (c *Crawl) GetLoginSelector() string {
 	return ""
 }
 
-func (c *Crawl) Start() {
-	log.Printf("Start crawl:%d\n", c.GetId())
-
-	for {
-		select {
-		case msg := <-c.GetChan():
-			switch msg.Cmd {
-			case internal.CrawlCmd_Initial:
-				if c.GetState() != internal.CrawlState_Ready {
-					log.Printf("state not initial")
-					continue
-				}
-
-				ret, err := c.Login()
-				if err != nil {
-					log.Printf("error:%s", err)
-					continue
-				}
-
-				if ret {
-					c.SetState(internal.CrawlState_NotLogged)
-				}
-			case internal.CrawlCmd_Login:
-				if c.GetState() != internal.CrawlState_NotLogged {
-					log.Printf("state not ready")
-					continue
-				}
-
-				c.SetState(internal.CrawlState_Ready)
-
-			default:
-				log.Printf("error:%v", msg.Cmd)
-			}
-		}
-	}
-}
-
 // getCrawlByID
 func getCrawlByID(id int) (interface{}, error) {
 	m, err := model.GetCrawlByID(id)
@@ -164,7 +127,7 @@ func getCrawlByID(id int) (interface{}, error) {
 			Crawl: Crawl{
 				ID:     m.ID,
 				config: &cfg,
-				ch:     make(chan []byte),
+				ch:     make(chan *internal.Message),
 			},
 		}
 	}
@@ -180,5 +143,46 @@ func GetCrawlByID(id int) (*Crawl, error) {
 		return nil, err
 	} else {
 		return crawl.(*Crawl), nil
+	}
+}
+
+func (c *Crawl) Start() {
+	log.Printf("Start crawl:%d\n", c.GetId())
+
+	for {
+		select {
+		case msg := <-c.GetChan():
+			curState := c.GetState()
+
+			switch msg.Cmd {
+			case internal.CrawlCmd_Initial:
+				if curState != internal.CrawlState_Uninitialized {
+					continue
+				}
+
+				ret, err := c.Login()
+				if err != nil {
+					log.Printf("error:%s", err)
+					continue
+				}
+
+				if ret {
+					c.SetState(internal.CrawlState_NotLogged)
+				}
+
+			case internal.CrawlCmd_Login:
+				if curState != internal.CrawlState_NotLogged {
+					log.Printf("state not ready")
+					continue
+				}
+
+				c.SetState(internal.CrawlState_Ready)
+
+			case internal.CrawlCmd_Crawl:
+
+			default:
+				log.Printf("cmd:%v not supportted", msg.Cmd)
+			}
+		}
 	}
 }

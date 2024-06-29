@@ -29,11 +29,6 @@ type Client struct {
 	conn  *websocket.Conn
 }
 
-var (
-	newline = []byte{'\n'}
-	space   = []byte{' '}
-)
-
 func NewClient(crawl ICrawl, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
@@ -112,6 +107,7 @@ func (c *Client) Write() {
 			return
 		}
 	}()
+
 	for {
 		select {
 		case message, ok := <-c.crawl.GetChan():
