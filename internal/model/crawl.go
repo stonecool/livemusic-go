@@ -7,7 +7,7 @@ import (
 type Crawl struct {
 	Model
 
-	CrawlType   string
+	CrawlType   string // 微信公众号，微博
 	AccountId   string
 	AccountName string
 	Cookies     []byte
@@ -15,25 +15,25 @@ type Crawl struct {
 
 // AddCrawl Adds a new crawl
 func AddCrawl(data map[string]interface{}) (*Crawl, error) {
-	crawl := Crawl{
+	c := Crawl{
 		CrawlType: data["crawl_type"].(string),
 	}
 
-	if err := db.Create(&crawl).Error; err != nil {
+	if err := db.Create(&c).Error; err != nil {
 		return nil, err
 	}
 
-	return &crawl, nil
+	return &c, nil
 }
 
 // GetCrawlByID Gets a crawl by id
 func GetCrawlByID(id int) (*Crawl, error) {
-	var crawl Crawl
-	if err := db.Where("id = ?", id).First(&crawl).Error; err != nil && err != gorm.ErrRecordNotFound {
+	var c Crawl
+	if err := db.Where("id = ?", id).First(&c).Error; err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
-	return &crawl, nil
+	return &c, nil
 }
 
 // GetCrawlsByType Gets crawls by type

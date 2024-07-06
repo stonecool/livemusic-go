@@ -14,8 +14,8 @@ type Crawl struct {
 	CrawlType   string `json:"crawl_type"`
 	AccountId   string `json:"account_id"`
 	AccountName string `json:"account_name"`
+	State       uint8  `json:"state"`
 	cookies     []byte
-	State       uint8 `json:"state"`
 	config      *internal.CrawlAccount
 	ch          chan *internal.Message
 }
@@ -27,6 +27,12 @@ func init() {
 }
 
 func AddCrawl(crawlType string) (*Crawl, error) {
+	_, ok := internal.CrawlAccountMap[crawlType]
+	if !ok {
+		// FIXME
+		return nil, error(nil)
+	}
+
 	data := map[string]interface{}{
 		"crawl_type": crawlType,
 		"state":      uint8(0),

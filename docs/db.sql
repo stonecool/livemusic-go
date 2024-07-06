@@ -1,34 +1,34 @@
 -- 爬虫
 CREATE TABLE `crawl` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `crawl_type`        VARCHAR(100) NOT NULL COMMENT 'crawl type',
+    `account_id`        VARCHAR(100) NOT NULL COMMENT 'account id',
+    `account_name`      VARCHAR(100) NOT NULL COMMENT 'account name',
+    `cookies`           BLOB COMMENT 'cookies',
     `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
     `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
-    `crawl_type`        VARCHAR(100) NOT NULL COMMENT 'crawl_type',
-    `account_id`        VARCHAR(100) NOT NULL COMMENT 'account_id',
-    `account_name`      VARCHAR(100) NOT NULL COMMENT 'account_name',
-    `cookies`           BLOB COMMENT 'cookies',
-    `state`             TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'state',
+
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl';
 
--- 爬虫
-CREATE TABLE `crawl_instance` (
+-- 爬虫协程
+CREATE TABLE `crawl_coroutine` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `name`              VARCHAR(100) DEFAULT '' COMMENT 'name',
-    `account_id`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'account id',
-    `headers`           TEXT COMMENT 'headers',
-    `query_params`      TEXT COMMENT 'query params',
-    `form_data`         TEXT COMMENT 'request data',
-    `state`             TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'state',
+    `data_type`         VARCHAR(100) NOT NULL COMMENT 'data type',
+    `data_id`           INT(10) UNSIGNED NOT NULL COMMENT 'data id',
+    `crawl_type`        VARCHAR(100) NOT NULL COMMENT 'crawl type',
+    `account_id`        VARCHAR(100) NOT NULL COMMENT 'account id',
+    `crawl_mark`        VARCHAR(100) NOT NULL COMMENT 'crawl mark',
     `count`             INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'count',
     `first_time`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'first time',
     `last_time`         INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'last time',
     `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
-    `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'modified time',
+    `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
+
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl instance';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl coroutine';
 
 -- CREATE TABLE `musician` (
 --     `id`            INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -54,15 +54,15 @@ CREATE TABLE `crawl_instance` (
 --     `deleted_on`    INT(10) UNSIGEND NOT NULL DEFAULT 0 COMMENT '删除时间',
 --     PRIMARY KEY (`id`)
 -- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='音乐人';
---
--- CREATE TABLE `live_house` (
---     `id`            INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
---     `name`          VARCHAR(100) DEFAULT '' COMMENT 'name',
--- --     `location`      VARCHAR(100) DEFAULT '' COMMENT 'location',
--- --     `telephone`     VARCHAR(30) DEFAULT '' COMMENT '',,
---     PRIMARY KEY (`id`)
--- )
---
+
+CREATE TABLE `livehouse` (
+    `id`            INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name`          VARCHAR(100) DEFAULT '' COMMENT 'name',
+    `location`      VARCHAR(100) DEFAULT '' COMMENT 'location',
+    `telephone`     VARCHAR(30) DEFAULT '' COMMENT '',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='livehouse';
+
 -- CREATE TABLE `music_festival` (
 --     `id`            INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
 --     `name`          VARCHAR(100) DEFAULT '' COMMENT '姓名',

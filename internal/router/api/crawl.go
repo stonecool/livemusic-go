@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/crawl"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
@@ -32,13 +31,6 @@ func AddCrawl(ctx *gin.Context) {
 	httpCode, errCode := BindAndValid(ctx, &form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)
-		return
-	}
-
-	crawlType := form.CrawlType
-	_, ok := internal.CrawlAccountMap[crawlType]
-	if !ok {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
 		return
 	}
 
