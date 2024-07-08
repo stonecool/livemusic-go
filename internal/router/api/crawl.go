@@ -117,7 +117,7 @@ func CrawlWebSocket(ctx *gin.Context) {
 		return
 	}
 
-	client, err := crawl.NewClient(c, ctx)
+	client, err := NewClient(c, ctx)
 	if err != nil {
 		return
 	}

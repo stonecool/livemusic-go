@@ -21,6 +21,3 @@ message Message {
   optional CrawlState state = 2;
   optional bytes data = 3;
 }
-
-
-

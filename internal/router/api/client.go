@@ -1,10 +1,11 @@
-package crawl
+package api
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/crawl"
 	"google.golang.org/protobuf/proto"
 	"log"
 	"time"
@@ -25,11 +26,11 @@ const (
 )
 
 type Client struct {
-	crawl ICrawl
+	crawl crawl.ICrawl
 	conn  *websocket.Conn
 }
 
-func NewClient(crawl ICrawl, ctx *gin.Context) (*Client, error) {
+func NewClient(crawl crawl.ICrawl, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
