@@ -95,7 +95,7 @@ func GetCrawls(ctx *gin.Context) {
 func DeleteCrawl(ctx *gin.Context) {
 }
 
-func CrawlWS(ctx *gin.Context) {
+func CrawlWebSocket(ctx *gin.Context) {
 	type Form struct {
 		ID int `valid:"Required;Min(1)"`
 	}

@@ -17,7 +17,12 @@ type CrawlCoroutine struct {
 
 // AddCrawlCoroutine Adds a crawl coroutine
 func AddCrawlCoroutine(data map[string]interface{}) (*CrawlCoroutine, error) {
-	c := CrawlCoroutine{}
+	c := CrawlCoroutine{
+		DataType:  data["data_type"].(string),
+		DataId:    data["data_id"].(int),
+		CrawlType: data["crawl_type"].(string),
+		AccountId: data["account_id"].(int),
+	}
 
 	if err := db.Create(&c).Error; err != nil {
 		return nil, err
@@ -34,4 +39,24 @@ func GetCrawlCoroutine(id int) (*CrawlCoroutine, error) {
 	}
 
 	return &c, nil
+}
+
+// CrawlCoroutineExists Check coroutine exists
+func CrawlCoroutineExists(dataType string, dataId int, crawlType string) bool {
+	var exists bool
+	if err := db.Where("data_type = '?' AND data_id = ? AND crawl_type = '?'", dataType, dataId, crawlType).Find(&exists).Error; err != nil {
+		return false
+	}
+
+	return exists
+}
+
+// CrawlCoroutineExists Check coroutine exists
+func CrawlCoroutineExistsById(id int) bool {
+	var exists bool
+	if err := db.Where("id = '?'", id).Find(&exists).Error; err != nil {
+		return false
+	}
+
+	return exists
 }

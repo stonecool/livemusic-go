@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO 是否能通过中间件形式实现
 type Context struct {
 	*gin.Context
 }

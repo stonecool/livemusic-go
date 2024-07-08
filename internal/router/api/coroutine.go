@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/crawl"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"net/http"
@@ -28,13 +27,6 @@ func AddCoroutine(ctx *gin.Context) {
 		return
 	}
 
-	crawlType := form.CrawlType
-	_, ok := internal.CrawlAccountMap[crawlType]
-	if !ok {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
-		return
-	}
-
 	if account, err := crawl.AddCoroutine(form.DataType, form.DataId, form.CrawlType, form.AccountId); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
@@ -43,6 +35,16 @@ func AddCoroutine(ctx *gin.Context) {
 }
 
 // DeleteCoroutine
-func DeleteCoroutine() {
+func DeleteCoroutine(ctx *gin.Context) {
+
+}
+
+// DeleteCoroutine
+func ModifyCoroutine(ctx *gin.Context) {
+
+}
+
+// StartCoroutine
+func StartCoroutine(ctx *gin.Context) {
 
 }

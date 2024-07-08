@@ -1,6 +1,9 @@
 package crawl
 
-import "github.com/stonecool/livemusic-go/internal/model"
+import (
+	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/model"
+)
 
 type Coroutine struct {
 	ID        int    `json:"id"`
@@ -16,6 +19,17 @@ type Coroutine struct {
 
 // AddCoroutine
 func AddCoroutine(dataType string, dataId int, crawlType string, accountId string) (*Coroutine, error) {
+	_, ok := internal.CrawlAccountMap[crawlType]
+	if !ok {
+		return nil, error(nil)
+	}
+
+	if model.CrawlCoroutineExists(dataType, dataId, crawlType) {
+		internal.Logger.Warn("coroutine exists")
+
+		return nil, error(nil)
+	}
+
 	data := map[string]interface{}{
 		"data_type":  dataType,
 		"data_id":    dataId,

@@ -29,7 +29,6 @@ func init() {
 func AddCrawl(crawlType string) (*Crawl, error) {
 	_, ok := internal.CrawlAccountMap[crawlType]
 	if !ok {
-		// FIXME
 		return nil, error(nil)
 	}
 

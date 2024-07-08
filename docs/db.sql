@@ -28,6 +28,7 @@ CREATE TABLE `crawl_coroutine` (
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
 
     PRIMARY KEY (`id`)
+    UNIQUE KEY data_type__data_id__crawl_type (`data_type`, `data_id`, `crawl_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl coroutine';
 
 -- CREATE TABLE `musician` (
