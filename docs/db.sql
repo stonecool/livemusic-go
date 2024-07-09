@@ -13,7 +13,7 @@ CREATE TABLE `crawl` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl';
 
 -- 爬虫消息生产者
-CREATE TABLE `crawl_msg` (
+CREATE TABLE `msg_producer` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `data_type`         VARCHAR(100) NOT NULL COMMENT 'data type',
     `data_id`           INT(10) UNSIGNED NOT NULL COMMENT 'data id',
@@ -29,7 +29,7 @@ CREATE TABLE `crawl_msg` (
 
     PRIMARY KEY (`id`)
     UNIQUE KEY data_type__data_id__crawl_type (`data_type`, `data_id`, `crawl_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl msg producer';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='msg producer';
 
 -- CREATE TABLE `musician` (
 --     `id`            INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,

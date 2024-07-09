@@ -3,11 +3,12 @@ package crawl
 import (
 	"context"
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal"
 	"log"
 )
 
 type WxCrawl struct {
-	Crawl
+	internal.Crawl
 }
 
 func (c *WxCrawl) Login() (bool, error) {

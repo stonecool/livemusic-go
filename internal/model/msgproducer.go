@@ -2,7 +2,7 @@ package model
 
 import "gorm.io/gorm"
 
-type CrawlMsg struct {
+type MsgProducer struct {
 	Model
 
 	DataType  string // Livehouse...
@@ -15,9 +15,9 @@ type CrawlMsg struct {
 	LastTime  int
 }
 
-// AddCrawlMsg Adds a crawl message producer
-func AddCrawlMsg(data map[string]interface{}) (*CrawlMsg, error) {
-	c := CrawlMsg{
+// AddMsgProducer Adds a crawl message producer
+func AddMsgProducer(data map[string]interface{}) (*MsgProducer, error) {
+	c := MsgProducer{
 		DataType:  data["data_type"].(string),
 		DataId:    data["data_id"].(int),
 		CrawlType: data["crawl_type"].(string),
@@ -31,9 +31,9 @@ func AddCrawlMsg(data map[string]interface{}) (*CrawlMsg, error) {
 	return &c, nil
 }
 
-// GetCrawlMsg Gets a crawl coroutine by id
-func GetCrawlMsg(id int) (*CrawlMsg, error) {
-	var m CrawlMsg
+// GetMsgProducer Gets a crawl coroutine by id
+func GetMsgProducer(id int) (*MsgProducer, error) {
+	var m MsgProducer
 	if err := db.Where("id = ?", id).First(&m).Error; err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -41,8 +41,8 @@ func GetCrawlMsg(id int) (*CrawlMsg, error) {
 	return &m, nil
 }
 
-// CrawlMsgExists Check coroutine exists
-func CrawlMsgExists(dataType string, dataId int, crawlType string) bool {
+// MsgProducerExists Check coroutine exists
+func MsgProducerExists(dataType string, dataId int, crawlType string) bool {
 	var exists bool
 	if err := db.Where("data_type = '?' AND data_id = ? AND crawl_type = '?'", dataType, dataId, crawlType).Find(&exists).Error; err != nil {
 		return false

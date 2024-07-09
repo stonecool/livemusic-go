@@ -19,11 +19,11 @@ func InitRouter(engine *gin.Engine) error {
 	apiV1.DELETE("/crawls/:id", api.DeleteCrawl)
 	apiV1.GET("/crawls/ws/:id", api.CrawlWebSocket)
 
-	// 爬虫协程, add, delete, start, 用一个map统一管理下
-	apiV1.POST("/coroutines/:id", api.AddCrawlMsg)
-	apiV1.DELETE("/coroutines/:id", api.DeleteCrawlMsg)
-	apiV1.PUT("/coroutines/start/:id", api.StartCrawlMsgProducer)
-	apiV1.POST("/coroutines/start/:id", api.StartCrawlMsgProducer)
+	// 爬虫消息生成者
+	apiV1.POST("/msg-producers/:id", api.AddMsgProducer)
+	apiV1.DELETE("/msg-producers/:id", api.DeleteCrawlMsg)
+	apiV1.PUT("/msg-producers/start/:id", api.StartCrawlMsgProducer)
+	apiV1.POST("/msg-producers/start/:id", api.StartCrawlMsgProducer)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

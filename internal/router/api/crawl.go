@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/stonecool/livemusic-go/internal/crawl"
+	"github.com/stonecool/livemusic-go/internal"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
 	"net/http"
@@ -34,10 +34,10 @@ func AddCrawl(ctx *gin.Context) {
 		return
 	}
 
-	if account, err := crawl.AddCrawl(form.CrawlType); err != nil {
+	if crawl, err := internal.AddCrawl(form.CrawlType); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, account)
+		context.Response(http.StatusCreated, http2.Success, crawl)
 	}
 }
 
@@ -57,7 +57,7 @@ func GetCrawl(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    getForm
-		m       *crawl.Crawl
+		crawl   *internal.Crawl
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
@@ -67,13 +67,13 @@ func GetCrawl(ctx *gin.Context) {
 		return
 	}
 
-	c, err := crawl.GetCrawlByID(form.ID)
+	c, err := internal.GetCrawlByID(form.ID)
 	if err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 		return
 	}
 
-	if reflect.ValueOf(*m).IsZero() {
+	if reflect.ValueOf(*crawl).IsZero() {
 		context.Response(http.StatusOK, -1, nil)
 		return
 	}
@@ -112,7 +112,7 @@ func CrawlWebSocket(ctx *gin.Context) {
 		return
 	}
 
-	c, err := crawl.GetCrawlByID(form.ID)
+	c, err := internal.GetCrawlByID(form.ID)
 	if err != nil {
 		return
 	}
