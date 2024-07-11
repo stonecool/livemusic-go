@@ -1,5 +1,5 @@
--- 爬虫
-CREATE TABLE `crawl` (
+-- 爬虫账号
+CREATE TABLE `crawl_account` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `crawl_type`        VARCHAR(100) NOT NULL COMMENT 'crawl type',
     `account_id`        VARCHAR(100) NOT NULL COMMENT 'account id',
@@ -10,7 +10,7 @@ CREATE TABLE `crawl` (
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
 
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl account';
 
 -- 爬虫消息生产者
 CREATE TABLE `msg_producer` (

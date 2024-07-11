@@ -12,13 +12,13 @@ var config conf
 var Server = &config.Server
 var Database = &config.Database
 var Redis = &config.Redis
-var CrawlAccountMap map[string]CrawlAccount
+var CrawlAccountMap map[string]Account
 
 type conf struct {
 	Server          server
 	Database        database
 	Redis           redis
-	CrawlAccountMap map[string]CrawlAccount
+	CrawlAccountMap map[string]Account
 }
 
 type server struct {
@@ -48,7 +48,7 @@ type redis struct {
 	IdleTimeout int
 }
 
-type CrawlAccount struct {
+type Account struct {
 	Name          string
 	Type          uint8
 	LoginURL      string

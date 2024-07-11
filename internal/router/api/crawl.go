@@ -9,23 +9,23 @@ import (
 	"reflect"
 )
 
-type addCrawlForm struct {
+type addCrawlAccountForm struct {
 	CrawlType string `json:"crawl_type" valid:"Required;MaxSize(255)"`
 }
 
-// AddCrawl
+// AddCrawlAccount
 //
 //	@Summary	Add a crawl
 //	@Accept		json
-//	@Param		form	body	api.addCrawlForm	true	"created crawl object"
+//	@Param		form	body	api.addCrawlAccountForm	true	"created crawl account object"
 //	@Produce	json
 //	@Success	200	{object}	http.Response
 //	@Failure	400	{object}	http.Response
 //	@Router		/api/v1/crawls [post]
-func AddCrawl(ctx *gin.Context) {
+func AddCrawlAccount(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addCrawlForm
+		form    addCrawlAccountForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
@@ -34,14 +34,14 @@ func AddCrawl(ctx *gin.Context) {
 		return
 	}
 
-	if crawl, err := internal.AddCrawl(form.CrawlType); err != nil {
+	if crawl, err := internal.AddCrawlAccount(form.CrawlType); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
 		context.Response(http.StatusCreated, http2.Success, crawl)
 	}
 }
 
-// GetCrawl
+// GetCrawlAccount
 //
 //	@Summary	Get a single crawl
 //	@Param		id	path	int	true	"ID"	default(1)
@@ -49,7 +49,7 @@ func AddCrawl(ctx *gin.Context) {
 //	@Success	200	{object}	http.Response
 //	@Failure	400	{object}	http.Response
 //	@Router		/api/v1/crawls/{id} [get]
-func GetCrawl(ctx *gin.Context) {
+func GetCrawlAccount(ctx *gin.Context) {
 	type getForm struct {
 		ID int `valid:"Required;Min(1)"`
 	}
@@ -57,7 +57,7 @@ func GetCrawl(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    getForm
-		crawl   *internal.Crawl
+		crawl   *internal.Account
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
@@ -81,18 +81,18 @@ func GetCrawl(ctx *gin.Context) {
 	context.Response(http.StatusOK, 0, c)
 }
 
-// GetCrawls
+// GetCrawlAccounts
 //
 //	@Summary	Get multiple accounts
 //	@Produce	json
 //	@Success	200	{object}	http.Response
 //	@Failure	500	{object}	http.Response
 //	@Router		/api/v1/crawls [get]
-func GetCrawls(ctx *gin.Context) {
+func GetCrawlAccounts(ctx *gin.Context) {
 }
 
-// DeleteCrawl
-func DeleteCrawl(ctx *gin.Context) {
+// DeleteCrawlAccount
+func DeleteCrawlAccount(ctx *gin.Context) {
 }
 
 func CrawlWebSocket(ctx *gin.Context) {

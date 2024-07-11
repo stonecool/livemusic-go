@@ -12,12 +12,12 @@ func InitRouter(engine *gin.Engine) error {
 	router := engine.Group("/")
 
 	apiV1 := router.Group("/api/v1")
-	// 爬虫
-	apiV1.POST("/crawls", api.AddCrawl)
-	apiV1.GET("/crawls/:id", api.GetCrawl)
-	apiV1.GET("/crawls", api.GetCrawls)
-	apiV1.DELETE("/crawls/:id", api.DeleteCrawl)
-	apiV1.GET("/crawls/ws/:id", api.CrawlWebSocket)
+	// 爬虫账号
+	apiV1.POST("/crawl-accounts", api.AddCrawlAccount)
+	apiV1.GET("/crawl-accounts/:id", api.GetCrawlAccount)
+	apiV1.GET("/crawl-accounts", api.GetCrawlAccounts)
+	apiV1.DELETE("/crawl-accounts/:id", api.DeleteCrawlAccount)
+	apiV1.GET("/crawl-accounts/ws/:id", api.CrawlWebSocket)
 
 	// 爬虫消息生成者
 	apiV1.POST("/msg-producers/:id", api.AddMsgProducer)
