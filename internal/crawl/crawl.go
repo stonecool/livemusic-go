@@ -4,6 +4,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"log"
+	"reflect"
 )
 
 type Crawl struct {
@@ -12,6 +13,25 @@ type Crawl struct {
 	cookies []byte
 	config  *internal.Account
 	ch      chan *internal.Message
+}
+
+// NewCrawl
+func NewCrawl(account *internal.CrawlAccount) (ICrawl, error) {
+	if reflect.ValueOf(*account).IsZero() {
+		return nil, error(nil)
+	}
+
+	var crawl ICrawl
+	switch account.AccountType {
+	case "wx":
+		crawl = &WxCrawl{
+			Crawl{account: account},
+		}
+	}
+
+	// map全局存储
+	//go crawl.Start()
+	return crawl, nil
 }
 
 func (crawl *Crawl) GetId() string {

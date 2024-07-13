@@ -9,15 +9,15 @@ import (
 	"reflect"
 )
 
-type addCrawlAccountForm struct {
-	CrawlType string `json:"crawl_type" valid:"Required;MaxSize(255)"`
+type addCAForm struct {
+	AccountType string `json:"account_type" valid:"Required;MaxSize(255)"`
 }
 
 // AddCrawlAccount
 //
 //	@Summary	Add a crawl
 //	@Accept		json
-//	@Param		form	body	api.addCrawlAccountForm	true	"created crawl account object"
+//	@Param		form	body	api.addCAForm	true	"created crawl account object"
 //	@Produce	json
 //	@Success	200	{object}	http.Response
 //	@Failure	400	{object}	http.Response
@@ -25,7 +25,7 @@ type addCrawlAccountForm struct {
 func AddCrawlAccount(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addCrawlAccountForm
+		form    addCAForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
@@ -34,10 +34,10 @@ func AddCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	if crawl, err := internal.AddCrawlAccount(form.CrawlType); err != nil {
+	if account, err := internal.AddCrawlAccount(form.AccountType); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, crawl)
+		context.Response(http.StatusCreated, http2.Success, account)
 	}
 }
 
@@ -67,7 +67,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	c, err := internal.GetCrawlByID(form.ID)
+	c, err := internal.GetCrawlAccount(form.ID)
 	if err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 		return
@@ -96,32 +96,32 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 }
 
 func CrawlWebSocket(ctx *gin.Context) {
-	type Form struct {
-		ID int `valid:"Required;Min(1)"`
-	}
-
-	var (
-		context = http2.Context{Context: ctx}
-		form    Form
-	)
-
-	form.ID = com.StrTo(ctx.Param("id")).MustInt()
-	httpCode, errCode := Valid(&form)
-	if errCode != http2.Success {
-		context.Response(httpCode, errCode, nil)
-		return
-	}
-
-	c, err := internal.GetCrawlByID(form.ID)
-	if err != nil {
-		return
-	}
-
-	client, err := NewClient(c, ctx)
-	if err != nil {
-		return
-	}
-
-	go client.Read()
-	go client.Write()
+	//type Form struct {
+	//	ID int `valid:"Required;Min(1)"`
+	//}
+	//
+	//var (
+	//	context = http2.Context{Context: ctx}
+	//	form    Form
+	//)
+	//
+	//form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	//httpCode, errCode := Valid(&form)
+	//if errCode != http2.Success {
+	//	context.Response(httpCode, errCode, nil)
+	//	return
+	//}
+	//
+	//account, err := internal.GetCrawlAccount(form.ID)
+	//if err != nil {
+	//	return
+	//}
+	//
+	//client, err := NewClient(account, ctx)
+	//if err != nil {
+	//	return
+	//}
+	//
+	//go client.Read()
+	//go client.Write()
 }

@@ -1,7 +1,7 @@
 -- 爬虫账号
 CREATE TABLE `crawl_account` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `crawl_type`        VARCHAR(100) NOT NULL COMMENT 'crawl type',
+    `account_type`      VARCHAR(100) NOT NULL COMMENT 'account type',
     `account_id`        VARCHAR(100) NOT NULL COMMENT 'account id',
     `account_name`      VARCHAR(100) NOT NULL COMMENT 'account name',
     `cookies`           BLOB COMMENT 'cookies',
@@ -17,8 +17,8 @@ CREATE TABLE `msg_producer` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `data_type`         VARCHAR(100) NOT NULL COMMENT 'data type',
     `data_id`           INT(10) UNSIGNED NOT NULL COMMENT 'data id',
-    `crawl_type`        VARCHAR(100) NOT NULL COMMENT 'crawl type',
-    `account_id`        VARCHAR(100) NOT NULL COMMENT 'account id',
+    `account_type`      VARCHAR(100) NOT NULL COMMENT 'account type',
+    `target_account_id` VARCHAR(100) NOT NULL COMMENT 'target account id',
     `mark`              VARCHAR(100) NOT NULL COMMENT 'mark',
     `count`             INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'count',
     `first_time`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'first time',
@@ -28,7 +28,7 @@ CREATE TABLE `msg_producer` (
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
 
     PRIMARY KEY (`id`)
-    UNIQUE KEY data_type__data_id__crawl_type (`data_type`, `data_id`, `crawl_type`)
+    UNIQUE KEY data_type__data_id__crawl_type (`data_type`, `data_id`, `account_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='msg producer';
 
 -- CREATE TABLE `musician` (

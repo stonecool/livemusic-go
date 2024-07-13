@@ -67,7 +67,7 @@ func DeleteCrawlMsg(ctx *gin.Context) {
 	//	return
 	//}
 	//
-	//c, err := crawl.GetCrawlByID(form.ID)
+	//c, err := crawl.GetCrawlAccount(form.ID)
 	//if err != nil {
 	//	context.Response(http.StatusBadRequest, 0, nil)
 	//	return
