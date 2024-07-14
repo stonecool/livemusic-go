@@ -1,11 +1,12 @@
 package internal
 
 import (
+	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
 	"reflect"
 )
 
-type MsgProducer struct {
+type CrawlMsg struct {
 	ID        int    `json:"id"`
 	DataType  string `json:"data_type"`
 	DataId    int    `json:"data_id"`
@@ -17,30 +18,33 @@ type MsgProducer struct {
 	mark      string
 }
 
-func (msgProducer *MsgProducer) init(m *model.MsgProducer) {
+func initCrawlMsg(m *model.CrawlMsg) *CrawlMsg {
 	if m == nil || reflect.ValueOf(m).IsZero() {
-		return
+		return nil
 	}
 
-	msgProducer.ID = m.ID
-	msgProducer.DataType = m.DataType
-	msgProducer.DataId = m.DataId
-	msgProducer.CrawlType = m.CrawlType
-	msgProducer.AccountId = m.AccountId
-	msgProducer.Count = m.Count
-	msgProducer.FirstTime = m.FirstTime
-	msgProducer.LastTime = m.LastTime
-	msgProducer.mark = m.Mark
+	var msg CrawlMsg
+	msg.ID = m.ID
+	msg.DataType = m.DataType
+	msg.DataId = m.DataId
+	msg.CrawlType = m.CrawlType
+	msg.AccountId = m.AccountId
+	msg.Count = m.Count
+	msg.FirstTime = m.FirstTime
+	msg.LastTime = m.LastTime
+	msg.mark = m.Mark
+
+	return &msg
 }
 
-// AddMsgProducer
-func AddMsgProducer(dataType string, dataId int, crawlType string, accountId string) (*MsgProducer, error) {
-	_, ok := CrawlAccountMap[crawlType]
+// AddCrawlMsg
+func AddCrawlMsg(dataType string, dataId int, crawlType string, accountId string) (*CrawlMsg, error) {
+	_, ok := config.AccountMap[crawlType]
 	if !ok {
 		return nil, error(nil)
 	}
 
-	if model.MsgProducerExists(dataType, dataId, crawlType) {
+	if model.CrawlMsgExists(dataType, dataId, crawlType) {
 		Logger.Warn("coroutine exists")
 
 		return nil, error(nil)
@@ -53,12 +57,18 @@ func AddMsgProducer(dataType string, dataId int, crawlType string, accountId str
 		"account_id": accountId,
 	}
 
-	if m, err := model.AddMsgProducer(data); err != nil {
+	if m, err := model.AddCrawlMsg(data); err != nil {
 		return nil, err
 	} else {
-		msgProducer := MsgProducer{}
-		msgProducer.init(m)
+		return initCrawlMsg(m), nil
+	}
+}
 
-		return &msgProducer, nil
+func GetCrawlMsg(id int) (*CrawlMsg, error) {
+	msg, err := model.GetCrawlMg(id)
+	if err != nil {
+		return nil, err
+	} else {
+		return initCrawlMsg(msg), nil
 	}
 }

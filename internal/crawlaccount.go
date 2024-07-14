@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
 	"reflect"
 )
@@ -31,7 +32,7 @@ func initCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
 
 // AddCrawlAccount
 func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
-	_, ok := CrawlAccountMap[accountType]
+	_, ok := config.AccountMap[accountType]
 	if !ok {
 		return nil, error(nil)
 	}
@@ -41,19 +42,19 @@ func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
 		"state":        uint8(0),
 	}
 
-	if m, err := model.AddCrawlAccount(data); err != nil {
+	if account, err := model.AddCrawlAccount(data); err != nil {
 		return nil, err
 	} else {
-		return initCrawlAccount(m), nil
+		return initCrawlAccount(account), nil
 	}
 }
 
 // GetCrawlAccount
 func GetCrawlAccount(id int) (*CrawlAccount, error) {
-	m, err := model.GetCrawlAccount(id)
+	account, err := model.GetCrawlAccount(id)
 	if err != nil {
 		return nil, err
 	} else {
-		return initCrawlAccount(m), nil
+		return initCrawlAccount(account), nil
 	}
 }

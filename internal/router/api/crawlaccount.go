@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/config"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
 	"net/http"
@@ -57,7 +58,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    getForm
-		crawl   *internal.Account
+		crawl   *config.Account
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()

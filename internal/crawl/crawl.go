@@ -3,43 +3,23 @@ package crawl
 import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/config"
 	"log"
-	"reflect"
 )
 
 type Crawl struct {
-	account *internal.CrawlAccount
+	Account *internal.CrawlAccount
 
-	cookies []byte
-	config  *internal.Account
-	ch      chan *internal.Message
-}
-
-// NewCrawl
-func NewCrawl(account *internal.CrawlAccount) (ICrawl, error) {
-	if reflect.ValueOf(*account).IsZero() {
-		return nil, error(nil)
-	}
-
-	var crawl ICrawl
-	switch account.AccountType {
-	case "wx":
-		crawl = &WxCrawl{
-			Crawl{account: account},
-		}
-	}
-
-	// map全局存储
-	//go crawl.Start()
-	return crawl, nil
+	config *config.Account
+	ch     chan *internal.Message
 }
 
 func (crawl *Crawl) GetId() string {
-	return crawl.account.AccountId
+	return crawl.Account.AccountId
 }
 
 func (crawl *Crawl) GetName() string {
-	return crawl.account.AccountName
+	return crawl.Account.AccountName
 }
 
 func (crawl *Crawl) GetState() internal.CrawlState {

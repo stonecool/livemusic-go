@@ -7,26 +7,26 @@ import (
 	"net/http"
 )
 
-type addMsgProducerForm struct {
+type addCrawlMsgForm struct {
 	DataType  string `json:"data_type" valid:"Required;MaxSize(100)"`
 	DataId    int    `json:"data_id" valid:"Required"`
 	CrawlType string `json:"crawl_type" valid:"Required;MaxSize(100)"`
 	AccountId string `json:"account_id" valid:"Required;MaxSize(100)"`
 }
 
-// AddMsgProducer
+// AddCrawlMsg
 //
 //	@Summary	Adds a crawl message producer
 //	@Accept		json
-//	@Param		form	body	api.addMsgProducerForm	true	"created crawl message producer"
+//	@Param		form	body	api.addCrawlMsgForm	true	"created crawl message producer"
 //	@Produce	json
 //	@Success	200	{object}			http.Response
 //	@Failure	400	{object}			http.Response
 //	@Router		/api/v1/msg-producers 	[post]
-func AddMsgProducer(ctx *gin.Context) {
+func AddCrawlMsg(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addMsgProducerForm
+		form    addCrawlMsgForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
@@ -35,7 +35,7 @@ func AddMsgProducer(ctx *gin.Context) {
 		return
 	}
 
-	if msgProducer, err := internal.AddMsgProducer(form.DataType, form.DataId, form.CrawlType, form.AccountId); err != nil {
+	if msgProducer, err := internal.AddCrawlMsg(form.DataType, form.DataId, form.CrawlType, form.AccountId); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
 		context.Response(http.StatusCreated, http2.Success, msgProducer)

@@ -1,4 +1,4 @@
-package internal
+package config
 
 import (
 	"fmt"
@@ -12,13 +12,13 @@ var config conf
 var Server = &config.Server
 var Database = &config.Database
 var Redis = &config.Redis
-var CrawlAccountMap map[string]Account
+var AccountMap map[string]Account
 
 type conf struct {
-	Server          server
-	Database        database
-	Redis           redis
-	CrawlAccountMap map[string]Account
+	Server     server
+	Database   database
+	Redis      redis
+	AccountMap map[string]Account
 }
 
 type server struct {
@@ -67,5 +67,5 @@ func init() {
 	}
 
 	log.Println(config)
-	CrawlAccountMap = config.CrawlAccountMap
+	AccountMap = config.AccountMap
 }
