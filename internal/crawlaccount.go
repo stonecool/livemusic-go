@@ -11,7 +11,6 @@ type CrawlAccount struct {
 	AccountType string `json:"account_type"`
 	AccountId   string `json:"account_id"`
 	AccountName string `json:"account_name"`
-	State       uint8  `json:"state"`
 	cookies     []byte
 }
 
@@ -37,12 +36,7 @@ func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
 		return nil, error(nil)
 	}
 
-	data := map[string]interface{}{
-		"account_type": accountType,
-		"state":        uint8(0),
-	}
-
-	if account, err := model.AddCrawlAccount(data); err != nil {
+	if account, err := model.AddCrawlAccount(accountType); err != nil {
 		return nil, err
 	} else {
 		return initCrawlAccount(account), nil

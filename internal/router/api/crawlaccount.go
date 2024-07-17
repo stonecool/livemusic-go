@@ -10,7 +10,7 @@ import (
 	"reflect"
 )
 
-type addCAForm struct {
+type addCrawlAccountForm struct {
 	AccountType string `json:"account_type" valid:"Required;MaxSize(255)"`
 }
 
@@ -18,7 +18,7 @@ type addCAForm struct {
 //
 //	@Summary	Add a crawl
 //	@Accept		json
-//	@Param		form	body	api.addCAForm	true	"created crawl account object"
+//	@Param		form	body	api.addCrawlAccountForm	true	"created crawl account object"
 //	@Produce	json
 //	@Success	200	{object}	http.Response
 //	@Failure	400	{object}	http.Response
@@ -26,7 +26,7 @@ type addCAForm struct {
 func AddCrawlAccount(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addCAForm
+		form    addCrawlAccountForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)

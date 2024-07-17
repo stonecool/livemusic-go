@@ -3,14 +3,15 @@ package crawl
 import (
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/cache"
+	"github.com/stonecool/livemusic-go/internal/config"
 	"log"
 	"reflect"
 )
 
-var crawlFactory *cache.Memo
+var crawlCache *cache.Memo
 
 func init() {
-	crawlFactory = cache.New(getCrawl)
+	crawlCache = cache.New(getCrawl)
 }
 
 // getCrawl
@@ -26,14 +27,20 @@ func getCrawl(id int) (interface{}, error) {
 		return &Crawl{}, nil
 	}
 
+	cfg, ok := config.AccountMap[account.AccountType]
+	if !ok {
+		return nil, error(nil)
+	}
+
 	var crawl ICrawl
 	switch account.AccountType {
-	case "wx":
-		crawl = &WxCrawl{
+	case "WeChat":
+		crawl = &WeChatCrawl{
 			Crawl: Crawl{
 				Account: account,
-				//config:  &cfg,
-				ch: make(chan *internal.Message),
+				state:   internal.CrawlState_Uninitialized,
+				config:  &cfg,
+				ch:      make(chan *internal.Message),
 			},
 		}
 	}
@@ -44,7 +51,7 @@ func getCrawl(id int) (interface{}, error) {
 
 // GetCrawl
 func GetCrawl(id int) (*Crawl, error) {
-	crawl, err := crawlFactory.Get(id)
+	crawl, err := crawlCache.Get(id)
 	if err != nil {
 		return nil, err
 	} else {

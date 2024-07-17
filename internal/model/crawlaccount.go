@@ -14,9 +14,9 @@ type CrawlAccount struct {
 }
 
 // AddCrawlAccount Adds a new crawl account
-func AddCrawlAccount(data map[string]interface{}) (*CrawlAccount, error) {
+func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
 	account := CrawlAccount{
-		CrawlType: data["crawl_type"].(string),
+		CrawlType: accountType,
 	}
 
 	if err := db.Create(&account).Error; err != nil {

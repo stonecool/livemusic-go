@@ -19,12 +19,14 @@ func InitRouter(engine *gin.Engine) error {
 	apiV1.DELETE("/crawl-accounts/:id", api.DeleteCrawlAccount)
 	apiV1.GET("/crawl-accounts/ws/:id", api.CrawlWebSocket)
 
-	// 爬虫消息生成者
-	apiV1.POST("/msg-producers/:id", api.AddCrawlMsg)
-	apiV1.DELETE("/msg-producers/:id", api.DeleteCrawlMsg)
-	apiV1.PUT("/msg-producers/start/:id", api.StartCrawlMsgProducer)
-	apiV1.POST("/msg-producers/start/:id", api.StartCrawlMsgProducer)
+	// 爬虫消息
+	apiV1.POST("/crawl-messages/:id", api.AddCrawlMsg)
+	apiV1.DELETE("/crawl-messages/:id", api.DeleteCrawlMsg)
+	apiV1.PUT("/crawl-messages/start/:id", api.StartCrawlMsgProducer)
+	apiV1.POST("/crawl-messages/start/:id", api.StartCrawlMsgProducer)
 
+	// livehouse
+	
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return nil

@@ -12,7 +12,7 @@ CREATE TABLE `crawl_account` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl account';
 
--- 爬虫消息生产者
+-- 爬虫消息
 CREATE TABLE crawl_msg (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `data_type`         VARCHAR(100) NOT NULL COMMENT 'data type',
@@ -28,8 +28,15 @@ CREATE TABLE crawl_msg (
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
 
     PRIMARY KEY (`id`)
-    UNIQUE KEY data_type__data_id__crawl_type (`data_type`, `data_id`, `account_type`)
+    UNIQUE KEY idx_data_type_data_id_crawl_type (`data_type`, `data_id`, `account_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl msg';
+
+-- livehouse
+CREATE TABLE `livehouse` (
+    `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) DEFAULT '' COMMENT 'name',
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='livehouse';
 
 -- CREATE TABLE `musician` (
 --     `id`            INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -55,14 +62,6 @@ CREATE TABLE crawl_msg (
 --     `deleted_on`    INT(10) UNSIGEND NOT NULL DEFAULT 0 COMMENT '删除时间',
 --     PRIMARY KEY (`id`)
 -- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='音乐人';
-
-CREATE TABLE `livehouse` (
-    `id`            INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `name`          VARCHAR(100) DEFAULT '' COMMENT 'name',
-    `location`      VARCHAR(100) DEFAULT '' COMMENT 'location',
-    `telephone`     VARCHAR(30) DEFAULT '' COMMENT '',
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='livehouse';
 
 -- CREATE TABLE `music_festival` (
 --     `id`            INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,

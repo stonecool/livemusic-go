@@ -10,6 +10,7 @@ import (
 type Crawl struct {
 	Account *internal.CrawlAccount
 
+	state  internal.CrawlState
 	config *config.Account
 	ch     chan *internal.Message
 }
@@ -67,40 +68,40 @@ func (crawl *Crawl) GetChan() chan *internal.Message {
 func (crawl *Crawl) Start() {
 	log.Printf("Start crawl:%d\n", crawl.GetId())
 
-	//for {
-	//	select {
-	//	case msg := <-crawl.GetChan():
-	//		curState := crawl.GetState()
-	//
-	//		switch msg.Cmd {
-	//		case CrawlCmd_Initial:
-	//			if curState != CrawlState_Uninitialized {
-	//				continue
-	//			}
-	//
-	//			ret, err := crawl.Login()
-	//			if err != nil {
-	//				log.Printf("error:%s", err)
-	//				continue
-	//			}
-	//
-	//			if ret {
-	//				crawl.SetState(CrawlState_NotLogged)
-	//			}
-	//
-	//		case CrawlCmd_Login:
-	//			if curState != CrawlState_NotLogged {
-	//				log.Printf("state not ready")
-	//				continue
-	//			}
-	//
-	//			crawl.SetState(CrawlState_Ready)
-	//
-	//		case CrawlCmd_Crawl:
-	//
-	//		default:
-	//			log.Printf("cmd:%v not supportted", msg.Cmd)
-	//		}
-	//	}
-	//}
+	for {
+		select {
+		case msg := <-crawl.GetChan():
+			curState := crawl.GetState()
+
+			switch msg.Cmd {
+			case internal.CrawlCmd_Initial:
+				if curState != internal.CrawlState_Uninitialized {
+					continue
+				}
+
+				ret, err := crawl.Login()
+				if err != nil {
+					log.Printf("error:%s", err)
+					continue
+				}
+
+				if ret {
+					crawl.SetState(internal.CrawlState_NotLogged)
+				}
+
+			case internal.CrawlCmd_Login:
+				if curState != internal.CrawlState_NotLogged {
+					log.Printf("state not ready")
+					continue
+				}
+
+				crawl.SetState(internal.CrawlState_Ready)
+
+			case internal.CrawlCmd_Crawl:
+
+			default:
+				log.Printf("cmd:%v not supportted", msg.Cmd)
+			}
+		}
+	}
 }

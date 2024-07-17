@@ -5,11 +5,11 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-type WxCrawl struct {
+type WeChatCrawl struct {
 	Crawl
 }
 
-func (crawl *WxCrawl) Login() (bool, error) {
+func (crawl *WeChatCrawl) Login() (bool, error) {
 	//var lastLoggedPath = "https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN&token=2098303583"
 	//get cookie to colly
 
@@ -22,7 +22,7 @@ func (crawl *WxCrawl) Login() (bool, error) {
 	return false, nil
 }
 
-func (crawl *WxCrawl) WaitLogin() chromedp.ActionFunc {
+func (crawl *WeChatCrawl) WaitLogin() chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		if err = chromedp.WaitVisible(`#app > div.main_bd_new`, chromedp.ByID).Do(ctx); err != nil {
 			return
@@ -32,7 +32,7 @@ func (crawl *WxCrawl) WaitLogin() chromedp.ActionFunc {
 	}
 }
 
-func (crawl *WxCrawl) CheckLogin() chromedp.ActionFunc {
+func (crawl *WeChatCrawl) CheckLogin() chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		//chromedp.Navigate(crawl.config.LoginURL)
 		//
