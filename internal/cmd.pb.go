@@ -93,7 +93,7 @@ var (
 		"Login":    1,
 		"LoginAck": 2,
 		"StateAck": 3,
-		"Account":    4,
+		"Account":  4,
 	}
 )
 

@@ -43,6 +43,21 @@ func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
 	}
 }
 
+// DeleteCrawlAccount
+func DeleteCrawlAccount(id int) bool {
+	account, err := model.GetCrawlAccount(id)
+	if err != nil {
+		return false
+	}
+
+	err = model.DeleteCrawlAccount(account)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
+
 // GetCrawlAccount
 func GetCrawlAccount(id int) (*CrawlAccount, error) {
 	account, err := model.GetCrawlAccount(id)

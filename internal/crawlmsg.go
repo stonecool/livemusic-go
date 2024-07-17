@@ -45,7 +45,7 @@ func AddCrawlMsg(dataType string, dataId int, crawlType string, accountId string
 	}
 
 	if model.CrawlMsgExists(dataType, dataId, crawlType) {
-		Logger.Warn("coroutine exists")
+		Logger.Warn("msg exists")
 
 		return nil, error(nil)
 	}
@@ -61,6 +61,21 @@ func AddCrawlMsg(dataType string, dataId int, crawlType string, accountId string
 		return nil, err
 	} else {
 		return initCrawlMsg(m), nil
+	}
+}
+
+// DeleteCrawlMsg
+func DeleteCrawlMsg(id int) bool {
+	msg, err := model.GetCrawlMg(id)
+	if err != nil {
+		return false
+	}
+
+	err = model.DeleteCrawlMsg(msg)
+	if err != nil {
+		return false
+	} else {
+		return true
 	}
 }
 

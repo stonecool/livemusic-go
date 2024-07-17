@@ -1,9 +1,5 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
-
 type CrawlAccount struct {
 	Model
 
@@ -26,10 +22,15 @@ func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
 	return &account, nil
 }
 
+// DeleteCrawlAccount Deletes a crawl account
+func DeleteCrawlAccount(account *CrawlAccount) error {
+	return db.Delete(account).Error
+}
+
 // GetCrawlAccount Gets a crawl account
 func GetCrawlAccount(id int) (*CrawlAccount, error) {
 	var account CrawlAccount
-	if err := db.Where("id = ?", id).First(&account).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err := db.Where("id = ? AND deleted_at != 0", id).First(&account).Error; err != nil {
 		return nil, err
 	}
 

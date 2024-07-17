@@ -4,10 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
+	"github.com/unknwon/com"
 	"net/http"
 )
 
-type addCrawlMsgForm struct {
+type crawlMsgForm struct {
 	DataType  string `json:"data_type" valid:"Required;MaxSize(100)"`
 	DataId    int    `json:"data_id" valid:"Required"`
 	CrawlType string `json:"crawl_type" valid:"Required;MaxSize(100)"`
@@ -15,18 +16,17 @@ type addCrawlMsgForm struct {
 }
 
 // AddCrawlMsg
-//
-//	@Summary	Adds a crawl message producer
-//	@Accept		json
-//	@Param		form	body	api.addCrawlMsgForm	true	"created crawl message producer"
-//	@Produce	json
-//	@Success	200	{object}			http.Response
-//	@Failure	400	{object}			http.Response
-//	@Router		/api/v1/msg-producers 	[post]
+// @Summary	Adds crawl message
+// @Accept		json
+// @Param		form	body	api.crawlMsgForm	true	"created crawl message"
+// @Produce	json
+// @Success	200	{object}			http.Response
+// @Failure	400	{object}			http.Response
+// @Router		/api/v1/crawl-messages 	[post]
 func AddCrawlMsg(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addCrawlMsgForm
+		form    crawlMsgForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
@@ -43,47 +43,67 @@ func AddCrawlMsg(ctx *gin.Context) {
 }
 
 // DeleteCrawlMsg
-//
-//	@Summary	Delete a crawl message producer
-//	@Param		id	path	int	true	"ID"	default(1)
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/msg-producers/{id} [get]
+// @Summary	Delete crawl message
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/crawl-messages/{id} [delete]
 func DeleteCrawlMsg(ctx *gin.Context) {
-	//type deleteForm struct {
-	//	ID int `valid:"Required;Min(1)"`
-	//}
-	//
-	//var (
-	//	context = http2.Context{Context: ctx}
-	//	form    deleteForm
-	//)
-	//
-	//form.ID = com.StrTo(ctx.Param("id")).MustInt()
-	//httpCode, errCode := Valid(&form)
-	//if errCode != http2.Success {
-	//	context.Response(httpCode, errCode, nil)
-	//	return
-	//}
-	//
-	//c, err := crawl.GetCrawlAccount(form.ID)
-	//if err != nil {
-	//	context.Response(http.StatusBadRequest, 0, nil)
-	//	return
-	//}
-	//
-	//if reflect.ValueOf(*m).IsZero() {
-	//	context.Response(http.StatusOK, -1, nil)
-	//	return
-	//}
-	//
-	//context.Response(http.StatusOK, 0, c)
+	var (
+		context = http2.Context{Context: ctx}
+		form    idForm
+	)
+
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	httpCode, errCode := Valid(&form)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	if internal.DeleteCrawlMsg(form.ID) {
+		context.Response(http.StatusOK, 0, nil)
+		return
+	} else {
+		context.Response(http.StatusBadRequest, 0, nil)
+	}
 }
 
 // ModifyCrawlMsg
+// @Summary	Modify crawl message
+// @Accept		json
+// @Param		form	body	api.crawlMsgForm	true	"modify crawl message"
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}			http.Response
+// @Failure	400	{object}			http.Response
+// @Router		/api/v1/crawl-messages/{id} 	[put]
 func ModifyCrawlMsg(ctx *gin.Context) {
+	var (
+		context = http2.Context{Context: ctx}
+		form    crawlMsgForm
+		idForm  idForm
+	)
 
+	httpCode, errCode := BindAndValid(ctx, &form)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	idForm.ID = com.StrTo(ctx.Param("id")).MustInt()
+	httpCode, errCode = Valid(&idForm)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	if msgProducer, err := internal.AddCrawlMsg(form.DataType, form.DataId, form.CrawlType, form.AccountId); err != nil {
+		context.Response(http.StatusBadRequest, http2.Error, nil)
+	} else {
+		context.Response(http.StatusCreated, http2.Success, msgProducer)
+	}
 }
 
 // StartCrawlMsgProducer

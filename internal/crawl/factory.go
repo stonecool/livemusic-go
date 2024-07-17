@@ -5,7 +5,6 @@ import (
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"log"
-	"reflect"
 )
 
 var crawlCache *cache.Memo
@@ -20,11 +19,6 @@ func getCrawl(id int) (interface{}, error) {
 	if err != nil {
 		log.Printf("error: %s", err)
 		return nil, err
-	}
-
-	// FIXME Is this check necessary?
-	if reflect.ValueOf(*account).IsZero() {
-		return &Crawl{}, nil
 	}
 
 	cfg, ok := config.AccountMap[account.AccountType]

@@ -8,6 +8,10 @@ import (
 	"net/http"
 )
 
+type idForm struct {
+	ID int `valid:"Required;Min(1)"`
+}
+
 // BindAndValid binds and validates data
 func BindAndValid(c *gin.Context, form interface{}) (int, int) {
 	err := c.Bind(form)

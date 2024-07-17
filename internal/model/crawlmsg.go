@@ -31,6 +31,11 @@ func AddCrawlMsg(data map[string]interface{}) (*CrawlMsg, error) {
 	return &msg, nil
 }
 
+// DeleteCrawlMsg Deletes a crawl account
+func DeleteCrawlMsg(msg *CrawlMsg) error {
+	return db.Delete(msg).Error
+}
+
 // GetCrawlMg Gets a crawl msg
 func GetCrawlMg(id int) (*CrawlMsg, error) {
 	var msg CrawlMsg

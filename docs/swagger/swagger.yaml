@@ -1,7 +1,23 @@
 definitions:
-  api.addCrawlForm:
+  api.addCrawlAccountForm:
     properties:
+      account_type:
+        type: string
+    type: object
+  api.addCrawlMsgForm:
+    properties:
+      account_id:
+        type: string
       crawl_type:
+        type: string
+      data_id:
+        type: integer
+      data_type:
+        type: string
+    type: object
+  api.addLivehouseForm:
+    properties:
+      name:
         type: string
     type: object
   http.Response:
@@ -33,12 +49,12 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: created crawl object
+      - description: created crawl account object
         in: body
         name: form
         required: true
         schema:
-          $ref: '#/definitions/api.addCrawlForm'
+          $ref: '#/definitions/api.addCrawlAccountForm'
       produces:
       - application/json
       responses:
@@ -72,4 +88,134 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Get a single crawl
+  /api/v1/livehouses:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: created livehouse object
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.addLivehouseForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Add a livehouse
+  /api/v1/livehouses/{id}:
+    delete:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: delete a livehouse
+    get:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: get a livehouse
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: created livehouse object
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.addLivehouseForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: modify a livehouse
+  /api/v1/msg-producers:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: created crawl message producer
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.addCrawlMsgForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Adds a crawl message producer
+  /api/v1/msg-producers/{id}:
+    get:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Delete a crawl message producer
 swagger: "2.0"
