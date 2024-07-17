@@ -1,10 +1,15 @@
 definitions:
-  api.addCrawlAccountForm:
+  api.addLivehouseForm:
+    properties:
+      name:
+        type: string
+    type: object
+  api.crawlAccountForm:
     properties:
       account_type:
         type: string
     type: object
-  api.addCrawlMsgForm:
+  api.crawlMsgForm:
     properties:
       account_id:
         type: string
@@ -13,11 +18,6 @@ definitions:
       data_id:
         type: integer
       data_type:
-        type: string
-    type: object
-  api.addLivehouseForm:
-    properties:
-      name:
         type: string
     type: object
   http.Response:
@@ -31,20 +31,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/v1/crawls:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: Get multiple accounts
+  /api/v1/crawl-accounts:
     post:
       consumes:
       - application/json
@@ -54,7 +41,7 @@ paths:
         name: form
         required: true
         schema:
-          $ref: '#/definitions/api.addCrawlAccountForm'
+          $ref: '#/definitions/api.crawlAccountForm'
       produces:
       - application/json
       responses:
@@ -66,8 +53,28 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/http.Response'
-      summary: Add a crawl
-  /api/v1/crawls/{id}:
+      summary: Add crawl account
+  /api/v1/crawl-accounts/{id}:
+    delete:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Delete crawl account
     get:
       parameters:
       - default: 1
@@ -87,7 +94,114 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/http.Response'
-      summary: Get a single crawl
+      summary: Get crawl account
+  /api/v1/crawl-accounts/ws/{id}:
+    get:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Get multiple accounts
+  /api/v1/crawl-messages:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: created crawl message
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.crawlMsgForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Adds crawl message
+  /api/v1/crawl-messages/{id}:
+    delete:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Delete crawl message
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: modify crawl message
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.crawlMsgForm'
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Modify crawl message
+  /api/v1/crawls:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Get multiple accounts
   /api/v1/livehouses:
     post:
       consumes:
@@ -174,48 +288,4 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: modify a livehouse
-  /api/v1/msg-producers:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: created crawl message producer
-        in: body
-        name: form
-        required: true
-        schema:
-          $ref: '#/definitions/api.addCrawlMsgForm'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: Adds a crawl message producer
-  /api/v1/msg-producers/{id}:
-    get:
-      parameters:
-      - default: 1
-        description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: Delete a crawl message producer
 swagger: "2.0"
