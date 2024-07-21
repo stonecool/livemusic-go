@@ -12,8 +12,9 @@ func init() {
 }
 
 func getCrawlMsg(id int) (interface{}, error) {
-	msg, err := internal.GetCrawlMsg(id)
-	if err != nil {
+	msg := &internal.CrawlMsg{ID: id}
+
+	if err := msg.Get(); err != nil {
 		return nil, err
 	}
 

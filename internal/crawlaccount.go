@@ -3,7 +3,6 @@ package internal
 import (
 	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
-	"reflect"
 )
 
 type CrawlAccount struct {
@@ -14,56 +13,64 @@ type CrawlAccount struct {
 	cookies     []byte
 }
 
-func initCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
-	if m == nil || reflect.ValueOf(m).IsZero() {
+func (a *CrawlAccount) init(m *model.CrawlAccount) {
+	a.ID = m.ID
+	a.AccountType = m.AccountType
+	a.AccountId = m.AccountId
+	a.AccountName = m.AccountName
+	a.cookies = m.Cookies
+}
+
+func (a *CrawlAccount) Add() error {
+	_, ok := config.AccountMap[a.AccountType]
+	if !ok {
+		return error(nil)
+	}
+
+	data := map[string]interface{}{
+		"data_type": a.AccountType,
+	}
+
+	if account, err := model.AddCrawlAccount(data); err != nil {
+		return err
+	} else {
+		a.init(account)
+
 		return nil
 	}
-
-	var account CrawlAccount
-	account.ID = m.ID
-	account.AccountType = m.CrawlType
-	account.AccountId = m.AccountId
-	account.AccountName = m.AccountName
-	account.cookies = m.Cookies
-
-	return &account
 }
 
-// AddCrawlAccount
-func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
-	_, ok := config.AccountMap[accountType]
-	if !ok {
-		return nil, error(nil)
-	}
+func (a *CrawlAccount) Get() error {
+	if account, err := model.GetCrawlAccount(a.ID); err != nil {
+		return err
+	} else {
+		a.init(account)
 
-	if account, err := model.AddCrawlAccount(accountType); err != nil {
+		return nil
+	}
+}
+
+func (a *CrawlAccount) GetAll() ([]*CrawlAccount, error) {
+	if accounts, err := model.GetCrawlAccountAll(); err != nil {
 		return nil, err
 	} else {
-		return initCrawlAccount(account), nil
+		var s []*CrawlAccount
+
+		for _, account := range accounts {
+			tempAccount := &CrawlAccount{}
+			tempAccount.init(account)
+			s = append(s, tempAccount)
+		}
+
+		return s, nil
 	}
 }
 
-// DeleteCrawlAccount
-func DeleteCrawlAccount(id int) bool {
-	account, err := model.GetCrawlAccount(id)
+func (a *CrawlAccount) Delete() error {
+	m, err := model.GetCrawlAccount(a.ID)
 	if err != nil {
-		return false
+		return err
 	}
 
-	err = model.DeleteCrawlAccount(account)
-	if err != nil {
-		return false
-	} else {
-		return true
-	}
-}
-
-// GetCrawlAccount
-func GetCrawlAccount(id int) (*CrawlAccount, error) {
-	account, err := model.GetCrawlAccount(id)
-	if err != nil {
-		return nil, err
-	} else {
-		return initCrawlAccount(account), nil
-	}
+	return model.DeleteCrawlAccount(m)
 }

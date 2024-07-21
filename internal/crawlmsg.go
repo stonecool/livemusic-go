@@ -3,87 +3,112 @@ package internal
 import (
 	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
-	"reflect"
 )
 
 type CrawlMsg struct {
-	ID        int    `json:"id"`
-	DataType  string `json:"data_type"`
-	DataId    int    `json:"data_id"`
-	CrawlType string `json:"crawl_type"`
-	AccountId string `json:"account_id"`
-	Count     int    `json:"count"`
-	FirstTime int    `json:"first_time"`
-	LastTime  int    `json:"last_time"`
-	mark      string
+	ID          int    `json:"id"`
+	DataType    string `json:"data_type"`
+	DataId      int    `json:"data_id"`
+	AccountType string `json:"account_type"`
+	AccountId   string `json:"account_id"`
+	Count       int    `json:"count"`
+	FirstTime   int    `json:"first_time"`
+	LastTime    int    `json:"last_time"`
+	mark        string
 }
 
-func initCrawlMsg(m *model.CrawlMsg) *CrawlMsg {
-	if m == nil || reflect.ValueOf(m).IsZero() {
-		return nil
-	}
-
-	var msg CrawlMsg
-	msg.ID = m.ID
-	msg.DataType = m.DataType
-	msg.DataId = m.DataId
-	msg.CrawlType = m.CrawlType
-	msg.AccountId = m.AccountId
-	msg.Count = m.Count
-	msg.FirstTime = m.FirstTime
-	msg.LastTime = m.LastTime
-	msg.mark = m.Mark
-
-	return &msg
+func (m *CrawlMsg) init(msg *model.CrawlMsg) {
+	m.ID = msg.ID
+	m.DataType = msg.DataType
+	m.DataId = msg.DataId
+	m.AccountType = msg.AccountType
+	m.AccountId = msg.AccountId
+	m.Count = msg.Count
+	m.FirstTime = msg.FirstTime
+	m.LastTime = msg.LastTime
+	m.mark = msg.Mark
 }
 
-// AddCrawlMsg
-func AddCrawlMsg(dataType string, dataId int, crawlType string, accountId string) (*CrawlMsg, error) {
-	_, ok := config.AccountMap[crawlType]
+func (m *CrawlMsg) Add() error {
+	_, ok := config.AccountMap[m.AccountType]
 	if !ok {
-		return nil, error(nil)
+		return error(nil)
 	}
 
-	if model.CrawlMsgExists(dataType, dataId, crawlType) {
+	if model.CrawlMsgExists(m.DataType, m.DataId, m.AccountType) {
 		Logger.Warn("msg exists")
 
-		return nil, error(nil)
+		return error(nil)
 	}
 
 	data := map[string]interface{}{
-		"data_type":  dataType,
-		"data_id":    dataId,
-		"crawl_type": crawlType,
-		"account_id": accountId,
+		"data_type":    m.DataType,
+		"data_id":      m.DataId,
+		"account_type": m.AccountType,
+		"account_id":   m.AccountId,
 	}
 
-	if m, err := model.AddCrawlMsg(data); err != nil {
-		return nil, err
+	if msg, err := model.AddCrawlMsg(data); err != nil {
+		return err
 	} else {
-		return initCrawlMsg(m), nil
+		m.init(msg)
+		return nil
 	}
 }
 
-// DeleteCrawlMsg
-func DeleteCrawlMsg(id int) bool {
-	msg, err := model.GetCrawlMg(id)
-	if err != nil {
-		return false
-	}
-
-	err = model.DeleteCrawlMsg(msg)
-	if err != nil {
-		return false
+func (m *CrawlMsg) Get() error {
+	if msg, err := model.GetCrawlMg(m.ID); err != nil {
+		return err
 	} else {
-		return true
+		m.init(msg)
+
+		return nil
 	}
 }
 
-func GetCrawlMsg(id int) (*CrawlMsg, error) {
-	msg, err := model.GetCrawlMg(id)
-	if err != nil {
+func (m *CrawlMsg) GetAll() ([]*CrawlMsg, error) {
+	if msgs, err := model.GetCrawlMsgAll(); err != nil {
 		return nil, err
 	} else {
-		return initCrawlMsg(msg), nil
+		var s []*CrawlMsg
+
+		for _, msg := range msgs {
+			tempMsg := &CrawlMsg{}
+			tempMsg.init(msg)
+			s = append(s, tempMsg)
+		}
+
+		return s, nil
+	}
+}
+
+func (m *CrawlMsg) Delete() error {
+	msg, err := model.GetCrawlMg(m.ID)
+	if err != nil {
+		return err
+	}
+
+	return model.DeleteCrawlMsg(msg)
+}
+
+func (m *CrawlMsg) Edit() error {
+	msg, err := model.GetCrawlMg(m.ID)
+	if err != nil {
+		return err
+	}
+
+	data := map[string]interface{}{
+		"data_type":    m.DataType,
+		"data_id":      m.DataId,
+		"account_type": m.AccountType,
+		"account_id":   m.AccountId,
+	}
+
+	msg, err = model.EditCrawlMsg(m.ID, data)
+	if err != nil {
+		return err
+	} else {
+		m.init(msg)
+		return nil
 	}
 }

@@ -9,10 +9,10 @@ import (
 )
 
 type crawlMsgForm struct {
-	DataType  string `json:"data_type" valid:"Required;MaxSize(100)"`
-	DataId    int    `json:"data_id" valid:"Required"`
-	CrawlType string `json:"crawl_type" valid:"Required;MaxSize(100)"`
-	AccountId string `json:"account_id" valid:"Required;MaxSize(100)"`
+	DataType    string `json:"data_type" valid:"Required;MaxSize(100)"`
+	DataId      int    `json:"data_id" valid:"Required"`
+	AccountType string `json:"account_type" valid:"Required;MaxSize(100)"`
+	AccountId   string `json:"account_id" valid:"Required;MaxSize(100)"`
 }
 
 // AddCrawlMsg
@@ -35,10 +35,73 @@ func AddCrawlMsg(ctx *gin.Context) {
 		return
 	}
 
-	if msgProducer, err := internal.AddCrawlMsg(form.DataType, form.DataId, form.CrawlType, form.AccountId); err != nil {
+	msg := internal.CrawlMsg{
+		DataType:    form.DataType,
+		DataId:      form.DataId,
+		AccountType: form.AccountType,
+		AccountId:   form.AccountId,
+	}
+
+	if err := msg.Add(); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, msgProducer)
+		context.Response(http.StatusCreated, http2.Success, msg)
+	}
+}
+
+// GetCrawlMsg
+// @Summary	Get a crawl message
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/crawl-messages/{id} [delete]
+func GetCrawlMsg(ctx *gin.Context) {
+	var (
+		context = http2.Context{Context: ctx}
+		form    idForm
+	)
+
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	httpCode, errCode := Valid(&form)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	msg := internal.CrawlMsg{ID: form.ID}
+	if err := msg.Get(); err != nil {
+		context.Response(http.StatusBadRequest, 0, nil)
+	} else {
+		context.Response(http.StatusCreated, http2.Success, msg)
+	}
+}
+
+// GetCrawlMsgs
+// @Summary	Get all crawl messages
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/crawl-messages/{id} [delete]
+func GetCrawlMsgs(ctx *gin.Context) {
+	var (
+		context = http2.Context{Context: ctx}
+		form    idForm
+	)
+
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	httpCode, errCode := Valid(&form)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	msg := internal.CrawlMsg{}
+	if msgs, err := msg.GetAll(); err != nil {
+		context.Response(http.StatusBadRequest, 0, nil)
+	} else {
+		context.Response(http.StatusCreated, http2.Success, msgs)
 	}
 }
 
@@ -62,16 +125,16 @@ func DeleteCrawlMsg(ctx *gin.Context) {
 		return
 	}
 
-	if internal.DeleteCrawlMsg(form.ID) {
-		context.Response(http.StatusOK, 0, nil)
-		return
-	} else {
+	msg := &internal.CrawlMsg{ID: form.ID}
+	if err := msg.Delete(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
+	} else {
+		context.Response(http.StatusCreated, http2.Success, nil)
 	}
 }
 
 // ModifyCrawlMsg
-// @Summary	Modify crawl message
+// @Summary	Edit crawl message
 // @Accept		json
 // @Param		form	body	api.crawlMsgForm	true	"modify crawl message"
 // @Param		id	path	int	true	"ID"	default(1)
@@ -99,10 +162,18 @@ func ModifyCrawlMsg(ctx *gin.Context) {
 		return
 	}
 
-	if msgProducer, err := internal.AddCrawlMsg(form.DataType, form.DataId, form.CrawlType, form.AccountId); err != nil {
+	msg := &internal.CrawlMsg{
+		ID:          idForm.ID,
+		DataType:    form.DataType,
+		DataId:      form.DataId,
+		AccountType: form.AccountType,
+		AccountId:   form.AccountId,
+	}
+
+	if err := msg.Edit(); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, msgProducer)
+		context.Response(http.StatusCreated, http2.Success, msg)
 	}
 }
 

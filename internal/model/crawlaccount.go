@@ -3,16 +3,16 @@ package model
 type CrawlAccount struct {
 	Model
 
-	CrawlType   string // 微信公众号，微博
+	AccountType string
 	AccountId   string
 	AccountName string
 	Cookies     []byte
 }
 
 // AddCrawlAccount Adds a new crawl account
-func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
+func AddCrawlAccount(data map[string]interface{}) (*CrawlAccount, error) {
 	account := CrawlAccount{
-		CrawlType: accountType,
+		AccountType: data["account_type"].(string),
 	}
 
 	if err := db.Create(&account).Error; err != nil {
@@ -22,19 +22,29 @@ func AddCrawlAccount(accountType string) (*CrawlAccount, error) {
 	return &account, nil
 }
 
-// DeleteCrawlAccount Deletes a crawl account
-func DeleteCrawlAccount(account *CrawlAccount) error {
-	return db.Delete(account).Error
-}
-
 // GetCrawlAccount Gets a crawl account
 func GetCrawlAccount(id int) (*CrawlAccount, error) {
 	var account CrawlAccount
-	if err := db.Where("id = ? AND deleted_at != 0", id).First(&account).Error; err != nil {
+	// FIXME
+	if err := db.Where("id = ? AND deleted_at != ?", id, 0).First(&account).Error; err != nil {
 		return nil, err
 	}
 
 	return &account, nil
+}
+
+func GetCrawlAccountAll() ([]*CrawlAccount, error) {
+	var accounts []*CrawlAccount
+	if err := db.Where("deleted_at != ?", 0).Find(&accounts).Error; err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
+// DeleteCrawlAccount Deletes a crawl account
+func DeleteCrawlAccount(account *CrawlAccount) error {
+	return db.Delete(account).Error
 }
 
 // GetCrawlAccountsByType Gets crawl accounts by type

@@ -189,7 +189,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Modify crawl message",
+                "summary": "Edit crawl message",
                 "parameters": [
                     {
                         "description": "modify crawl message",

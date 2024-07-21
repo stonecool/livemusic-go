@@ -14,14 +14,13 @@ type crawlAccountForm struct {
 }
 
 // AddCrawlAccount
-//
-//	@Summary	Add crawl account
-//	@Accept		json
-//	@Param		form	body	api.crawlAccountForm	true	"created crawl account object"
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/crawl-accounts [post]
+// @Summary	Add crawl account
+// @Accept		json
+// @Param		form	body	api.crawlAccountForm	true	"created crawl account object"
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/crawl-accounts [post]
 func AddCrawlAccount(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
@@ -34,49 +33,21 @@ func AddCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	if account, err := internal.AddCrawlAccount(form.AccountType); err != nil {
+	account := &internal.CrawlAccount{AccountType: form.AccountType}
+	if err := account.Add(); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
 		context.Response(http.StatusCreated, http2.Success, account)
 	}
 }
 
-// DeleteCrawlAccount
-//
-//	@Summary	Delete crawl account
-//	@Param		id	path	int	true	"ID"	default(1)
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/crawl-accounts/{id} [delete]
-func DeleteCrawlAccount(ctx *gin.Context) {
-	var (
-		context = http2.Context{Context: ctx}
-		form    idForm
-	)
-
-	form.ID = com.StrTo(ctx.Param("id")).MustInt()
-	httpCode, errCode := Valid(&form)
-	if errCode != http2.Success {
-		context.Response(httpCode, errCode, nil)
-		return
-	}
-
-	if internal.DeleteCrawlAccount(form.ID) {
-		context.Response(http.StatusOK, 0, nil)
-	} else {
-		context.Response(http.StatusBadRequest, 0, nil)
-	}
-}
-
 // GetCrawlAccount
-//
-//	@Summary	Get crawl account
-//	@Param		id	path	int	true	"ID"	default(1)
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/crawl-accounts/{id} [get]
+// @Summary	Get crawl account
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/crawl-accounts/{id} [get]
 func GetCrawlAccount(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
@@ -90,34 +61,77 @@ func GetCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	c, err := internal.GetCrawlAccount(form.ID)
-	if err != nil {
+	account := &internal.CrawlAccount{ID: form.ID}
+	if err := account.Get(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
-		return
+	} else {
+		context.Response(http.StatusOK, 0, account)
 	}
-
-	context.Response(http.StatusOK, 0, c)
 }
 
 // GetCrawlAccounts
-//
-//	@Summary	Get multiple accounts
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	500	{object}	http.Response
-//	@Router		/api/v1/crawls [get]
+// @Summary	Get multiple accounts
+// @Accept		json
+// @Param		form	body	api.crawlAccountForm	true	"created crawl account object"
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	500	{object}	http.Response
+// @Router		/api/v1/crawls [get]
 func GetCrawlAccounts(ctx *gin.Context) {
+	var (
+		context = http2.Context{Context: ctx}
+		form    crawlAccountForm
+	)
 
+	httpCode, errCode := BindAndValid(ctx, &form)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	account := &internal.CrawlAccount{}
+	if accounts, err := account.GetAll(); err != nil {
+		context.Response(http.StatusBadRequest, 0, nil)
+	} else {
+		context.Response(http.StatusBadRequest, 0, accounts)
+	}
+}
+
+// DeleteCrawlAccount
+// @Summary	Delete crawl account
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/crawl-accounts/{id} [delete]
+func DeleteCrawlAccount(ctx *gin.Context) {
+	var (
+		context = http2.Context{Context: ctx}
+		form    idForm
+	)
+
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	httpCode, errCode := Valid(&form)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	account := &internal.CrawlAccount{ID: form.ID}
+	if err := account.Delete(); err != nil {
+		context.Response(http.StatusBadRequest, 0, nil)
+	} else {
+		context.Response(http.StatusOK, 0, nil)
+	}
 }
 
 // CrawlAccountWebSocket
-//
-//	@Summary	Get multiple accounts
-//	@Param		id	path	int	true	"ID"	default(1)
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	500	{object}	http.Response
-//	@Router		/api/v1/crawl-accounts/ws/{id} [get]
+// @Summary	Get multiple accounts
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	500	{object}	http.Response
+// @Router		/api/v1/crawl-accounts/ws/{id} [get]
 func CrawlAccountWebSocket(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}

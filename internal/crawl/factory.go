@@ -15,7 +15,8 @@ func init() {
 
 // getCrawl
 func getCrawl(id int) (interface{}, error) {
-	account, err := internal.GetCrawlAccount(id)
+	account := &internal.CrawlAccount{ID: id}
+	err := account.Get()
 	if err != nil {
 		log.Printf("error: %s", err)
 		return nil, err
