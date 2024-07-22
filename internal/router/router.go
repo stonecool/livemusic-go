@@ -30,7 +30,7 @@ func InitRouter(engine *gin.Engine) error {
 	// livehouse
 	apiV1.POST("/livehouses", api.AddLivehouse)
 	apiV1.DELETE("/livehouses/:id", api.DeleteLivehouse)
-	apiV1.PUT("/livehouses/:id", api.ModifyLivehouse)
+	apiV1.PUT("/livehouses/:id", api.EditLivehouse)
 	apiV1.GET("/livehouses/:id", api.GetLivehouse)
 	apiV1.GET("/livehouses", api.GetLivehouses)
 

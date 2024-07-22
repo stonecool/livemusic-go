@@ -4,26 +4,27 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
+	"github.com/unknwon/com"
 	"net/http"
 )
 
-type addLivehouseForm struct {
+type livehouseForm struct {
+	ID   int    `json:"ID"`
 	Name string `json:"name" valid:"Required;MaxSize(100)"`
 }
 
 // AddLivehouse
-//
-//	@Summary	Add a livehouse
-//	@Accept		json
-//	@Param		form	body	api.addLivehouseForm	true	"created livehouse object"
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/livehouses [post]
+// @Summary	Add a livehouse
+// @Accept		json
+// @Param		form	body	api.livehouseForm	true	"created livehouse object"
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/livehouses [post]
 func AddLivehouse(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addLivehouseForm
+		form    livehouseForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
@@ -32,108 +33,74 @@ func AddLivehouse(ctx *gin.Context) {
 		return
 	}
 
-	if account, err := internal.AddCrawlAccount(""); err != nil {
+	house := &internal.Livehouse{
+		Name: form.Name,
+	}
+
+	if err := house.Add(); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, account)
-	}
-}
-
-// DeleteLivehouse
-//
-//	@Summary	delete a livehouse
-//	@Param		id path int true "ID" default(1)
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/livehouses/{id} [delete]
-func DeleteLivehouse(ctx *gin.Context) {
-	var (
-		context = http2.Context{Context: ctx}
-		form    addLivehouseForm
-	)
-
-	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != http2.Success {
-		context.Response(httpCode, errCode, nil)
-		return
-	}
-
-	if account, err := internal.AddCrawlAccount(""); err != nil {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
-	} else {
-		context.Response(http.StatusCreated, http2.Success, account)
-	}
-}
-
-// ModifyLivehouse
-//
-//	@Summary	modify a livehouse
-//	@Accept		json
-//	@Param		form	body	api.addLivehouseForm	true	"created livehouse object"
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/livehouses/{id} [post]
-func ModifyLivehouse(ctx *gin.Context) {
-	var (
-		context = http2.Context{Context: ctx}
-		form    addLivehouseForm
-	)
-
-	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != http2.Success {
-		context.Response(httpCode, errCode, nil)
-		return
-	}
-
-	if account, err := internal.AddCrawlAccount(""); err != nil {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
-	} else {
-		context.Response(http.StatusCreated, http2.Success, account)
+		context.Response(http.StatusCreated, http2.Success, house)
 	}
 }
 
 // GetLivehouse
-//
-//	@Summary	get a livehouse
-//	@Param		id	path	int	true	"ID"	default(1)
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/livehouses/{id} [get]
+// @Summary	get a livehouse
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/livehouses/{id} [get]
 func GetLivehouse(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addLivehouseForm
+		form    idForm
 	)
 
-	httpCode, errCode := BindAndValid(ctx, &form)
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	httpCode, errCode := Valid(&form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
-	if account, err := internal.AddCrawlAccount(""); err != nil {
+	house := &internal.Livehouse{ID: form.ID}
+	if err := house.Get(); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, account)
+		context.Response(http.StatusCreated, http2.Success, house)
 	}
 }
 
 // GetLivehouses
-//
-//	@Summary	Add a livehouse
-//	@Accept		json
-//	@Param		form	body	api.addLivehouseForm	true	"created livehouse object"
-//	@Produce	json
-//	@Success	200	{object}	http.Response
-//	@Failure	400	{object}	http.Response
-//	@Router		/api/v1/livehouses [post]
+// @Summary	Get all livehouse
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/livehouses [get]
 func GetLivehouses(ctx *gin.Context) {
+	var context = http2.Context{Context: ctx}
+
+	house := &internal.Livehouse{}
+	if houses, err := house.GetAll(); err != nil {
+		context.Response(http.StatusBadRequest, http2.Error, nil)
+	} else {
+		context.Response(http.StatusCreated, http2.Success, houses)
+	}
+}
+
+// EditLivehouse
+// @Summary	Edit a livehouse
+// @Accept		json
+// @Param		form	body	api.livehouseForm	true	"created livehouse object"
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/livehouses/{id} [post]
+func EditLivehouse(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
-		form    addLivehouseForm
+		form    livehouseForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
@@ -142,9 +109,42 @@ func GetLivehouses(ctx *gin.Context) {
 		return
 	}
 
-	if account, err := internal.AddCrawlAccount(""); err != nil {
+	house := internal.Livehouse{
+		ID:   form.ID,
+		Name: form.Name,
+	}
+
+	if err := house.Edit(); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, account)
+		context.Response(http.StatusOK, http2.Error, house)
+	}
+}
+
+// DeleteLivehouse
+// @Summary	delete a livehouse
+// @Param		id path int true "ID" default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/livehouses/{id} [delete]
+func DeleteLivehouse(ctx *gin.Context) {
+	var (
+		context = http2.Context{Context: ctx}
+		form    idForm
+	)
+
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	httpCode, errCode := Valid(&form)
+	if errCode != http2.Success {
+		context.Response(httpCode, errCode, nil)
+		return
+	}
+
+	house := &internal.Livehouse{ID: form.ID}
+	if err := house.Delete(); err != nil {
+		context.Response(http.StatusBadRequest, http2.Error, nil)
+	} else {
+		context.Response(http.StatusOK, http2.Error, house)
 	}
 }

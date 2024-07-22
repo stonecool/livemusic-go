@@ -79,23 +79,12 @@ func GetCrawlMsg(ctx *gin.Context) {
 
 // GetCrawlMsgs
 // @Summary	Get all crawl messages
-// @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
-// @Router		/api/v1/crawl-messages/{id} [delete]
+// @Router		/api/v1/crawl-messages [get]
 func GetCrawlMsgs(ctx *gin.Context) {
-	var (
-		context = http2.Context{Context: ctx}
-		form    idForm
-	)
-
-	form.ID = com.StrTo(ctx.Param("id")).MustInt()
-	httpCode, errCode := Valid(&form)
-	if errCode != http2.Success {
-		context.Response(httpCode, errCode, nil)
-		return
-	}
+	var context = http2.Context{Context: ctx}
 
 	msg := internal.CrawlMsg{}
 	if msgs, err := msg.GetAll(); err != nil {

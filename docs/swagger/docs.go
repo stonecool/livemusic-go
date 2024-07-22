@@ -146,6 +146,26 @@ const docTemplate = `{
             }
         },
         "/api/v1/crawl-messages": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get all crawl messages",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -278,6 +298,26 @@ const docTemplate = `{
             }
         },
         "/api/v1/livehouses": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get all livehouse",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -293,7 +333,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.addLivehouseForm"
+                            "$ref": "#/definitions/api.livehouseForm"
                         }
                     }
                 ],
@@ -351,7 +391,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "modify a livehouse",
+                "summary": "Edit a livehouse",
                 "parameters": [
                     {
                         "description": "created livehouse object",
@@ -359,7 +399,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.addLivehouseForm"
+                            "$ref": "#/definitions/api.livehouseForm"
                         }
                     }
                 ],
@@ -411,14 +451,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.addLivehouseForm": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "api.crawlAccountForm": {
             "type": "object",
             "properties": {
@@ -433,13 +465,24 @@ const docTemplate = `{
                 "account_id": {
                     "type": "string"
                 },
-                "crawl_type": {
+                "account_type": {
                     "type": "string"
                 },
                 "data_id": {
                     "type": "integer"
                 },
                 "data_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.livehouseForm": {
+            "type": "object",
+            "properties": {
+                "ID": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 }
             }

@@ -71,23 +71,12 @@ func GetCrawlAccount(ctx *gin.Context) {
 
 // GetCrawlAccounts
 // @Summary	Get multiple accounts
-// @Accept		json
-// @Param		form	body	api.crawlAccountForm	true	"created crawl account object"
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	500	{object}	http.Response
 // @Router		/api/v1/crawls [get]
 func GetCrawlAccounts(ctx *gin.Context) {
-	var (
-		context = http2.Context{Context: ctx}
-		form    crawlAccountForm
-	)
-
-	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != http2.Success {
-		context.Response(httpCode, errCode, nil)
-		return
-	}
+	var context = http2.Context{Context: ctx}
 
 	account := &internal.CrawlAccount{}
 	if accounts, err := account.GetAll(); err != nil {

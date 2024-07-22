@@ -1,9 +1,4 @@
 definitions:
-  api.addLivehouseForm:
-    properties:
-      name:
-        type: string
-    type: object
   api.crawlAccountForm:
     properties:
       account_type:
@@ -13,11 +8,18 @@ definitions:
     properties:
       account_id:
         type: string
-      crawl_type:
+      account_type:
         type: string
       data_id:
         type: integer
       data_type:
+        type: string
+    type: object
+  api.livehouseForm:
+    properties:
+      ID:
+        type: integer
+      name:
         type: string
     type: object
   http.Response:
@@ -117,6 +119,19 @@ paths:
             $ref: '#/definitions/http.Response'
       summary: Get multiple accounts
   /api/v1/crawl-messages:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Get all crawl messages
     post:
       consumes:
       - application/json
@@ -187,7 +202,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/http.Response'
-      summary: Modify crawl message
+      summary: Edit crawl message
   /api/v1/crawls:
     get:
       produces:
@@ -203,6 +218,19 @@ paths:
             $ref: '#/definitions/http.Response'
       summary: Get multiple accounts
   /api/v1/livehouses:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Get all livehouse
     post:
       consumes:
       - application/json
@@ -212,7 +240,7 @@ paths:
         name: form
         required: true
         schema:
-          $ref: '#/definitions/api.addLivehouseForm'
+          $ref: '#/definitions/api.livehouseForm'
       produces:
       - application/json
       responses:
@@ -275,7 +303,7 @@ paths:
         name: form
         required: true
         schema:
-          $ref: '#/definitions/api.addLivehouseForm'
+          $ref: '#/definitions/api.livehouseForm'
       produces:
       - application/json
       responses:
@@ -287,5 +315,5 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/http.Response'
-      summary: modify a livehouse
+      summary: Edit a livehouse
 swagger: "2.0"

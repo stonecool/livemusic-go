@@ -1,8 +1,6 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
 type Livehouse struct {
 	Model
@@ -11,34 +9,16 @@ type Livehouse struct {
 }
 
 // AddLiveHouse Adds a live house
-func AddLiveHouse(data map[string]interface{}) error {
-	liveHouse := Livehouse{
+func AddLiveHouse(data map[string]interface{}) (*Livehouse, error) {
+	house := Livehouse{
 		Name: data["name"].(string),
 	}
 
-	if err := db.Create(&liveHouse).Error; err != nil {
-		return err
+	if err := db.Create(&house).Error; err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-// DeleteLiveHouse deletes a live house based on id
-func DeleteLiveHouse(id int) error {
-	if err := db.Where("id = ?", id).Delete(Livehouse{}).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// EditLiveHouse edits a live house based on ID
-func EditLiveHouse(id int, data interface{}) error {
-	if err := db.Model(&Livehouse{}).Where("id = ? AND deleted_on = ?", id, 0).Updates(data).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return &house, nil
 }
 
 // GetLiveHouse gets a live house based on ID
@@ -51,20 +31,26 @@ func GetLiveHouse(id int) (*Livehouse, error) {
 	return &liveHouse, nil
 }
 
-// GetLiveHouseCount Gets count of live house based on maps condition
-func GetLiveHouseCount(maps interface{}) (int64, error) {
-	var count int64
-
-	if err := db.Model(&Livehouse{}).Where(maps).Count(&count).Error; err != nil {
-		return 0, err
+// GetLiveHouses Gets all livehouses
+func GetLiveHouses() ([]*Livehouse, error) {
+	var liveHouses []*Livehouse
+	if err := db.Where("deleted_at != ?", 0).Find(&liveHouses).Error; err != nil {
+		return nil, err
 	}
 
-	return count, nil
+	return liveHouses, nil
 }
 
-// GetLiveHouses Gets live houses on page
-func GetLiveHouses(pageNum int, pageSize int, maps interface{}) ([]*Livehouse, error) {
-	var liveHouses []*Livehouse
+// EditLiveHouse edits a live house based on ID
+func EditLiveHouse(id int, data interface{}) error {
+	if err := db.Model(&Livehouse{}).Where("id = ? AND deleted_on = ?", id, 0).Updates(data).Error; err != nil {
+		return err
+	}
 
-	return liveHouses, nil
+	return nil
+}
+
+// DeleteLiveHouse deletes a live house based on id
+func DeleteLiveHouse(house *Livehouse) error {
+	return db.Delete(house).Error
 }

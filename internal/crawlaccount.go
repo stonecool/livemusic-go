@@ -35,7 +35,6 @@ func (a *CrawlAccount) Add() error {
 		return err
 	} else {
 		a.init(account)
-
 		return nil
 	}
 }
@@ -45,7 +44,6 @@ func (a *CrawlAccount) Get() error {
 		return err
 	} else {
 		a.init(account)
-
 		return nil
 	}
 }
@@ -67,10 +65,10 @@ func (a *CrawlAccount) GetAll() ([]*CrawlAccount, error) {
 }
 
 func (a *CrawlAccount) Delete() error {
-	m, err := model.GetCrawlAccount(a.ID)
+	account, err := model.GetCrawlAccount(a.ID)
 	if err != nil {
 		return err
 	}
 
-	return model.DeleteCrawlAccount(m)
+	return model.DeleteCrawlAccount(account)
 }

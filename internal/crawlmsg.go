@@ -61,7 +61,6 @@ func (m *CrawlMsg) Get() error {
 		return err
 	} else {
 		m.init(msg)
-
 		return nil
 	}
 }
