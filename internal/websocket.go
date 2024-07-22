@@ -1,13 +1,13 @@
-package api
+package internal
 
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/crawl"
 	"google.golang.org/protobuf/proto"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -30,7 +30,12 @@ type Client struct {
 	conn  *websocket.Conn
 }
 
-func NewClient(crawl crawl.ICrawl, ctx *gin.Context) (*Client, error) {
+var (
+	clients = make(map[*crawl.Crawl]*Client)
+	mu      sync.Mutex
+)
+
+func newClient(crawl crawl.ICrawl, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -85,7 +90,7 @@ func (c *Client) Read() {
 		case websocket.BinaryMessage:
 			fmt.Println("Received Binary Message:", data)
 
-			message := &internal.Message{}
+			message := &Message{}
 
 			if err := proto.Unmarshal(data, message); err != nil {
 				log.Printf("unmarshal data error:%v\n", err)
@@ -147,4 +152,34 @@ func (c *Client) Write() {
 			}
 		}
 	}
+}
+
+func HandleWebsocket(accountId int, ctx *gin.Context) error {
+	c, err := crawl.GetCrawl(accountId)
+	if err != nil {
+		return err
+	}
+
+	mu.Lock()
+
+	client, err := newClient(c, ctx)
+	if err != nil {
+		return err
+	}
+
+	if oldClient, ok := clients[c]; ok {
+		err := oldClient.conn.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	clients[c] = client
+
+	mu.Unlock()
+
+	go client.Read()
+	go client.Write()
+
+	return nil
 }

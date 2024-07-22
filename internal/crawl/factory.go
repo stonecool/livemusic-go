@@ -13,7 +13,6 @@ func init() {
 	crawlCache = cache.New(getCrawl)
 }
 
-// getCrawl
 func getCrawl(id int) (interface{}, error) {
 	account := &internal.CrawlAccount{ID: id}
 	err := account.Get()
@@ -44,7 +43,6 @@ func getCrawl(id int) (interface{}, error) {
 	return crawl, nil
 }
 
-// GetCrawl
 func GetCrawl(id int) (*Crawl, error) {
 	crawl, err := crawlCache.Get(id)
 	if err != nil {

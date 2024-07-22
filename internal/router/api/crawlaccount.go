@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
-	crawl2 "github.com/stonecool/livemusic-go/internal/crawl"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
 	"net/http"
@@ -134,20 +133,9 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 		return
 	}
 
-	crawl, err := crawl2.GetCrawl(form.ID)
-	if err != nil {
+	if err := internal.HandleWebsocket(form.ID, ctx); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
-		return
+	} else {
+		context.Response(http.StatusOK, 0, nil)
 	}
-
-	// TODO 同一个account,多个new的问题
-	client, err := NewClient(crawl, ctx)
-	if err != nil {
-		return
-	}
-
-	go client.Read()
-	go client.Write()
-
-	context.Response(http.StatusOK, 0, nil)
 }
