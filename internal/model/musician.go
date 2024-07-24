@@ -34,7 +34,7 @@ func DeleteMusician(id int) error {
 
 // EditMusician Edits a musician based on ID
 func EditMusician(id int, data interface{}) error {
-	if err := db.Model(&Musician{}).Where("id = ? AND deleted_on = ?", id, 0).Updates(data).Error; err != nil {
+	if err := db.Model(&Musician{}).Where("id = ? AND deleted_at = ?", id, 0).Updates(data).Error; err != nil {
 		return err
 	}
 
@@ -44,7 +44,7 @@ func EditMusician(id int, data interface{}) error {
 // GetMusician Gets a musician based on ID
 func GetMusician(id int) (*Musician, error) {
 	var musician Musician
-	if err := db.Where("id = ? AND deleted_on = ?", id, 0).First(&musician).Error; err != nil && err != gorm.ErrNotImplemented {
+	if err := db.Where("id = ? AND deleted_at = ?", id, 0).First(&musician).Error; err != nil && err != gorm.ErrNotImplemented {
 		return nil, err
 	}
 

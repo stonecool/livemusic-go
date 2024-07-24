@@ -35,6 +35,10 @@ CREATE TABLE crawl_msg (
 CREATE TABLE `livehouse` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `name`              VARCHAR(100) DEFAULT '' COMMENT 'name',
+    `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
+    `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
+    `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
+    
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='livehouse';
 

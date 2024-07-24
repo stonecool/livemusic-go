@@ -34,6 +34,19 @@ info:
   contact: {}
 paths:
   /api/v1/crawl-accounts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Get multiple accounts
     post:
       consumes:
       - application/json
@@ -203,20 +216,6 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Edit crawl message
-  /api/v1/crawls:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: Get multiple accounts
   /api/v1/livehouses:
     get:
       produces:

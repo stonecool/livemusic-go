@@ -44,7 +44,7 @@ func GetCrawlMg(id int) (*CrawlMsg, error) {
 // GetCrawlMg Gets a crawl msg
 func GetCrawlMsgAll() ([]*CrawlMsg, error) {
 	var msgs []*CrawlMsg
-	if err := db.Where("deleted_at != ?", 0).Find(&msgs).Error; err != nil {
+	if err := db.Where("deleted_at = ?", 0).Find(&msgs).Error; err != nil {
 		return nil, err
 	}
 
@@ -53,7 +53,7 @@ func GetCrawlMsgAll() ([]*CrawlMsg, error) {
 
 // DeleteCrawlMsg Deletes a crawl account
 func DeleteCrawlMsg(msg *CrawlMsg) error {
-	return db.Delete(msg).Error
+	return db.Model(msg).Where("deleted_at != ?", 0).Update("deleted_at", 0).Error
 }
 
 // CrawlMsgExists Check coroutine exists
@@ -69,7 +69,7 @@ func CrawlMsgExists(dataType string, dataId int, crawlType string) bool {
 func EditCrawlMsg(id int, data map[string]interface{}) (*CrawlMsg, error) {
 	var msg CrawlMsg
 
-	if err := db.Model(&msg).Where("id = ? AND deleted_on = ? ", id, 0).Updates(data).Error; err != nil {
+	if err := db.Model(&msg).Where("id = ? AND deleted_at = ? ", id, 0).Updates(data).Error; err != nil {
 		return nil, err
 	}
 

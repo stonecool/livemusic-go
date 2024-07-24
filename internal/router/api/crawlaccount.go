@@ -34,7 +34,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 
 	account := &internal.CrawlAccount{AccountType: form.AccountType}
 	if err := account.Add(); err != nil {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
+		context.Response(http.StatusBadRequest, http2.ErrorNotExists, nil)
 	} else {
 		context.Response(http.StatusCreated, http2.Success, account)
 	}
@@ -73,7 +73,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	500	{object}	http.Response
-// @Router		/api/v1/crawls [get]
+// @Router		/api/v1/crawl-accounts [get]
 func GetCrawlAccounts(ctx *gin.Context) {
 	var context = http2.Context{Context: ctx}
 

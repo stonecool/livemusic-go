@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
 )
@@ -24,11 +25,11 @@ func (a *CrawlAccount) init(m *model.CrawlAccount) {
 func (a *CrawlAccount) Add() error {
 	_, ok := config.AccountMap[a.AccountType]
 	if !ok {
-		return error(nil)
+		return fmt.Errorf("account_type:%s not exists", a.AccountType)
 	}
 
 	data := map[string]interface{}{
-		"data_type": a.AccountType,
+		"account_type": a.AccountType,
 	}
 
 	if account, err := model.AddCrawlAccount(data); err != nil {

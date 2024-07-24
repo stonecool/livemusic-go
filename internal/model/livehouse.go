@@ -24,7 +24,7 @@ func AddLiveHouse(data map[string]interface{}) (*Livehouse, error) {
 // GetLiveHouse gets a live house based on ID
 func GetLiveHouse(id int) (*Livehouse, error) {
 	var liveHouse Livehouse
-	if err := db.Where("id = ? AND deleted_on = ?", id, 0).First(&liveHouse).Error; err != nil && err != gorm.ErrRecordNotFound {
+	if err := db.Where("id = ? AND deleted_at = ?", id, 0).First(&liveHouse).Error; err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
@@ -34,7 +34,7 @@ func GetLiveHouse(id int) (*Livehouse, error) {
 // GetLiveHouses Gets all livehouses
 func GetLiveHouses() ([]*Livehouse, error) {
 	var liveHouses []*Livehouse
-	if err := db.Where("deleted_at != ?", 0).Find(&liveHouses).Error; err != nil {
+	if err := db.Where("deleted_at = ?", 0).Find(&liveHouses).Error; err != nil {
 		return nil, err
 	}
 
@@ -43,7 +43,7 @@ func GetLiveHouses() ([]*Livehouse, error) {
 
 // EditLiveHouse edits a live house based on ID
 func EditLiveHouse(id int, data interface{}) error {
-	if err := db.Model(&Livehouse{}).Where("id = ? AND deleted_on = ?", id, 0).Updates(data).Error; err != nil {
+	if err := db.Model(&Livehouse{}).Where("id = ? AND deleted_at = ?", id, 0).Updates(data).Error; err != nil {
 		return err
 	}
 

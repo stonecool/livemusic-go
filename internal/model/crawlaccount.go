@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type CrawlAccount struct {
 	Model
 
@@ -26,7 +28,7 @@ func AddCrawlAccount(data map[string]interface{}) (*CrawlAccount, error) {
 func GetCrawlAccount(id int) (*CrawlAccount, error) {
 	var account CrawlAccount
 	// FIXME
-	if err := db.Where("id = ? AND deleted_at != ?", id, 0).First(&account).Error; err != nil {
+	if err := db.Where("id = ? AND deleted_at = ?", id, 0).First(&account).Error; err != nil {
 		return nil, err
 	}
 
@@ -35,7 +37,7 @@ func GetCrawlAccount(id int) (*CrawlAccount, error) {
 
 func GetCrawlAccountAll() ([]*CrawlAccount, error) {
 	var accounts []*CrawlAccount
-	if err := db.Where("deleted_at != ?", 0).Find(&accounts).Error; err != nil {
+	if err := db.Where("deleted_at = ?", 0).Find(&accounts).Error; err != nil {
 		return nil, err
 	}
 
@@ -44,13 +46,13 @@ func GetCrawlAccountAll() ([]*CrawlAccount, error) {
 
 // DeleteCrawlAccount Deletes a crawl account
 func DeleteCrawlAccount(account *CrawlAccount) error {
-	return db.Delete(account).Error
+	return db.Model(account).Where("deleted_at = ?", 0).Update("deleted_at", time.Now().Unix()).Error
 }
 
 // GetCrawlAccountsByType Gets crawl accounts by type
 func GetCrawlAccountsByType(crawlType string) ([]*CrawlAccount, error) {
 	var crawls []CrawlAccount
-	if err := db.Where("deleted_at != 0 AND account_type = ?", crawlType).Find(&crawls).Error; err != nil {
+	if err := db.Where("deleted_at = 0 AND account_type = ?", crawlType).Find(&crawls).Error; err != nil {
 		return nil, err
 	}
 
