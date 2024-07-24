@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/stonecool/livemusic-go/internal/crawl"
 	"google.golang.org/protobuf/proto"
 	"log"
 	"sync"
@@ -26,16 +25,16 @@ const (
 )
 
 type Client struct {
-	crawl crawl.ICrawl
+	crawl ICrawl
 	conn  *websocket.Conn
 }
 
 var (
-	clients = make(map[*crawl.Crawl]*Client)
+	clients = make(map[*Crawl]*Client)
 	mu      sync.Mutex
 )
 
-func newClient(crawl crawl.ICrawl, ctx *gin.Context) (*Client, error) {
+func newClient(crawl ICrawl, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -155,7 +154,7 @@ func (c *Client) Write() {
 }
 
 func HandleWebsocket(accountId int, ctx *gin.Context) error {
-	c, err := crawl.GetCrawl(accountId)
+	c, err := GetCrawl(accountId)
 	if err != nil {
 		return err
 	}

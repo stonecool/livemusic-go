@@ -1,7 +1,6 @@
-package crawl
+package internal
 
 import (
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/cache"
 )
 
@@ -12,7 +11,7 @@ func init() {
 }
 
 func getCrawlMsg(id int) (interface{}, error) {
-	msg := &internal.CrawlMsg{ID: id}
+	msg := &CrawlMsg{ID: id}
 
 	if err := msg.Get(); err != nil {
 		return nil, err
@@ -28,11 +27,11 @@ func getCrawlMsg(id int) (interface{}, error) {
 	return nil, nil
 }
 
-func GetCrawlMsg(id int) (*internal.CrawlMsg, error) {
+func GetCrawlMsg(id int) (*CrawlMsg, error) {
 	msg, err := msgCache.Get(id)
 	if err != nil {
 		return nil, err
 	} else {
-		return msg.(*internal.CrawlMsg), nil
+		return msg.(*CrawlMsg), nil
 	}
 }

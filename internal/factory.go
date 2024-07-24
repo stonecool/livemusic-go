@@ -1,7 +1,6 @@
-package crawl
+package internal
 
 import (
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"log"
@@ -14,7 +13,7 @@ func init() {
 }
 
 func getCrawl(id int) (interface{}, error) {
-	account := &internal.CrawlAccount{ID: id}
+	account := &CrawlAccount{ID: id}
 	err := account.Get()
 	if err != nil {
 		log.Printf("error: %s", err)
@@ -32,9 +31,9 @@ func getCrawl(id int) (interface{}, error) {
 		crawl = &WeChatCrawl{
 			Crawl: Crawl{
 				Account: account,
-				state:   internal.CrawlState_Uninitialized,
+				state:   CrawlState_Uninitialized,
 				config:  &cfg,
-				ch:      make(chan *internal.Message),
+				ch:      make(chan *Message),
 			},
 		}
 	}

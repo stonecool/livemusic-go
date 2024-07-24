@@ -1,18 +1,17 @@
-package crawl
+package internal
 
 import (
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"log"
 )
 
 type Crawl struct {
-	Account *internal.CrawlAccount
+	Account *CrawlAccount
 
-	state  internal.CrawlState
+	state  CrawlState
 	config *config.Account
-	ch     chan *internal.Message
+	ch     chan *Message
 }
 
 func (crawl *Crawl) GetId() string {
@@ -23,11 +22,11 @@ func (crawl *Crawl) GetName() string {
 	return crawl.Account.AccountName
 }
 
-func (crawl *Crawl) GetState() internal.CrawlState {
-	return internal.CrawlState_Ready
+func (crawl *Crawl) GetState() CrawlState {
+	return CrawlState_Ready
 }
 
-func (crawl *Crawl) SetState(state internal.CrawlState) {
+func (crawl *Crawl) SetState(state CrawlState) {
 	//crawl.State = state.
 }
 
@@ -61,7 +60,7 @@ func (crawl *Crawl) GetCookies() []byte {
 	return nil
 }
 
-func (crawl *Crawl) GetChan() chan *internal.Message {
+func (crawl *Crawl) GetChan() chan *Message {
 	return nil
 }
 
@@ -74,8 +73,8 @@ func (crawl *Crawl) Start() {
 			curState := crawl.GetState()
 
 			switch msg.Cmd {
-			case internal.CrawlCmd_Initial:
-				if curState != internal.CrawlState_Uninitialized {
+			case CrawlCmd_Initial:
+				if curState != CrawlState_Uninitialized {
 					continue
 				}
 
@@ -86,18 +85,18 @@ func (crawl *Crawl) Start() {
 				}
 
 				if ret {
-					crawl.SetState(internal.CrawlState_NotLogged)
+					crawl.SetState(CrawlState_NotLogged)
 				}
 
-			case internal.CrawlCmd_Login:
-				if curState != internal.CrawlState_NotLogged {
+			case CrawlCmd_Login:
+				if curState != CrawlState_NotLogged {
 					log.Printf("state not ready")
 					continue
 				}
 
-				crawl.SetState(internal.CrawlState_Ready)
+				crawl.SetState(CrawlState_Ready)
 
-			case internal.CrawlCmd_Crawl:
+			case CrawlCmd_Crawl:
 
 			default:
 				log.Printf("cmd:%v not supportted", msg.Cmd)
