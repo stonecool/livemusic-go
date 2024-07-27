@@ -394,14 +394,6 @@ const docTemplate = `{
                 "summary": "Edit a livehouse",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "description": "created livehouse object",
                         "name": "form",
                         "in": "body",
@@ -487,7 +479,7 @@ const docTemplate = `{
         "api.livehouseForm": {
             "type": "object",
             "properties": {
-                "id": {
+                "ID": {
                     "type": "integer"
                 },
                 "name": {

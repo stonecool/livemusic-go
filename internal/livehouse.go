@@ -1,6 +1,9 @@
 package internal
 
-import "github.com/stonecool/livemusic-go/internal/model"
+import (
+	"fmt"
+	"github.com/stonecool/livemusic-go/internal/model"
+)
 
 type Livehouse struct {
 	ID   int    `json:"ID"`
@@ -59,10 +62,22 @@ func (h *Livehouse) Edit() error {
 }
 
 func (h *Livehouse) Delete() error {
-	house, err := model.GetLiveHouse(h.ID)
+	exist, err := model.ExistLivehouse(h.ID)
 	if err != nil {
 		return err
 	}
 
-	return model.DeleteLiveHouse(house)
+	if !exist {
+		return fmt.Errorf("not exist")
+	}
+
+	return model.DeleteLiveHouse(h.ID)
+}
+
+func (h *Livehouse) SetId(id int) {
+	h.ID = id
+}
+
+func (h *Livehouse) Exist() (bool, error) {
+	return model.ExistLivehouse(h.ID)
 }

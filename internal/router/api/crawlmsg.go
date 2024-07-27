@@ -122,7 +122,7 @@ func DeleteCrawlMsg(ctx *gin.Context) {
 	}
 }
 
-// ModifyCrawlMsg
+// EditCrawlMsg
 // @Summary	Edit crawl message
 // @Accept		json
 // @Param		form	body	api.crawlMsgForm	true	"modify crawl message"
@@ -131,7 +131,7 @@ func DeleteCrawlMsg(ctx *gin.Context) {
 // @Success	200	{object}			http.Response
 // @Failure	400	{object}			http.Response
 // @Router		/api/v1/crawl-messages/{ID} 	[put]
-func ModifyCrawlMsg(ctx *gin.Context) {
+func EditCrawlMsg(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    crawlMsgForm
@@ -166,7 +166,7 @@ func ModifyCrawlMsg(ctx *gin.Context) {
 	}
 }
 
-// StartCrawlMsgProducer
-func StartCrawlMsgProducer(ctx *gin.Context) {
+// StartCrawlMsg
+func StartCrawlMsg(ctx *gin.Context) {
 
 }

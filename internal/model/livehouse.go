@@ -54,6 +54,15 @@ func EditLiveHouse(id int, data interface{}) error {
 }
 
 // DeleteLiveHouse deletes a live house based on id
-func DeleteLiveHouse(house *Livehouse) error {
-	return db.Model(house).Where("deleted_at = ?", 0).Update("deleted_at", time.Now().Unix()).Error
+func DeleteLiveHouse(id int) error {
+	return db.Model(&Livehouse{}).Where("id = ? AND deleted_at = ?", id, 0).Update("deleted_at", time.Now().Unix()).Error
+}
+
+func ExistLivehouse(id int) (bool, error) {
+	var exists bool
+	if err := db.Where("id = ? AND deleted_at = ?", id, 0).Find(&exists).Error; err != nil {
+		return false, err
+	}
+
+	return exists, nil
 }

@@ -17,7 +17,7 @@ definitions:
     type: object
   api.livehouseForm:
     properties:
-      id:
+      ID:
         type: integer
       name:
         type: string
@@ -298,12 +298,6 @@ paths:
       consumes:
       - application/json
       parameters:
-      - default: 1
-        description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
       - description: created livehouse object
         in: body
         name: form
