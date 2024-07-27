@@ -20,7 +20,7 @@ func InitRouter(engine *gin.Engine) error {
 	apiV1.GET("/crawl-accounts/ws/:id", api.CrawlAccountWebSocket)
 
 	// 爬虫消息
-	apiV1.POST("/crawl-messages/:id", api.AddCrawlMsg)
+	apiV1.POST("/crawl-messages", api.AddCrawlMsg)
 	apiV1.GET("/crawl-messages/:id", api.GetCrawlMsg)
 	apiV1.GET("/crawl-messages", api.GetCrawlMsgs)
 	apiV1.DELETE("/crawl-messages/:id", api.DeleteCrawlMsg)

@@ -6,13 +6,13 @@ definitions:
     type: object
   api.crawlMsgForm:
     properties:
-      account_id:
-        type: string
       account_type:
         type: string
       data_id:
         type: integer
       data_type:
+        type: string
+      target_account_id:
         type: string
     type: object
   api.livehouseForm:
@@ -75,7 +75,7 @@ paths:
       - default: 1
         description: ID
         in: path
-        name: ID
+        name: id
         required: true
         type: integer
       produces:
@@ -90,12 +90,13 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Delete crawl account
+  /api/v1/crawl-accounts/{id}:
     get:
       parameters:
       - default: 1
         description: ID
         in: path
-        name: ID
+        name: id
         required: true
         type: integer
       produces:
@@ -116,7 +117,7 @@ paths:
       - default: 1
         description: ID
         in: path
-        name: ID
+        name: id
         required: true
         type: integer
       produces:
@@ -173,7 +174,7 @@ paths:
       - default: 1
         description: ID
         in: path
-        name: ID
+        name: id
         required: true
         type: integer
       produces:
@@ -188,22 +189,42 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Delete crawl message
+    get:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: Get a crawl message
     put:
       consumes:
       - application/json
       parameters:
-      - description: modify crawl message
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: edit crawl message
         in: body
         name: form
         required: true
         schema:
           $ref: '#/definitions/api.crawlMsgForm'
-      - default: 1
-        description: ID
-        in: path
-        name: ID
-        required: true
-        type: integer
       produces:
       - application/json
       responses:

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -23,7 +24,7 @@ func AddCrawlMsg(data map[string]interface{}) (*CrawlMsg, error) {
 		DataType:        data["data_type"].(string),
 		DataId:          data["data_id"].(int),
 		AccountType:     data["account_type"].(string),
-		TargetAccountId: data["account_id"].(string),
+		TargetAccountId: data["target_account_id"].(string),
 	}
 
 	if err := db.Create(&msg).Error; err != nil {
@@ -55,17 +56,19 @@ func GetCrawlMsgAll() ([]*CrawlMsg, error) {
 
 // DeleteCrawlMsg Deletes a crawl account
 func DeleteCrawlMsg(msg *CrawlMsg) error {
-	return db.Model(msg).Where("deleted_at != ?", 0).Update("deleted_at", time.Now().Unix()).Error
+	return db.Model(msg).Where("deleted_at = ?", 0).Update("deleted_at", time.Now().Unix()).Error
 }
 
-func CrawlMsgExist(dataType string, dataId int, crawlType string) (bool, error) {
-	var exists bool
-	if err := db.Where("data_type = '?' AND data_id = ? AND crawl_type = '?' AND deleted_at = ?",
-		dataType, dataId, crawlType, 0).Find(&exists).Error; err != nil {
+func ExistCrawlMsg(dataType string, dataId int, crawlType string) (bool, error) {
+	var msg CrawlMsg
+	err := db.Select("id").Where("data_type = ? AND data_id = ? AND account_type = ? AND deleted_at = ?",
+		dataType, dataId, crawlType, 0).First(&msg).Error
+
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
 
-	return exists, nil
+	return msg.ID > 0, nil
 }
 
 func EditCrawlMsg(id int, data map[string]interface{}) (*CrawlMsg, error) {

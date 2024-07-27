@@ -42,18 +42,18 @@ func AddCrawlAccount(ctx *gin.Context) {
 
 // GetCrawlAccount
 // @Summary	Get crawl account
-// @Param		ID	path	int	true	"ID"	default(1)
+// @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
-// @Router		/api/v1/crawl-accounts/{ID} [get]
+// @Router		/api/v1/crawl-accounts/{id} [get]
 func GetCrawlAccount(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    idForm
 	)
 
-	form.ID = com.StrTo(ctx.Param("ID")).MustInt()
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)
@@ -87,7 +87,7 @@ func GetCrawlAccounts(ctx *gin.Context) {
 
 // DeleteCrawlAccount
 // @Summary	Delete crawl account
-// @Param		ID	path	int	true	"ID"	default(1)
+// @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
@@ -98,7 +98,7 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 		form    idForm
 	)
 
-	form.ID = com.StrTo(ctx.Param("ID")).MustInt()
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)
@@ -115,7 +115,7 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 
 // CrawlAccountWebSocket
 // @Summary	Get multiple accounts
-// @Param		ID	path	int	true	"ID"	default(1)
+// @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	500	{object}	http.Response
@@ -126,7 +126,7 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 		form    idForm
 	)
 
-	form.ID = com.StrTo(ctx.Param("ID")).MustInt()
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)

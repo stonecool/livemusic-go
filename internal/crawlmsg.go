@@ -42,11 +42,11 @@ func (m *CrawlMsg) Add() error {
 		return err
 	}
 
-	if exist {
-		return fmt.Errorf("exists")
+	if !exist {
+		return fmt.Errorf("data table not exists")
 	}
 
-	if exist, err := model.CrawlMsgExist(m.DataType, m.DataId, m.AccountType); err != nil {
+	if exist, err := model.ExistCrawlMsg(m.DataType, m.DataId, m.AccountType); err != nil {
 		Logger.Warn("msg exists")
 
 		return fmt.Errorf("some error")
@@ -133,9 +133,11 @@ func dataTypeIdExists(dataType string, dataId int) (bool, error) {
 		return false, fmt.Errorf("data_type:%s illegal", dataType)
 	}
 
-	originalType := reflect.TypeOf(val)
-	newVar := reflect.New(originalType).Elem().Interface().(IDataTable)
-	newVar.SetId(dataId)
+	originalType := reflect.TypeOf(val).Elem()
+	newVar := reflect.New(originalType).Elem()
 
-	return newVar.Exist()
+	pointer := newVar.Addr().Interface().(IDataTable)
+	pointer.SetId(dataId)
+
+	return pointer.Exist()
 }

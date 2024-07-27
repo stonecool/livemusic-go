@@ -59,10 +59,11 @@ func DeleteLiveHouse(id int) error {
 }
 
 func ExistLivehouse(id int) (bool, error) {
-	var exists bool
-	if err := db.Where("id = ? AND deleted_at = ?", id, 0).Find(&exists).Error; err != nil {
+	var livehouse Livehouse
+	err := db.Select("id").Where("id = ? AND deleted_at = ?", id, 0).First(&livehouse).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
 
-	return exists, nil
+	return livehouse.ID > 0, nil
 }

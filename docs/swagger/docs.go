@@ -82,7 +82,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -104,17 +104,17 @@ const docTemplate = `{
             }
         },
         "/api/v1/crawl-accounts/{ID}": {
-            "get": {
+            "delete": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get crawl account",
+                "summary": "Delete crawl account",
                 "parameters": [
                     {
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -133,18 +133,20 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/api/v1/crawl-accounts/{id}": {
+            "get": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Delete crawl account",
+                "summary": "Get crawl account",
                 "parameters": [
                     {
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -222,6 +224,36 @@ const docTemplate = `{
             }
         },
         "/api/v1/crawl-messages/{ID}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get a crawl message",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/http.Response"
+                        }
+                    }
+                }
+            },
             "put": {
                 "consumes": [
                     "application/json"
@@ -232,21 +264,21 @@ const docTemplate = `{
                 "summary": "Edit crawl message",
                 "parameters": [
                     {
-                        "description": "modify crawl message",
+                        "type": "integer",
+                        "default": 1,
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "edit crawl message",
                         "name": "form",
                         "in": "body",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/api.crawlMsgForm"
                         }
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "ID",
-                        "name": "ID",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -274,7 +306,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "ID",
+                        "name": "id",
                         "in": "path",
                         "required": true
                     }
@@ -462,9 +494,6 @@ const docTemplate = `{
         "api.crawlMsgForm": {
             "type": "object",
             "properties": {
-                "account_id": {
-                    "type": "string"
-                },
                 "account_type": {
                     "type": "string"
                 },
@@ -472,6 +501,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data_type": {
+                    "type": "string"
+                },
+                "target_account_id": {
                     "type": "string"
                 }
             }
