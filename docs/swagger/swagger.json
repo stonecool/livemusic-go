@@ -60,7 +60,7 @@
                 }
             }
         },
-        "/api/v1/crawl-accounts/ws/{id}": {
+        "/api/v1/crawl-accounts/ws/{ID}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -71,7 +71,7 @@
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -92,7 +92,7 @@
                 }
             }
         },
-        "/api/v1/crawl-accounts/{id}": {
+        "/api/v1/crawl-accounts/{ID}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -103,7 +103,7 @@
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -133,7 +133,7 @@
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -210,7 +210,7 @@
                 }
             }
         },
-        "/api/v1/crawl-messages/{id}": {
+        "/api/v1/crawl-messages/{ID}": {
             "put": {
                 "consumes": [
                     "application/json"
@@ -233,7 +233,7 @@
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -263,7 +263,7 @@
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -340,7 +340,7 @@
                 }
             }
         },
-        "/api/v1/livehouses/{id}": {
+        "/api/v1/livehouses/{ID}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -351,7 +351,7 @@
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -370,8 +370,10 @@
                         }
                     }
                 }
-            },
-            "post": {
+            }
+        },
+        "/api/v1/livehouses/{id}": {
+            "put": {
                 "consumes": [
                     "application/json"
                 ],
@@ -380,6 +382,14 @@
                 ],
                 "summary": "Edit a livehouse",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "created livehouse object",
                         "name": "form",
@@ -466,7 +476,7 @@
         "api.livehouseForm": {
             "type": "object",
             "properties": {
-                "ID": {
+                "id": {
                     "type": "integer"
                 },
                 "name": {

@@ -71,7 +71,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/crawl-accounts/ws/{id}": {
+        "/api/v1/crawl-accounts/ws/{ID}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -82,7 +82,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -103,7 +103,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/crawl-accounts/{id}": {
+        "/api/v1/crawl-accounts/{ID}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -114,7 +114,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -144,7 +144,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -221,7 +221,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/crawl-messages/{id}": {
+        "/api/v1/crawl-messages/{ID}": {
             "put": {
                 "consumes": [
                     "application/json"
@@ -244,7 +244,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -274,7 +274,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -351,7 +351,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/livehouses/{id}": {
+        "/api/v1/livehouses/{ID}": {
             "get": {
                 "produces": [
                     "application/json"
@@ -362,7 +362,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 1,
                         "description": "ID",
-                        "name": "id",
+                        "name": "ID",
                         "in": "path",
                         "required": true
                     }
@@ -381,8 +381,10 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
+            }
+        },
+        "/api/v1/livehouses/{id}": {
+            "put": {
                 "consumes": [
                     "application/json"
                 ],
@@ -391,6 +393,14 @@ const docTemplate = `{
                 ],
                 "summary": "Edit a livehouse",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "description": "created livehouse object",
                         "name": "form",
@@ -477,7 +487,7 @@ const docTemplate = `{
         "api.livehouseForm": {
             "type": "object",
             "properties": {
-                "ID": {
+                "id": {
                     "type": "integer"
                 },
                 "name": {

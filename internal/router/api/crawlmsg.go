@@ -51,18 +51,18 @@ func AddCrawlMsg(ctx *gin.Context) {
 
 // GetCrawlMsg
 // @Summary	Get a crawl message
-// @Param		id	path	int	true	"ID"	default(1)
+// @Param		ID	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
-// @Router		/api/v1/crawl-messages/{id} [delete]
+// @Router		/api/v1/crawl-messages/{ID} [delete]
 func GetCrawlMsg(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    idForm
 	)
 
-	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	form.ID = com.StrTo(ctx.Param("ID")).MustInt()
 	httpCode, errCode := Valid(&form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)
@@ -96,18 +96,18 @@ func GetCrawlMsgs(ctx *gin.Context) {
 
 // DeleteCrawlMsg
 // @Summary	Delete crawl message
-// @Param		id	path	int	true	"ID"	default(1)
+// @Param		ID	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
-// @Router		/api/v1/crawl-messages/{id} [delete]
+// @Router		/api/v1/crawl-messages/{ID} [delete]
 func DeleteCrawlMsg(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    idForm
 	)
 
-	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	form.ID = com.StrTo(ctx.Param("ID")).MustInt()
 	httpCode, errCode := Valid(&form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)
@@ -126,11 +126,11 @@ func DeleteCrawlMsg(ctx *gin.Context) {
 // @Summary	Edit crawl message
 // @Accept		json
 // @Param		form	body	api.crawlMsgForm	true	"modify crawl message"
-// @Param		id	path	int	true	"ID"	default(1)
+// @Param		ID	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}			http.Response
 // @Failure	400	{object}			http.Response
-// @Router		/api/v1/crawl-messages/{id} 	[put]
+// @Router		/api/v1/crawl-messages/{ID} 	[put]
 func ModifyCrawlMsg(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
@@ -144,7 +144,7 @@ func ModifyCrawlMsg(ctx *gin.Context) {
 		return
 	}
 
-	idForm.ID = com.StrTo(ctx.Param("id")).MustInt()
+	idForm.ID = com.StrTo(ctx.Param("ID")).MustInt()
 	httpCode, errCode = Valid(&idForm)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)

@@ -17,7 +17,7 @@ definitions:
     type: object
   api.livehouseForm:
     properties:
-      ID:
+      id:
         type: integer
       name:
         type: string
@@ -69,13 +69,13 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Add crawl account
-  /api/v1/crawl-accounts/{id}:
+  /api/v1/crawl-accounts/{ID}:
     delete:
       parameters:
       - default: 1
         description: ID
         in: path
-        name: id
+        name: ID
         required: true
         type: integer
       produces:
@@ -95,7 +95,7 @@ paths:
       - default: 1
         description: ID
         in: path
-        name: id
+        name: ID
         required: true
         type: integer
       produces:
@@ -110,13 +110,13 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Get crawl account
-  /api/v1/crawl-accounts/ws/{id}:
+  /api/v1/crawl-accounts/ws/{ID}:
     get:
       parameters:
       - default: 1
         description: ID
         in: path
-        name: id
+        name: ID
         required: true
         type: integer
       produces:
@@ -167,13 +167,13 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Adds crawl message
-  /api/v1/crawl-messages/{id}:
+  /api/v1/crawl-messages/{ID}:
     delete:
       parameters:
       - default: 1
         description: ID
         in: path
-        name: id
+        name: ID
         required: true
         type: integer
       produces:
@@ -201,7 +201,7 @@ paths:
       - default: 1
         description: ID
         in: path
-        name: id
+        name: ID
         required: true
         type: integer
       produces:
@@ -252,6 +252,27 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: Add a livehouse
+  /api/v1/livehouses/{ID}:
+    get:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: ID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/http.Response'
+      summary: get a livehouse
   /api/v1/livehouses/{id}:
     delete:
       parameters:
@@ -273,7 +294,9 @@ paths:
           schema:
             $ref: '#/definitions/http.Response'
       summary: delete a livehouse
-    get:
+    put:
+      consumes:
+      - application/json
       parameters:
       - default: 1
         description: ID
@@ -281,22 +304,6 @@ paths:
         name: id
         required: true
         type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/http.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.Response'
-      summary: get a livehouse
-    post:
-      consumes:
-      - application/json
-      parameters:
       - description: created livehouse object
         in: body
         name: form

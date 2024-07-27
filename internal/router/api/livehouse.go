@@ -9,7 +9,7 @@ import (
 )
 
 type livehouseForm struct {
-	ID   int    `json:"ID"`
+	ID   int    `json:"ID" valid:"Required;Min(1)"`
 	Name string `json:"name" valid:"Required;MaxSize(100)"`
 }
 
@@ -46,18 +46,18 @@ func AddLivehouse(ctx *gin.Context) {
 
 // GetLivehouse
 // @Summary	get a livehouse
-// @Param		id	path	int	true	"ID"	default(1)
+// @Param		ID	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
-// @Router		/api/v1/livehouses/{id} [get]
+// @Router		/api/v1/livehouses/{ID} [get]
 func GetLivehouse(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    idForm
 	)
 
-	form.ID = com.StrTo(ctx.Param("id")).MustInt()
+	form.ID = com.StrTo(ctx.Param("ID")).MustInt()
 	httpCode, errCode := Valid(&form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)
@@ -96,13 +96,14 @@ func GetLivehouses(ctx *gin.Context) {
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
-// @Router		/api/v1/livehouses/{id} [post]
+// @Router		/api/v1/livehouses/{id} [put]
 func EditLivehouse(ctx *gin.Context) {
 	var (
 		context = http2.Context{Context: ctx}
 		form    livehouseForm
 	)
 
+	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := BindAndValid(ctx, &form)
 	if errCode != http2.Success {
 		context.Response(httpCode, errCode, nil)
@@ -145,6 +146,6 @@ func DeleteLivehouse(ctx *gin.Context) {
 	if err := house.Delete(); err != nil {
 		context.Response(http.StatusBadRequest, http2.Error, nil)
 	} else {
-		context.Response(http.StatusOK, http2.Error, house)
+		context.Response(http.StatusOK, http2.Error, nil)
 	}
 }

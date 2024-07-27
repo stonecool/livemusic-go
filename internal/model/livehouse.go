@@ -1,6 +1,9 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type Livehouse struct {
 	Model
@@ -52,5 +55,5 @@ func EditLiveHouse(id int, data interface{}) error {
 
 // DeleteLiveHouse deletes a live house based on id
 func DeleteLiveHouse(house *Livehouse) error {
-	return db.Delete(house).Error
+	return db.Model(house).Where("deleted_at = ?", 0).Update("deleted_at", time.Now().Unix()).Error
 }
