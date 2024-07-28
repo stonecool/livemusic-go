@@ -5,7 +5,7 @@ import (
 )
 
 type ICrawl interface {
-	GetId() string
+	GetId() int
 
 	GetName() string
 

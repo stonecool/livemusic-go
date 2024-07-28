@@ -42,11 +42,11 @@ func getCrawl(id int) (interface{}, error) {
 	return crawl, nil
 }
 
-func GetCrawl(id int) (*Crawl, error) {
+func GetCrawl(id int) (ICrawl, error) {
 	crawl, err := crawlCache.Get(id)
 	if err != nil {
 		return nil, err
 	} else {
-		return crawl.(*Crawl), nil
+		return crawl.(ICrawl), nil
 	}
 }

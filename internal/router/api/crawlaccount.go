@@ -5,6 +5,7 @@ import (
 	"github.com/stonecool/livemusic-go/internal"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
+	"log"
 	"net/http"
 )
 
@@ -114,7 +115,7 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 }
 
 // CrawlAccountWebSocket
-// @Summary	Get multiple accounts
+// @Summary	Crawl Account websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
@@ -134,8 +135,6 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 	}
 
 	if err := internal.HandleWebsocket(form.ID, ctx); err != nil {
-		context.Response(http.StatusBadRequest, 0, nil)
-	} else {
-		context.Response(http.StatusOK, 0, nil)
+		log.Printf("%v", err)
 	}
 }

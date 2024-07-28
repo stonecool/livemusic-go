@@ -137,7 +137,7 @@ func dataTypeIdExists(dataType string, dataId int) (bool, error) {
 	newVar := reflect.New(originalType).Elem()
 
 	pointer := newVar.Addr().Interface().(IDataTable)
-	pointer.SetId(dataId)
+	pointer.setId(dataId)
 
-	return pointer.Exist()
+	return pointer.exist()
 }

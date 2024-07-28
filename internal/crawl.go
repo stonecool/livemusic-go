@@ -14,63 +14,63 @@ type Crawl struct {
 	ch     chan *Message
 }
 
-func (crawl *Crawl) GetId() string {
-	return crawl.Account.AccountId
+func (c *Crawl) GetId() int {
+	return c.Account.ID
 }
 
-func (crawl *Crawl) GetName() string {
-	return crawl.Account.AccountName
+func (c *Crawl) GetName() string {
+	return c.Account.AccountName
 }
 
-func (crawl *Crawl) GetState() CrawlState {
+func (c *Crawl) GetState() CrawlState {
 	return CrawlState_Ready
 }
 
-func (crawl *Crawl) SetState(state CrawlState) {
-	//crawl.State = state.
+func (c *Crawl) SetState(state CrawlState) {
+	//c.State = state.
 }
 
-func (crawl *Crawl) Login() (bool, error) {
+func (c *Crawl) Login() (bool, error) {
 	return false, nil
 }
 
-func (crawl *Crawl) CheckLogin() chromedp.ActionFunc {
+func (c *Crawl) CheckLogin() chromedp.ActionFunc {
 	return nil
 }
-func (crawl *Crawl) GetLoginURL() string {
-	return crawl.config.LoginURL
+func (c *Crawl) GetLoginURL() string {
+	return c.config.LoginURL
 }
 
-func (crawl *Crawl) GetQRCode(data []byte) {
+func (c *Crawl) GetQRCode(data []byte) {
 
 }
 
-func (crawl *Crawl) GetQRCodeSelector() string {
+func (c *Crawl) GetQRCodeSelector() string {
 	return ""
 }
 
-func (crawl *Crawl) WaitLogin() chromedp.ActionFunc {
+func (c *Crawl) WaitLogin() chromedp.ActionFunc {
 	return nil
 }
 
-func (crawl *Crawl) SaveCookies([]byte) {
+func (c *Crawl) SaveCookies([]byte) {
 }
 
-func (crawl *Crawl) GetCookies() []byte {
+func (c *Crawl) GetCookies() []byte {
 	return nil
 }
 
-func (crawl *Crawl) GetChan() chan *Message {
-	return nil
+func (c *Crawl) GetChan() chan *Message {
+	return c.ch
 }
 
-func (crawl *Crawl) Start() {
-	log.Printf("Start crawl:%d\n", crawl.GetId())
+func (c *Crawl) Start() {
+	log.Printf("Start c:%d\n", c.GetId())
 
 	for {
 		select {
-		case msg := <-crawl.GetChan():
-			curState := crawl.GetState()
+		case msg := <-c.GetChan():
+			curState := c.GetState()
 
 			switch msg.Cmd {
 			case CrawlCmd_Initial:
@@ -78,14 +78,14 @@ func (crawl *Crawl) Start() {
 					continue
 				}
 
-				ret, err := crawl.Login()
+				ret, err := c.Login()
 				if err != nil {
 					log.Printf("error:%s", err)
 					continue
 				}
 
 				if ret {
-					crawl.SetState(CrawlState_NotLogged)
+					c.SetState(CrawlState_NotLogged)
 				}
 
 			case CrawlCmd_Login:
@@ -94,7 +94,7 @@ func (crawl *Crawl) Start() {
 					continue
 				}
 
-				crawl.SetState(CrawlState_Ready)
+				c.SetState(CrawlState_Ready)
 
 			case CrawlCmd_Crawl:
 

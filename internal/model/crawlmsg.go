@@ -44,14 +44,13 @@ func GetCrawlMg(id int) (*CrawlMsg, error) {
 	return &msg, nil
 }
 
-// GetCrawlMg Gets a crawl msg
 func GetCrawlMsgAll() ([]*CrawlMsg, error) {
-	var msgs []*CrawlMsg
-	if err := db.Where("deleted_at = ?", 0).Find(&msgs).Error; err != nil {
+	var s []*CrawlMsg
+	if err := db.Where("deleted_at = ?", 0).Find(&s).Error; err != nil {
 		return nil, err
 	}
 
-	return msgs, nil
+	return s, nil
 }
 
 // DeleteCrawlMsg Deletes a crawl account

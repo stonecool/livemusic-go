@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"google.golang.org/protobuf/proto"
 	"log"
 	"sync"
 	"time"
@@ -30,7 +29,7 @@ type Client struct {
 }
 
 var (
-	clients = make(map[*Crawl]*Client)
+	clients = make(map[ICrawl]*Client)
 	mu      sync.Mutex
 )
 
@@ -86,17 +85,27 @@ func (c *Client) Read() {
 		case websocket.TextMessage:
 			fmt.Println("Received Text Message:", string(data))
 
-		case websocket.BinaryMessage:
-			fmt.Println("Received Binary Message:", data)
+			//str := string(data)
+			message := Message{}
+			//if str == "init" {
+			message.Cmd = CrawlCmd_Initial
+			//} else if str == "login" {
+			//	message.Cmd = CrawlCmd_Login
+			//}
 
-			message := &Message{}
+			c.crawl.GetChan() <- &message
 
-			if err := proto.Unmarshal(data, message); err != nil {
-				log.Printf("unmarshal data error:%v\n", err)
-				continue
-			}
-
-			c.crawl.GetChan() <- message
+		//case websocket.BinaryMessage:
+		//	fmt.Println("Received Binary Message:", data)
+		//
+		//	message := &Message{}
+		//
+		//	if err := proto.Unmarshal(data, message); err != nil {
+		//		log.Printf("unmarshal data error:%v\n", err)
+		//		continue
+		//	}
+		//
+		//	c.crawl.GetChan() <- message
 		default:
 			fmt.Println("Received Unknown Message Type")
 		}
@@ -160,7 +169,6 @@ func HandleWebsocket(accountId int, ctx *gin.Context) error {
 	}
 
 	mu.Lock()
-
 	client, err := newClient(c, ctx)
 	if err != nil {
 		return err
@@ -174,7 +182,6 @@ func HandleWebsocket(accountId int, ctx *gin.Context) error {
 	}
 
 	clients[c] = client
-
 	mu.Unlock()
 
 	go client.Read()

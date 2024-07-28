@@ -74,10 +74,10 @@ func (h *Livehouse) Delete() error {
 	return model.DeleteLiveHouse(h.ID)
 }
 
-func (h *Livehouse) SetId(id int) {
+func (h *Livehouse) setId(id int) {
 	h.ID = id
 }
 
-func (h *Livehouse) Exist() (bool, error) {
+func (h *Livehouse) exist() (bool, error) {
 	return model.ExistLivehouse(h.ID)
 }

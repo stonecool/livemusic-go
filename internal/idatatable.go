@@ -1,7 +1,7 @@
 package internal
 
 type IDataTable interface {
-	SetId(id int)
+	setId(id int)
 
-	Exist() (bool, error)
+	exist() (bool, error)
 }
