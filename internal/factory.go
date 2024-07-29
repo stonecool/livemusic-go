@@ -51,42 +51,57 @@ func GetCrawl(id int) (ICrawl, error) {
 	}
 }
 
-func startCrawl(c ICrawl) {
-	log.Printf("Start c:%d\n", c.GetId())
+func startCrawl(crawl ICrawl) {
+	log.Printf("Start crawl:%d\n", crawl.GetId())
 
 	for {
 		select {
-		case clientMessage := <-c.GetChan():
-			curState := c.GetState()
+		case clientMessage := <-crawl.GetChan():
+			curState := crawl.GetState()
 			switch clientMessage.message.Cmd {
 			case CrawlCmd_Initial:
 				if curState != CrawlState_Uninitialized {
 					continue
 				}
-
-				ret, err := c.Login()
-				if err != nil {
-					log.Printf("error:%s", err)
-					continue
-				}
-
-				if ret {
-					c.SetState(CrawlState_NotLogged)
-				}
+				initialCrawl(crawl)
 
 			case CrawlCmd_Login:
 				if curState != CrawlState_NotLogged {
 					log.Printf("state not ready")
 					continue
 				}
-
-				c.SetState(CrawlState_Ready)
+				loginCrawl(crawl)
 
 			case CrawlCmd_Crawl:
+				if curState != CrawlState_Ready {
+					log.Printf("state not ready")
+					continue
+				}
+				goCrawl(crawl)
 
 			default:
 				log.Printf("cmd:%v not supportted", clientMessage.message.Cmd)
 			}
 		}
 	}
+}
+
+func initialCrawl(crawl ICrawl) {
+	ret, err := crawl.Login()
+	if err != nil {
+		log.Printf("error:%s", err)
+	}
+
+	if ret {
+		crawl.SetState(CrawlState_NotLogged)
+	}
+}
+
+func loginCrawl(crawl ICrawl) {
+	crawl.SetState(CrawlState_Ready)
+
+}
+
+func goCrawl(crawl ICrawl) {
+
 }

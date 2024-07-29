@@ -62,3 +62,15 @@ func (c *Crawl) GetCookies() []byte {
 func (c *Crawl) GetChan() chan *ClientMessage {
 	return c.ch
 }
+
+func (c *Crawl) GetLastLoginURL() string {
+	if len(c.Account.lastLoginURL) != 0 {
+		return c.Account.lastLoginURL
+	}
+
+	return c.config.LastLoginURL
+}
+
+func (c *Crawl) SetLastLoginURl(url string) {
+	c.Account.lastLoginURL = url
+}

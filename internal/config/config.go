@@ -49,10 +49,10 @@ type redis struct {
 }
 
 type Account struct {
-	Name          string
-	Type          uint8
-	LoginURL      string
-	CheckLoginURL string
+	Name         string
+	Type         uint8
+	LoginURL     string
+	LastLoginURL string
 }
 
 func init() {

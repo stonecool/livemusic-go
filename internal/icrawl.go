@@ -31,6 +31,10 @@ type ICrawl interface {
 
 	GetChan() chan *ClientMessage
 
+	GetLastLoginURL() string
+
+	SetLastLoginURL(url string)
+
 	//crawl(instance *Instance) error
 	//
 	//GetLoginRequestData() []byte

@@ -27,4 +27,3 @@ IdleTimeout = 200
 Name = "微信公众号"
 Type = 0
 LoginURL = "https://mp.weixin.qq.com/cgi-bin/loginpage"
-CheckLoginURL = "https://mp.weixin.qq.com/cgi-bin/appmsg"

@@ -7,11 +7,12 @@ import (
 )
 
 type CrawlAccount struct {
-	ID          int    `json:"id"`
-	AccountType string `json:"account_type"`
-	AccountId   string `json:"account_id"`
-	AccountName string `json:"account_name"`
-	cookies     []byte
+	ID           int    `json:"id"`
+	AccountType  string `json:"account_type"`
+	AccountId    string `json:"account_id"`
+	AccountName  string `json:"account_name"`
+	cookies      []byte
+	lastLoginURL string
 }
 
 func (a *CrawlAccount) init(m *model.CrawlAccount) {
@@ -20,6 +21,7 @@ func (a *CrawlAccount) init(m *model.CrawlAccount) {
 	a.AccountId = m.AccountId
 	a.AccountName = m.AccountName
 	a.cookies = m.Cookies
+	a.lastLoginURL = m.LastLoginURL
 }
 
 func (a *CrawlAccount) Add() error {
@@ -63,6 +65,16 @@ func (a *CrawlAccount) GetAll() ([]*CrawlAccount, error) {
 
 		return s, nil
 	}
+}
+
+func (a *CrawlAccount) Edit() error {
+	data := map[string]interface{}{
+		"account_id":     a.AccountId,
+		"account_name":   a.AccountName,
+		"last_login_url": a.lastLoginURL,
+	}
+
+	return model.EditCrawlAccount(a.ID, data)
 }
 
 func (a *CrawlAccount) Delete() error {

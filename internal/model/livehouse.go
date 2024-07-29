@@ -46,11 +46,7 @@ func GetLiveHouses() ([]*Livehouse, error) {
 
 // EditLiveHouse edits a live house based on ID
 func EditLiveHouse(id int, data interface{}) error {
-	if err := db.Model(&Livehouse{}).Where("id = ? AND deleted_at = ?", id, 0).Updates(data).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return db.Model(&Livehouse{}).Where("id = ? AND deleted_at = ?", id, 0).Updates(data).Error
 }
 
 // DeleteLiveHouse deletes a live house based on id

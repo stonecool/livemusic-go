@@ -5,10 +5,11 @@ import "time"
 type CrawlAccount struct {
 	Model
 
-	AccountType string
-	AccountId   string
-	AccountName string
-	Cookies     []byte
+	AccountType  string
+	AccountId    string
+	AccountName  string
+	LastLoginURL string
+	Cookies      []byte
 }
 
 // AddCrawlAccount Adds a new crawl account
@@ -42,6 +43,10 @@ func GetCrawlAccountAll() ([]*CrawlAccount, error) {
 	}
 
 	return accounts, nil
+}
+
+func EditCrawlAccount(id int, data interface{}) error {
+	return db.Model(&CrawlAccount{}).Where("id = ? AND deleted_at = ?", id, 0).Updates(data).Error
 }
 
 // DeleteCrawlAccount Deletes a crawl account
