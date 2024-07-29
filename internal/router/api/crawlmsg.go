@@ -166,6 +166,12 @@ func EditCrawlMsg(ctx *gin.Context) {
 }
 
 // StartCrawlMsg
+// @Summary	Start a crawl msg
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	400	{object}	http.Response
+// @Router		/api/v1/crawl-messages/start/{ID} [pos]
 func StartCrawlMsg(ctx *gin.Context) {
 
 }

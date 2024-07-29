@@ -29,9 +29,7 @@ type ICrawl interface {
 
 	GetCookies() []byte
 
-	GetChan() chan *Message
-
-	Start()
+	GetChan() chan *ClientMessage
 
 	//crawl(instance *Instance) error
 	//

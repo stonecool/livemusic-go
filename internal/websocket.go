@@ -26,6 +26,7 @@ const (
 type Client struct {
 	crawl ICrawl
 	conn  *websocket.Conn
+	send  chan *Message
 }
 
 var (
@@ -45,7 +46,7 @@ func newClient(crawl ICrawl, ctx *gin.Context) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{crawl: crawl, conn: conn}, nil
+	return &Client{crawl: crawl, conn: conn, send: make(chan *Message)}, nil
 }
 
 func (c *Client) Read() {
@@ -93,7 +94,7 @@ func (c *Client) Read() {
 			//	message.Cmd = CrawlCmd_Login
 			//}
 
-			c.crawl.GetChan() <- &message
+			c.crawl.GetChan() <- &ClientMessage{message: &message, client: c}
 
 		//case websocket.BinaryMessage:
 		//	fmt.Println("Received Binary Message:", data)
@@ -124,7 +125,7 @@ func (c *Client) Write() {
 
 	for {
 		select {
-		case message, ok := <-c.crawl.GetChan():
+		case message, ok := <-c.send:
 			if !ok {
 				err := c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				if err != nil {

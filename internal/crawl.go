@@ -3,7 +3,6 @@ package internal
 import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/config"
-	"log"
 )
 
 type Crawl struct {
@@ -11,7 +10,7 @@ type Crawl struct {
 
 	state  CrawlState
 	config *config.Account
-	ch     chan *Message
+	ch     chan *ClientMessage
 }
 
 func (c *Crawl) GetId() int {
@@ -23,11 +22,11 @@ func (c *Crawl) GetName() string {
 }
 
 func (c *Crawl) GetState() CrawlState {
-	return CrawlState_Ready
+	return c.state
 }
 
 func (c *Crawl) SetState(state CrawlState) {
-	//c.State = state.
+	c.state = state
 }
 
 func (c *Crawl) Login() (bool, error) {
@@ -60,47 +59,6 @@ func (c *Crawl) GetCookies() []byte {
 	return nil
 }
 
-func (c *Crawl) GetChan() chan *Message {
+func (c *Crawl) GetChan() chan *ClientMessage {
 	return c.ch
-}
-
-func (c *Crawl) Start() {
-	log.Printf("Start c:%d\n", c.GetId())
-
-	for {
-		select {
-		case msg := <-c.GetChan():
-			curState := c.GetState()
-
-			switch msg.Cmd {
-			case CrawlCmd_Initial:
-				if curState != CrawlState_Uninitialized {
-					continue
-				}
-
-				ret, err := c.Login()
-				if err != nil {
-					log.Printf("error:%s", err)
-					continue
-				}
-
-				if ret {
-					c.SetState(CrawlState_NotLogged)
-				}
-
-			case CrawlCmd_Login:
-				if curState != CrawlState_NotLogged {
-					log.Printf("state not ready")
-					continue
-				}
-
-				c.SetState(CrawlState_Ready)
-
-			case CrawlCmd_Crawl:
-
-			default:
-				log.Printf("cmd:%v not supportted", msg.Cmd)
-			}
-		}
-	}
 }

@@ -13,11 +13,11 @@ func (crawl *WeChatCrawl) Login() (bool, error) {
 	//var lastLoggedPath = "https://mp.weixin.qq.com/cgi-bin/home?t=home/index&lang=zh_CN&token=2098303583"
 	//get cookie to colly
 
-	//err := QRCodeLogin(crawl) //"#header > div.banner > div > div > div.login__type__container.login__type__container__scan > img",
+	err := QRCodeLogin(crawl) //"#header > div.banner > div > div > div.login__type__container.login__type__container__scan > img",
 
-	//if err != nil {
-	//	return false, err
-	//}
+	if err != nil {
+		return false, err
+	}
 
 	return false, nil
 }
