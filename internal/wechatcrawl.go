@@ -56,3 +56,15 @@ func (crawl *WeChatCrawl) CheckLogin() chromedp.ActionFunc {
 		return
 	}
 }
+
+func (crawl *WeChatCrawl) GetQRCodeSelector() string {
+	return "#header > div.banner > div > div > div.login__type__container.login__type__container__scan > img"
+}
+
+func (crawl *WeChatCrawl) SetLastLoginURL(url string) {
+	crawl.Account.lastLoginURL = url
+}
+
+func (crawl *WeChatCrawl) GetLastLoginURL() string {
+	return crawl.Account.lastLoginURL
+}

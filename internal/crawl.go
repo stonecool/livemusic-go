@@ -41,7 +41,6 @@ func (c *Crawl) GetLoginURL() string {
 }
 
 func (c *Crawl) GetQRCode(data []byte) {
-
 }
 
 func (c *Crawl) GetQRCodeSelector() string {
@@ -52,7 +51,9 @@ func (c *Crawl) WaitLogin() chromedp.ActionFunc {
 	return nil
 }
 
-func (c *Crawl) SaveCookies([]byte) {
+func (c *Crawl) SaveCookies(cookies []byte) error {
+	c.Account.cookies = cookies
+	return c.Account.Edit()
 }
 
 func (c *Crawl) GetCookies() []byte {
@@ -64,13 +65,8 @@ func (c *Crawl) GetChan() chan *ClientMessage {
 }
 
 func (c *Crawl) GetLastLoginURL() string {
-	if len(c.Account.lastLoginURL) != 0 {
-		return c.Account.lastLoginURL
-	}
-
 	return c.config.LastLoginURL
 }
 
-func (c *Crawl) SetLastLoginURl(url string) {
-	c.Account.lastLoginURL = url
+func (c *Crawl) SetLastLoginURL(url string) {
 }

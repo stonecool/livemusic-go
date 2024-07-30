@@ -2,13 +2,14 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"log"
 )
 
-// getCookies
-func getCookies(iCrawl ICrawl) chromedp.ActionFunc {
+// setCookies
+func setCookies(iCrawl ICrawl) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookiesParams := network.SetCookiesParams{}
 		if err = cookiesParams.UnmarshalJSON(iCrawl.GetCookies()); err != nil {
@@ -20,20 +21,32 @@ func getCookies(iCrawl ICrawl) chromedp.ActionFunc {
 	}
 }
 
-// setCookies
-func setCookies(iCrawl ICrawl) chromedp.ActionFunc {
+// saveCookies
+func saveCookies(iCrawl ICrawl) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookies, err := network.GetCookies().Do(ctx)
 		if err != nil {
+			fmt.Printf("%v", err)
 			return
 		}
 
 		data, err := network.GetCookiesReturns{Cookies: cookies}.MarshalJSON()
 		if err != nil {
+			fmt.Printf("%v", err)
+
 			return
 		}
 
-		iCrawl.SaveCookies(data)
+		var url string
+		err = chromedp.Evaluate(`window.location.href`, &url).Do(ctx)
+		if err != nil {
+			return
+		}
+
+		iCrawl.SetLastLoginURL(url)
+		if err := iCrawl.SaveCookies(data); err != nil {
+			fmt.Printf("%v", err)
+		}
 
 		return
 	}

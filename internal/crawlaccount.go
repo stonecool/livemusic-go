@@ -72,6 +72,7 @@ func (a *CrawlAccount) Edit() error {
 		"account_id":     a.AccountId,
 		"account_name":   a.AccountName,
 		"last_login_url": a.lastLoginURL,
+		"cookies":        a.cookies,
 	}
 
 	return model.EditCrawlAccount(a.ID, data)

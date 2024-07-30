@@ -25,7 +25,7 @@ type ICrawl interface {
 
 	WaitLogin() chromedp.ActionFunc
 
-	SaveCookies([]byte)
+	SaveCookies([]byte) error
 
 	GetCookies() []byte
 

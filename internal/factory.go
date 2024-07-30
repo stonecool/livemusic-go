@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"log"
@@ -31,7 +32,7 @@ func getCrawl(id int) (interface{}, error) {
 		crawl = &WeChatCrawl{
 			Crawl: Crawl{
 				Account: account,
-				state:   CrawlState_Uninitialized,
+				state:   CrawlState_NotLogged,
 				config:  &cfg,
 				ch:      make(chan *ClientMessage),
 			},
@@ -63,14 +64,29 @@ func startCrawl(crawl ICrawl) {
 				if curState != CrawlState_Uninitialized {
 					continue
 				}
-				initialCrawl(crawl)
+
+				ok, err := initialCrawl(crawl)
+				if err != nil {
+					fmt.Printf("initial error:%v", err)
+					continue
+				}
+				if ok {
+					crawl.SetState(CrawlState_Ready)
+				} else {
+					crawl.SetState(CrawlState_NotLogged)
+				}
 
 			case CrawlCmd_Login:
 				if curState != CrawlState_NotLogged {
 					log.Printf("state not ready")
 					continue
 				}
-				loginCrawl(crawl)
+
+				if err := loginCrawl(crawl); err != nil {
+					fmt.Printf("login error:%v", err)
+				} else {
+					crawl.SetState(CrawlState_Ready)
+				}
 
 			case CrawlCmd_Crawl:
 				if curState != CrawlState_Ready {
@@ -86,20 +102,16 @@ func startCrawl(crawl ICrawl) {
 	}
 }
 
-func initialCrawl(crawl ICrawl) {
-	ret, err := crawl.Login()
-	if err != nil {
-		log.Printf("error:%s", err)
+func initialCrawl(crawl ICrawl) (bool, error) {
+	if len(crawl.GetCookies()) == 0 || len(crawl.GetLastLoginURL()) == 0 {
+		return false, nil
 	}
 
-	if ret {
-		crawl.SetState(CrawlState_NotLogged)
-	}
+	return false, checkLogin(crawl)
 }
 
-func loginCrawl(crawl ICrawl) {
-	crawl.SetState(CrawlState_Ready)
-
+func loginCrawl(crawl ICrawl) error {
+	return QRCodeLogin(crawl)
 }
 
 func goCrawl(crawl ICrawl) {

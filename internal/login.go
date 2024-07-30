@@ -41,8 +41,7 @@ func QRCodeLogin(iCrawl ICrawl) error {
 		getQRCode(iCrawl),
 		iCrawl.WaitLogin(),
 		iCrawl.CheckLogin(),
-		setCookies(iCrawl),
-		// TODO if every err should stop?
+		saveCookies(iCrawl),
 		chromedp.Stop(),
 	)
 
@@ -57,13 +56,21 @@ func QRCodeLogin(iCrawl ICrawl) error {
 // getQRCode get qr code
 func getQRCode(iCrawl ICrawl) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
-		chromedp.Navigate(iCrawl.GetLoginURL())
+		if err := chromedp.Navigate(iCrawl.GetLoginURL()).Do(ctx); err != nil {
+			return err
+		}
+
 		if err = chromedp.WaitVisible(iCrawl.GetQRCodeSelector(), chromedp.ByID).Do(ctx); err != nil {
-			return
+			return err
 		}
 
 		var code []byte
 		if err = chromedp.Screenshot(iCrawl.GetQRCodeSelector(), &code, chromedp.ByID).Do(ctx); err != nil {
+			return err
+		}
+
+		if err = os.WriteFile("code.png", code, 0755); err != nil {
+			log.Printf("%s", err)
 			return
 		}
 
@@ -129,10 +136,10 @@ func checkLogin(iCrawl ICrawl) error {
 	defer cancel()
 
 	err := chromedp.Run(ctx,
-		getCookies(iCrawl),
+		setCookies(iCrawl),
+		chromedp.Navigate(iCrawl.GetLastLoginURL()),
 		iCrawl.WaitLogin(),
 		iCrawl.CheckLogin(),
-		// TODO if every err should stop?
 		chromedp.Stop(),
 	)
 
