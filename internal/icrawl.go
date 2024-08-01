@@ -13,8 +13,6 @@ type ICrawl interface {
 
 	SetState(state CrawlState)
 
-	Login() (bool, error)
-
 	CheckLogin() chromedp.ActionFunc
 
 	GetLoginURL() string

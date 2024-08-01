@@ -32,7 +32,7 @@ func getCrawl(id int) (interface{}, error) {
 		crawl = &WeChatCrawl{
 			Crawl: Crawl{
 				Account: account,
-				state:   CrawlState_NotLogged,
+				state:   CrawlState_Uninitialized,
 				config:  &cfg,
 				ch:      make(chan *ClientMessage),
 			},

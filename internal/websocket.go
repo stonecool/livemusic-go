@@ -89,7 +89,7 @@ func (c *Client) Read() {
 			//str := string(data)
 			message := Message{}
 			//if str == "init" {
-			message.Cmd = CrawlCmd_Login
+			message.Cmd = CrawlCmd_Initial
 			//} else if str == "login" {
 			//	message.Cmd = CrawlCmd_Login
 			//}

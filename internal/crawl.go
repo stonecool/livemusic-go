@@ -29,10 +29,6 @@ func (c *Crawl) SetState(state CrawlState) {
 	c.state = state
 }
 
-func (c *Crawl) Login() (bool, error) {
-	return false, nil
-}
-
 func (c *Crawl) CheckLogin() chromedp.ActionFunc {
 	return nil
 }
@@ -57,7 +53,7 @@ func (c *Crawl) SaveCookies(cookies []byte) error {
 }
 
 func (c *Crawl) GetCookies() []byte {
-	return nil
+	return c.Account.cookies
 }
 
 func (c *Crawl) GetChan() chan *ClientMessage {
@@ -68,5 +64,5 @@ func (c *Crawl) GetLastLoginURL() string {
 	return c.config.LastLoginURL
 }
 
-func (c *Crawl) SetLastLoginURL(url string) {
+func (c *Crawl) SetLastLoginURL(string) {
 }
