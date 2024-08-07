@@ -86,10 +86,18 @@ func (c *Client) Read() {
 		case websocket.TextMessage:
 			fmt.Println("Received Text Message:", string(data))
 
-			//str := string(data)
+			str := string(data)
 			message := Message{}
 			//if str == "init" {
-			message.Cmd = CrawlCmd_Initial
+
+			if str == "login" {
+				message.Cmd = CrawlCmd_Login
+			} else if str == "crawl" {
+				message.Cmd = CrawlCmd_Crawl
+			} else {
+				message.Cmd = CrawlCmd_Initial
+			}
+
 			//} else if str == "login" {
 			//	message.Cmd = CrawlCmd_Login
 			//}

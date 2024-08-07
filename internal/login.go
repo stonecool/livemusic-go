@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"log"
 	"os"
@@ -40,7 +41,6 @@ func QRCodeLogin(iCrawl ICrawl) error {
 	err := chromedp.Run(ctx,
 		getQRCode(iCrawl),
 		iCrawl.WaitLogin(),
-		iCrawl.CheckLogin(),
 		saveCookies(iCrawl),
 		chromedp.Stop(),
 	)
@@ -94,7 +94,6 @@ func getCode1(selector string) chromedp.ActionFunc {
 			var ctx = c.getContext('2d');
 			ctx.drawImage(img, 0, 0, c.width, c.height);
 			c.toDataURL('image/png');`
-
 		chromedp.Evaluate(fmt.Sprintf(template, selector), &code)
 
 		// 3. 保存文件
@@ -108,45 +107,32 @@ func getCode1(selector string) chromedp.ActionFunc {
 }
 
 // checkLogin
-func checkLogin(iCrawl ICrawl) error {
-	ctx, _ := chromedp.NewExecAllocator(
-		context.Background(),
-
-		append(
-			chromedp.DefaultExecAllocatorOptions[:],
-			//chromedp.NoDefaultBrowserCheck,
-			chromedp.Flag("headless", false),
-			//chromedp.Flag("hide-scrollbars", false),
-			//chromedp.Flag("mute-audio", false),
-			//chromedp.Flag("ignore-certificate-errors", true),
-			//chromedp.Flag("disable-web-security", true),
-			//chromedp.Flag("disable-gpu", false),
-			//chromedp.NoFirstRun,
-			//chromedp.Flag("enable-automation", false),
-			//chromedp.Flag("disable-extensions", false),
-		)...,
-	)
-
-	// create chrome instance
-	ctx, cancel := chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
-	defer cancel()
-
-	// create a timeout
-	ctx, cancel = context.WithTimeout(ctx, 150*time.Second)
-	defer cancel()
-
-	err := chromedp.Run(ctx,
-		setCookies(iCrawl),
-		chromedp.Navigate(iCrawl.GetLastLoginURL()),
-		iCrawl.WaitLogin(),
-		iCrawl.CheckLogin(),
-		chromedp.Stop(),
+func checkLogin(crawl ICrawl) bool {
+	err := chromedp.Run(crawl.GetContext(),
+		setCookies(crawl),
+		chromedp.Navigate(crawl.GetLastLoginURL()),
+		crawl.CheckLogin(),
 	)
 
 	if err != nil {
-		log.Fatal(err)
-		return err
+		log.Printf("%v\n", err)
 	}
 
-	return nil
+	return err == nil
+}
+
+func GoCrawl1(crawl ICrawl) bool {
+	err := chromedp.Run(crawl.GetContext(),
+		network.Enable(),
+		setCookies(crawl),
+		chromedp.Navigate(crawl.GetLastLoginURL()),
+		crawl.CheckLogin(),
+		crawl.GoCrawl(),
+	)
+
+	if err != nil {
+		log.Printf("%v\n", err)
+	}
+
+	return err == nil
 }

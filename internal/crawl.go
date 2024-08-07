@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/config"
 )
@@ -8,9 +9,10 @@ import (
 type Crawl struct {
 	Account *CrawlAccount
 
-	state  CrawlState
-	config *config.Account
-	ch     chan *ClientMessage
+	state   CrawlState
+	config  *config.Account
+	ch      chan *ClientMessage
+	context context.Context
 }
 
 func (c *Crawl) GetId() int {
@@ -65,4 +67,16 @@ func (c *Crawl) GetLastLoginURL() string {
 }
 
 func (c *Crawl) SetLastLoginURL(string) {
+}
+
+func (c *Crawl) GoCrawl() chromedp.ActionFunc {
+	return nil
+}
+
+func (c *Crawl) SetContext(ctx context.Context) {
+	c.context = ctx
+}
+
+func (c *Crawl) GetContext() context.Context {
+	return c.context
 }

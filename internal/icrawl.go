@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"github.com/chromedp/chromedp"
 )
 
@@ -33,11 +34,9 @@ type ICrawl interface {
 
 	SetLastLoginURL(url string)
 
-	//crawl(instance *Instance) error
-	//
-	//GetLoginRequestData() []byte
-	//
-	//LoginRequestCallback(request *colly.Request) error
-	//
-	//LoginResponseCallback(response *colly.Response) error
+	GoCrawl() chromedp.ActionFunc
+
+	SetContext(ctx context.Context)
+
+	GetContext() context.Context
 }

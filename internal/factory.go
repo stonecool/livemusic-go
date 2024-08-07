@@ -1,9 +1,12 @@
 package internal
 
 import (
+	"context"
 	"fmt"
+	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/config"
+	"io"
 	"log"
 )
 
@@ -55,6 +58,37 @@ func GetCrawl(id int) (ICrawl, error) {
 func startCrawl(crawl ICrawl) {
 	log.Printf("Start crawl:%d\n", crawl.GetId())
 
+	log.SetOutput(io.Discard)
+	ctx, cancel := chromedp.NewExecAllocator(
+		context.Background(),
+
+		append(
+			chromedp.DefaultExecAllocatorOptions[:],
+			//chromedp.NoDefaultBrowserCheck,
+			chromedp.Flag("headless", false),
+			//chromedp.Flag("hide-scrollbars", false),
+			//chromedp.Flag("mute-audio", false),
+			//chromedp.Flag("ignore-certificate-errors", true),
+			//chromedp.Flag("disable-web-security", true),
+			//chromedp.Flag("disable-gpu", false),
+			//chromedp.NoFirstRun,
+			//chromedp.Flag("enable-automation", false),
+			//chromedp.Flag("disable-extensions", false),
+		)...,
+	)
+
+	defer cancel()
+
+	// create a timeout
+	//ctx, cancel := context.WithTimeout(ctx, 150*time.Second)
+	//defer cancel()
+
+	// create chrome instance
+	ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
+	defer cancel()
+
+	crawl.SetContext(ctx)
+
 	for {
 		select {
 		case clientMessage := <-crawl.GetChan():
@@ -65,12 +99,7 @@ func startCrawl(crawl ICrawl) {
 					continue
 				}
 
-				ok, err := initialCrawl(crawl)
-				if err != nil {
-					fmt.Printf("initial error:%v", err)
-					continue
-				}
-				if ok {
+				if initialCrawl(crawl) {
 					crawl.SetState(CrawlState_Ready)
 				} else {
 					crawl.SetState(CrawlState_NotLogged)
@@ -102,12 +131,12 @@ func startCrawl(crawl ICrawl) {
 	}
 }
 
-func initialCrawl(crawl ICrawl) (bool, error) {
+func initialCrawl(crawl ICrawl) bool {
 	if len(crawl.GetCookies()) == 0 || len(crawl.GetLastLoginURL()) == 0 {
-		return false, nil
+		return false
 	}
 
-	return false, checkLogin(crawl)
+	return checkLogin(crawl)
 }
 
 func loginCrawl(crawl ICrawl) error {
@@ -115,5 +144,5 @@ func loginCrawl(crawl ICrawl) error {
 }
 
 func goCrawl(crawl ICrawl) {
-
+	GoCrawl1(crawl)
 }
