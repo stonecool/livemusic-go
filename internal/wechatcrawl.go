@@ -151,6 +151,7 @@ func (crawl *WeChatCrawl) GoCrawl() chromedp.ActionFunc {
 		}
 
 		type PublishInfo struct {
+			MsgId    int32 `json:"msgid"`
 			AppMsgEx []struct {
 				Title string `json:"title"`
 				Link  string `json:"link"`

@@ -6,7 +6,6 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/config"
-	"io"
 	"log"
 )
 
@@ -58,7 +57,6 @@ func GetCrawl(id int) (ICrawl, error) {
 func startCrawl(crawl ICrawl) {
 	log.Printf("Start crawl:%d\n", crawl.GetId())
 
-	log.SetOutput(io.Discard)
 	ctx, cancel := chromedp.NewExecAllocator(
 		context.Background(),
 
@@ -86,6 +84,7 @@ func startCrawl(crawl ICrawl) {
 	// create chrome instance
 	ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
 	defer cancel()
+	//log.SetOutput(io.Discard)
 
 	crawl.SetContext(ctx)
 

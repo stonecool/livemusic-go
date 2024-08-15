@@ -11,7 +11,7 @@ func init() {
 }
 
 func getCrawlMsg(id int) (interface{}, error) {
-	msg := &CrawlMsg{ID: id}
+	msg := &CrawlRoutine{ID: id}
 
 	if err := msg.Get(); err != nil {
 		return nil, err
@@ -27,11 +27,11 @@ func getCrawlMsg(id int) (interface{}, error) {
 	return nil, nil
 }
 
-func GetCrawlMsg(id int) (*CrawlMsg, error) {
+func GetCrawlMsg(id int) (*CrawlRoutine, error) {
 	msg, err := msgCache.Get(id)
 	if err != nil {
 		return nil, err
 	} else {
-		return msg.(*CrawlMsg), nil
+		return msg.(*CrawlRoutine), nil
 	}
 }

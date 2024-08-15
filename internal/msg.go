@@ -1,7 +1,7 @@
 package internal
 
 type Msg struct {
-	Msg *CrawlMsg
+	Msg *CrawlRoutine
 }
 
 func (producer *Msg) Start() {

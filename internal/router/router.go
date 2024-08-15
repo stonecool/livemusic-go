@@ -19,13 +19,13 @@ func InitRouter(engine *gin.Engine) error {
 	apiV1.DELETE("/crawl-accounts/:id", api.DeleteCrawlAccount)
 	apiV1.GET("/crawl-accounts/ws/:id", api.CrawlAccountWebSocket)
 
-	// 爬虫消息
-	apiV1.POST("/crawl-messages", api.AddCrawlMsg)
-	apiV1.GET("/crawl-messages/:id", api.GetCrawlMsg)
-	apiV1.GET("/crawl-messages", api.GetCrawlMsgs)
-	apiV1.DELETE("/crawl-messages/:id", api.DeleteCrawlMsg)
-	apiV1.PUT("/crawl-messages/start/:id", api.EditCrawlMsg)
-	apiV1.POST("/crawl-messages/start/:id", api.StartCrawlMsg)
+	// 爬虫例程
+	apiV1.POST("/crawl-routines", api.AddCrawlRoutine)
+	apiV1.GET("/crawl-routines/:id", api.GetCrawlRoutine)
+	apiV1.GET("/crawl-routines", api.GetCrawlRoutines)
+	apiV1.DELETE("/crawl-routines/:id", api.DeleteCrawlRoutine)
+	apiV1.PUT("/crawl-routines/start/:id", api.EditCrawlRoutine)
+	apiV1.POST("/crawl-routines/start/:id", api.StartCrawlRoutine)
 
 	// livehouse
 	apiV1.POST("/livehouses", api.AddLivehouse)
