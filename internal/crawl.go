@@ -80,3 +80,7 @@ func (c *Crawl) SetContext(ctx context.Context) {
 func (c *Crawl) GetContext() context.Context {
 	return c.context
 }
+
+func (c *Crawl) Login() error {
+	return nil
+}

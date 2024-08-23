@@ -33,7 +33,7 @@ CREATE TABLE crawl_routine (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl msg';
 
 CREATE TABLE `crawl_data_wechat` (
-    `id`                INT(10) UNSIGNED NOT NULL,
+    `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `rid`               INT(10) UNSIGNED NOT NULL,
     `uid`               VARCHAR(100) NOT NULL COMMENT 'title_datetime',
     `title`             VARCHAR(100) NOT NULL COMMENT 'title',
@@ -53,7 +53,7 @@ CREATE TABLE `crawl_data_wechat` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl wechat data';
 
 CREATE TABLE `crawl_data_wechat_raw` (
-     `id`                INT(10) UNSIGNED NOT NULL,
+     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
      `rid`               INT(10) UNSIGNED NOT NULL,
      `uid`               VARCHAR(100) NOT NULL COMMENT 'title_datetime',
      `title`             VARCHAR(100) NOT NULL COMMENT 'title',

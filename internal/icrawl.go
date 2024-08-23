@@ -5,6 +5,8 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
+type Callback func(map[string]interface{})
+
 type ICrawl interface {
 	GetId() int
 
@@ -34,9 +36,13 @@ type ICrawl interface {
 
 	SetLastLoginURL(url string)
 
-	GoCrawl() chromedp.ActionFunc
+	GoCrawl(Callback) chromedp.ActionFunc
 
 	SetContext(ctx context.Context)
 
 	GetContext() context.Context
+
+	Login() error
+
+	callback(map[string]interface{})
 }

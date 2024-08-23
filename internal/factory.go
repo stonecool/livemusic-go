@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/config"
@@ -30,7 +31,7 @@ func getCrawl(id int) (interface{}, error) {
 
 	var crawl ICrawl
 	switch account.AccountType {
-	case "WeChat":
+	case "wechat":
 		crawl = &WeChatCrawl{
 			Crawl: Crawl{
 				Account: account,
@@ -110,7 +111,7 @@ func startCrawl(crawl ICrawl) {
 					continue
 				}
 
-				if err := loginCrawl(crawl); err != nil {
+				if err := crawl.Login(); err != nil {
 					fmt.Printf("login error:%v", err)
 				} else {
 					crawl.SetState(CrawlState_Ready)
@@ -121,7 +122,7 @@ func startCrawl(crawl ICrawl) {
 					log.Printf("state not ready")
 					continue
 				}
-				goCrawl(crawl)
+				GoCrawl(crawl, crawl.callback)
 
 			default:
 				log.Printf("cmd:%v not supportted", clientMessage.message.Cmd)
@@ -135,13 +136,31 @@ func initialCrawl(crawl ICrawl) bool {
 		return false
 	}
 
-	return checkLogin(crawl)
+	err := chromedp.Run(crawl.GetContext(),
+		setCookies(crawl),
+		chromedp.Navigate(crawl.GetLastLoginURL()),
+		crawl.CheckLogin(),
+	)
+
+	if err != nil {
+		log.Printf("%v\n", err)
+	}
+
+	return err == nil
 }
 
-func loginCrawl(crawl ICrawl) error {
-	return QRCodeLogin(crawl)
-}
+func GoCrawl(crawl ICrawl, callback Callback) bool {
+	err := chromedp.Run(crawl.GetContext(),
+		network.Enable(),
+		setCookies(crawl),
+		chromedp.Navigate(crawl.GetLastLoginURL()),
+		crawl.CheckLogin(),
+		crawl.GoCrawl(callback),
+	)
 
-func goCrawl(crawl ICrawl) {
-	GoCrawl1(crawl)
+	if err != nil {
+		log.Printf("%v\n", err)
+	}
+
+	return err == nil
 }

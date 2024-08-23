@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/url"
 	"strings"
-	"time"
 )
 
 type WeChatCrawl struct {
@@ -50,7 +49,7 @@ func (crawl *WeChatCrawl) CheckLogin() chromedp.ActionFunc {
 	}
 }
 
-func (crawl *WeChatCrawl) GoCrawl() chromedp.ActionFunc {
+func (crawl *WeChatCrawl) GoCrawl(callback Callback) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		var currentURL string
 		err = chromedp.Location(&currentURL).Do(ctx)
@@ -203,18 +202,39 @@ func (crawl *WeChatCrawl) GoCrawl() chromedp.ActionFunc {
 			for _, msg := range publishInfo.AppMsgEx {
 				fmt.Printf("Title: %s Link: %s\n", msg.Title, msg.Link)
 
-				err = chromedp.Navigate(msg.Link).Do(ctx)
-				if err != nil {
-					log.Fatal(err)
-				}
+				var ret = make(map[string]interface{})
 
-				err = chromedp.Sleep(5 * time.Second).Do(ctx) // 等待一段时间以确保请求完成
-				if err != nil {
-					log.Fatal(err)
-				}
+				ret["Title"] = msg.Title
+				ret["Link"] = msg.Link
+
+				GoCrawl(&ShowStartCrawl{
+					Crawl: crawl.Crawl,
+				}, func(r map[string]interface{}) {
+					ret["aaa"] = r["aaa"]
+				})
+
+				callback(ret)
+
+				//err = chromedp.Navigate(msg.Link).Do(ctx)
+				//if err != nil {
+				//	log.Fatal(err)
+				//}
+				//
+				//err = chromedp.Sleep(5 * time.Second).Do(ctx) // 等待一段时间以确保请求完成
+				//if err != nil {
+				//	log.Fatal(err)
+				//}
 			}
 		}
 
 		return
 	}
+}
+
+func (crawl *WeChatCrawl) Login() error {
+	return QRCodeLogin(crawl)
+}
+
+func (crawl *WeChatCrawl) callback(ret map[string]interface{}) {
+
 }

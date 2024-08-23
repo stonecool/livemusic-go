@@ -23,7 +23,7 @@ MaxIdle = 30
 MaxActive = 30
 IdleTimeout = 200
 
-[AccountMap.WeChat]
+[AccountMap.wechat]
 Name = "微信公众号"
 Type = 0
 LoginURL = "https://mp.weixin.qq.com/cgi-bin/loginpage"

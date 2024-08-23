@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"fmt"
-	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"log"
 	"os"
@@ -104,35 +103,4 @@ func getCode1(selector string) chromedp.ActionFunc {
 
 		return
 	}
-}
-
-// checkLogin
-func checkLogin(crawl ICrawl) bool {
-	err := chromedp.Run(crawl.GetContext(),
-		setCookies(crawl),
-		chromedp.Navigate(crawl.GetLastLoginURL()),
-		crawl.CheckLogin(),
-	)
-
-	if err != nil {
-		log.Printf("%v\n", err)
-	}
-
-	return err == nil
-}
-
-func GoCrawl1(crawl ICrawl) bool {
-	err := chromedp.Run(crawl.GetContext(),
-		network.Enable(),
-		setCookies(crawl),
-		chromedp.Navigate(crawl.GetLastLoginURL()),
-		crawl.CheckLogin(),
-		crawl.GoCrawl(),
-	)
-
-	if err != nil {
-		log.Printf("%v\n", err)
-	}
-
-	return err == nil
 }

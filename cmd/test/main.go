@@ -1,34 +1,49 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
+	"context"
+	"github.com/chromedp/chromedp"
+	"log"
 	"time"
 )
 
 func main() {
-	// 定义一个 defer 方法
-	defer func() {
-		fmt.Println("Deferred function executed")
-	}()
+	// 创建一个新的 Chrome 实例
+	ctx, cancel := chromedp.NewExecAllocator(
+		context.Background(),
 
-	// 创建一个通道来接收信号通知
-	sigs := make(chan os.Signal, 1)
+		append(
+			chromedp.DefaultExecAllocatorOptions[:],
+			//chromedp.NoDefaultBrowserCheck,
+			chromedp.Flag("headless", false),
+			//chromedp.Flag("hide-scrollbars", false),
+			//chromedp.Flag("mute-audio", false),
+			//chromedp.Flag("ignore-certificate-errors", true),
+			//chromedp.Flag("disable-web-security", true),
+			//chromedp.Flag("disable-gpu", false),
+			//chromedp.NoFirstRun,
+			//chromedp.Flag("enable-automation", false),
+			//chromedp.Flag("disable-extensions", false),
+		)...,
+	)
 
-	// 通知接收特定的信号
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+	ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
+	defer cancel()
+	// 设置超时
+	timeoutCtx, cancelTimeout := context.WithTimeout(ctx, 20*time.Second)
+	defer cancelTimeout()
 
-	// 使用 goroutine 来处理信号
-	go func() {
-		sig := <-sigs
-		fmt.Println("Received signal:", sig)
-		os.Exit(0)
-	}()
-
-	fmt.Println("Running... Press Ctrl+C to exit")
-	for {
-		time.Sleep(1 * time.Second)
+	// 执行任务
+	var res string
+	err := chromedp.Run(timeoutCtx,
+		chromedp.Navigate(`https://www.google.com`),
+		//chromedp.Text(`body`, &res, chromedp.NodeVisible),
+	)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	time.Sleep(30 * time.Second)
+	log.Println("Body text:", res)
 }
