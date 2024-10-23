@@ -1,11 +1,11 @@
 -- 爬虫账号
 CREATE TABLE `crawl_account` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `account_type`      VARCHAR(100) NOT NULL COMMENT 'account type',
-    `account_id`        VARCHAR(100) NOT NULL COMMENT 'account id',
+    `category`          VARCHAR(100) NOT NULL COMMENT 'category',
     `account_name`      VARCHAR(100) NOT NULL COMMENT 'account name',
     `last_login_url`    VARCHAR(100) NOT NULL COMMENT 'last login url',
     `cookies`           BLOB COMMENT 'cookies',
+    `instance_addr`     CHAR(20) NOT NULL COMMENT 'instance addr',
     `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
     `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',

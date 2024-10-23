@@ -24,13 +24,13 @@ func getCrawl(id int) (interface{}, error) {
 		return nil, err
 	}
 
-	cfg, ok := config.AccountMap[account.AccountType]
+	cfg, ok := config.AccountMap[account.Category]
 	if !ok {
 		return nil, error(nil)
 	}
 
 	var crawl ICrawl
-	switch account.AccountType {
+	switch account.Category {
 	case "wechat":
 		crawl = &WeChatCrawl{
 			Crawl: Crawl{

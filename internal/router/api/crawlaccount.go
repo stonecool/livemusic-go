@@ -33,7 +33,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	account := &internal.CrawlAccount{AccountType: form.AccountType}
+	account := &internal.CrawlAccount{Category: form.AccountType}
 	if err := account.Add(); err != nil {
 		context.Response(http.StatusBadRequest, http2.ErrorNotExists, nil)
 	} else {

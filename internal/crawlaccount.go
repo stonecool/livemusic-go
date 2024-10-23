@@ -4,85 +4,97 @@ import (
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
+	"sync"
 )
 
 type CrawlAccount struct {
 	ID           int    `json:"id"`
-	AccountType  string `json:"account_type"`
-	AccountId    string `json:"account_id"`
+	Category     string `json:"category"`
 	AccountName  string `json:"account_name"`
-	cookies      []byte
 	lastLoginURL string
+	cookies      []byte
+	instanceAddr string
+	state        AccountState
+	mu           sync.Mutex
 }
 
-func (a *CrawlAccount) init(m *model.CrawlAccount) {
-	a.ID = m.ID
-	a.AccountType = m.AccountType
-	a.AccountId = m.AccountId
-	a.AccountName = m.AccountName
-	a.cookies = m.Cookies
-	a.lastLoginURL = m.LastLoginURL
+func (ca *CrawlAccount) init(m *model.CrawlAccount) {
+	ca.ID = m.ID
+	ca.Category = m.Category
+	ca.AccountName = m.AccountName
+	ca.cookies = m.Cookies
+	ca.lastLoginURL = m.LastLoginURL
 }
 
-func (a *CrawlAccount) Add() error {
-	_, ok := config.AccountMap[a.AccountType]
+func (ca *CrawlAccount) Add() error {
+	_, ok := config.AccountMap[ca.Category]
 	if !ok {
-		return fmt.Errorf("account_type:%s not exists", a.AccountType)
+		return fmt.Errorf("account_type:%s not exists", ca.Category)
 	}
 
 	data := map[string]interface{}{
-		"account_type": a.AccountType,
+		"account_type": ca.Category,
 	}
 
 	if account, err := model.AddCrawlAccount(data); err != nil {
 		return err
 	} else {
-		a.init(account)
+		ca.init(account)
 		return nil
 	}
 }
 
-func (a *CrawlAccount) Get() error {
-	if account, err := model.GetCrawlAccount(a.ID); err != nil {
+func (ca *CrawlAccount) Get() error {
+	if account, err := model.GetCrawlAccount(ca.ID); err != nil {
 		return err
 	} else {
-		a.init(account)
+		ca.init(account)
 		return nil
 	}
 }
 
-func (a *CrawlAccount) GetAll() ([]*CrawlAccount, error) {
+func (ca *CrawlAccount) GetAll() ([]*CrawlAccount, error) {
 	if accounts, err := model.GetCrawlAccountAll(); err != nil {
 		return nil, err
 	} else {
 		var s []*CrawlAccount
 
 		for _, account := range accounts {
-			tempAccount := &CrawlAccount{}
-			tempAccount.init(account)
-			s = append(s, tempAccount)
+			acc := &CrawlAccount{}
+			acc.init(account)
+			s = append(s, acc)
 		}
 
 		return s, nil
 	}
 }
 
-func (a *CrawlAccount) Edit() error {
+func (ca *CrawlAccount) Edit() error {
 	data := map[string]interface{}{
-		"account_id":     a.AccountId,
-		"account_name":   a.AccountName,
-		"last_login_url": a.lastLoginURL,
-		"cookies":        a.cookies,
+		"account_name":   ca.AccountName,
+		"last_login_url": ca.lastLoginURL,
+		"cookies":        ca.cookies,
 	}
 
-	return model.EditCrawlAccount(a.ID, data)
+	return model.EditCrawlAccount(ca.ID, data)
 }
 
-func (a *CrawlAccount) Delete() error {
-	account, err := model.GetCrawlAccount(a.ID)
+func (ca *CrawlAccount) Delete() error {
+	account, err := model.GetCrawlAccount(ca.ID)
 	if err != nil {
 		return err
 	}
 
 	return model.DeleteCrawlAccount(account)
+}
+
+func (ca *CrawlAccount) getCategory() string {
+	return ca.Category
+}
+
+func (ca *CrawlAccount) IsAvailable() bool {
+	ca.mu.Lock()
+	defer ca.mu.Unlock()
+
+	return ca.state == AS_RUNNING
 }
