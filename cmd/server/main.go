@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/router"
 	"log"
 	"net/http"
@@ -14,6 +15,8 @@ import (
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+
+	go internal.CreateLocalChromeInstance()
 }
 
 func GetAppPath() string {

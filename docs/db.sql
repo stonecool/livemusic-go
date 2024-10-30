@@ -1,4 +1,19 @@
 -- 爬虫账号
+CREATE TABLE `chrome_instance` (
+     `id`               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+     `ip`               VARCHAR(20) NOT NULL COMMENT 'ip',
+     `port`             UNSIGNED INT NOT NULL COMMENT 'port',
+     `debugger_url`     VARCHAR(100) NOT NULL COMMENT 'debugger_url',
+     `status`           TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+     `created_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
+     `updated_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
+     `deleted_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
+
+     PRIMARY KEY (`id`),
+     UNIQUE KEY unique_addr (ip, port)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl account';
+
+-- 爬虫账号
 CREATE TABLE `crawl_account` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `category`          VARCHAR(100) NOT NULL COMMENT 'category',

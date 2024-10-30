@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/model"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -16,10 +17,22 @@ import (
 
 type Instance struct {
 	Id          int
-	addr        string
+	IP          string
+	Port        int
 	accounts    map[string]*internal.CrawlAccount
-	debuggerUrl string
-	state       internal.InstanceState
+	DebuggerUrl string
+	Status      internal.InstanceStatus
+}
+
+func InitInstance(m *model.ChromeInstance) *Instance {
+	return &Instance{
+		Id:          m.ID,
+		IP:          m.IP,
+		Port:        m.Port,
+		accounts:    map[string]*internal.CrawlAccount{},
+		DebuggerUrl: m.DebuggerUrl,
+		Status:      internal.InstanceStatus(m.Status),
+	}
 }
 
 func (i *Instance) getAccounts() map[string]*internal.CrawlAccount {
@@ -33,6 +46,10 @@ func (i *Instance) isAvailable(cat string) bool {
 	}
 
 	return account.IsAvailable()
+}
+
+func (i *Instance) getAddr() string {
+	return i.IP + strconv.Itoa(i.Port)
 }
 
 func checkPortAvailable(port int) bool {
@@ -60,7 +77,7 @@ func checkPortAvailable(port int) bool {
 	return !strings.Contains(out.String(), portStr)
 }
 
-func findAvailablePort(startPort int) (int, error) {
+func FindAvailablePort(startPort int) (int, error) {
 	var wg sync.WaitGroup
 	portChan := make(chan int, 1)
 
@@ -90,15 +107,7 @@ func findAvailablePort(startPort int) (int, error) {
 	}
 }
 
-func createInstance() error {
-	port, err := findAvailablePort(9222)
-	if err != nil {
-		fmt.Printf("Failed to find an available port: %v\n", err)
-		return err
-	}
-
-	fmt.Printf("Using port: %d\n", port)
-
+func CreateInstance(port int) error {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "darwin":
@@ -112,8 +121,7 @@ func createInstance() error {
 		cmd = exec.Command("google-chrome", "--remote-debugging-port="+strconv.Itoa(port))
 	}
 
-	err = cmd.Start()
-	if err != nil {
+	if err := cmd.Start(); err != nil {
 		fmt.Printf("Failed to start Google Chrome: %v\n", err)
 		return err
 	}
@@ -126,44 +134,44 @@ func createInstance() error {
 }
 
 // checkChromeHealth 通过远程调试端口检查 Chrome 实例的健康状态
-func checkChromeHealth(ip string, port int) bool {
-	url := fmt.Sprintf("http://%s:%d/json", ip, port)
+func checkChromeHealth(addr string) (bool, string) {
+	url := fmt.Sprintf("http://%s/json", addr)
 	resp, err := http.Get(url)
 	if err != nil {
-		return false
+		return false, ""
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return false
+		return false, ""
 	}
 
-	var version ChromeVersion
+	type chromeVersion struct {
+		Browser              string `json:"Browser"`
+		ProtocolVersion      string `json:"Protocol-Version"`
+		UserAgent            string `json:"User-Agent"`
+		V8Version            string `json:"V8-Version"`
+		WebKitVersion        string `json:"WebKit-Version"`
+		WebSocketDebuggerURL string `json:"webSocketDebuggerUrl"`
+	}
+
+	var version chromeVersion
 	err = json.NewDecoder(resp.Body).Decode(&version)
 	if err != nil {
-		return false
+		return false, ""
 	}
 
 	debuggerUrl := version.WebSocketDebuggerURL
-	return len(debuggerUrl) > 0
+	return len(debuggerUrl) > 0, debuggerUrl
 }
 
-// retryCheckChromeHealth 带重试机制的健康检查
-func retryCheckChromeHealth(port int, retryCount int, retryDelay time.Duration) bool {
+// RetryCheckChromeHealth 带重试机制的健康检查
+func RetryCheckChromeHealth(addr string, retryCount int, retryDelay time.Duration) (bool, string) {
 	for i := 0; i < retryCount; i++ {
-		if checkChromeHealth("127.0.0.1", port) {
-			return true
+		if ok, url := checkChromeHealth(addr); ok {
+			return true, url
 		}
 		time.Sleep(retryDelay)
 	}
-	return false
-}
-
-type ChromeVersion struct {
-	Browser              string `json:"Browser"`
-	ProtocolVersion      string `json:"Protocol-Version"`
-	UserAgent            string `json:"User-Agent"`
-	V8Version            string `json:"V8-Version"`
-	WebKitVersion        string `json:"WebKit-Version"`
-	WebSocketDebuggerURL string `json:"webSocketDebuggerUrl"`
+	return false, ""
 }

@@ -1,16 +1,22 @@
 package model
 
+import "gorm.io/gorm"
+
 type ChromeInstance struct {
 	Model
 
-	Addr  string
-	State int
+	IP          string
+	Port        int
+	DebuggerUrl string
+	Status      int
 }
 
 func AddChromeInstance(data map[string]interface{}) (*ChromeInstance, error) {
 	ins := ChromeInstance{
-		Addr:  data["addr"].(string),
-		State: data["state"].(int),
+		IP:          data["ip"].(string),
+		Port:        data["port"].(int),
+		DebuggerUrl: data["debugger_url"].(string),
+		Status:      data["status"].(int),
 	}
 
 	if err := db.Create(&ins).Error; err != nil {
@@ -18,4 +24,15 @@ func AddChromeInstance(data map[string]interface{}) (*ChromeInstance, error) {
 	}
 
 	return &ins, nil
+}
+
+func ExistsChromeInstance(ip string, port int) (bool, error) {
+	var ins ChromeInstance
+	err := db.Select("id").Where("ip = '?' AND port = ?",
+		ip, port).First(&ins).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return false, err
+	}
+
+	return ins.ID > 0, nil
 }

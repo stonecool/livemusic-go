@@ -1,6 +1,7 @@
 package chrome
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -10,8 +11,10 @@ type InstancePool struct {
 	mu         sync.Mutex
 }
 
-// NewInstancePool 创建chrome实例池
-func NewInstancePool() *InstancePool {
+var Pool = newInstancePool()
+
+// newInstancePool 创建chrome实例池
+func newInstancePool() *InstancePool {
 	return &InstancePool{
 		instances:  make(map[string]*Instance),
 		categories: make(map[string]*Category),
@@ -20,14 +23,15 @@ func NewInstancePool() *InstancePool {
 
 // AddInstance 添加新的实例到池
 func (ip *InstancePool) AddInstance(ins *Instance) {
-	if _, exists := ip.instances[ins.addr]; exists {
+	if _, exists := ip.instances[ins.getAddr()]; exists {
+		fmt.Printf("instance on:%s exists", ins.getAddr())
 		return
 	}
 
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
-	ip.instances[ins.addr] = ins
+	ip.instances[ins.getAddr()] = ins
 	for cat := range ins.getAccounts() {
 		if _, exists := ip.categories[cat]; !exists {
 			ip.categories[cat] = &Category{

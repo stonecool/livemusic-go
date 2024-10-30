@@ -11,9 +11,9 @@ const (
 	AS_RUNNING                     // 正在运行
 )
 
-type InstanceState uint8
+type InstanceStatus uint8
 
 const (
-	INSS_OK InstanceState = iota
-	INSS_ERR
+	INS_OK InstanceStatus = iota
+	INS_ERR
 )
