@@ -27,7 +27,7 @@ func AddCrawlRoutine(data map[string]interface{}) (*CrawlRoutine, error) {
 		TargetAccountId: data["target_account_id"].(string),
 	}
 
-	if err := db.Create(&routine).Error; err != nil {
+	if err := DB.Create(&routine).Error; err != nil {
 		return nil, err
 	}
 
@@ -37,7 +37,7 @@ func AddCrawlRoutine(data map[string]interface{}) (*CrawlRoutine, error) {
 // GetCrawlRoutine Gets a crawl msg
 func GetCrawlRoutine(id int) (*CrawlRoutine, error) {
 	var routine CrawlRoutine
-	if err := db.Where("id = ? AND deleted_at = ?", id, 0).First(&routine).Error; err != nil {
+	if err := DB.Where("id = ? AND deleted_at = ?", id, 0).First(&routine).Error; err != nil {
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func GetCrawlRoutine(id int) (*CrawlRoutine, error) {
 
 func GetCrawlRoutineAll() ([]*CrawlRoutine, error) {
 	var s []*CrawlRoutine
-	if err := db.Where("deleted_at = ?", 0).Find(&s).Error; err != nil {
+	if err := DB.Where("deleted_at = ?", 0).Find(&s).Error; err != nil {
 		return nil, err
 	}
 
@@ -55,12 +55,12 @@ func GetCrawlRoutineAll() ([]*CrawlRoutine, error) {
 
 // DeleteCrawlRoutine Deletes a crawl account
 func DeleteCrawlRoutine(msg *CrawlRoutine) error {
-	return db.Model(msg).Where("deleted_at = ?", 0).Update("deleted_at", time.Now().Unix()).Error
+	return DB.Model(msg).Where("deleted_at = ?", 0).Update("deleted_at", time.Now().Unix()).Error
 }
 
 func ExistCrawlRoutine(dataType string, dataId int, crawlType string) (bool, error) {
 	var routine CrawlRoutine
-	err := db.Select("id").Where("data_type = ? AND data_id = ? AND account_type = ? AND deleted_at = ?",
+	err := DB.Select("id").Where("data_type = ? AND data_id = ? AND account_type = ? AND deleted_at = ?",
 		dataType, dataId, crawlType, 0).First(&routine).Error
 
 	if err != nil && err != gorm.ErrRecordNotFound {
@@ -73,7 +73,7 @@ func ExistCrawlRoutine(dataType string, dataId int, crawlType string) (bool, err
 func EditCrawlRoutine(id int, data map[string]interface{}) (*CrawlRoutine, error) {
 	var routine CrawlRoutine
 
-	if err := db.Model(&routine).Where("id = ? AND deleted_at = ? ", id, 0).Updates(data).Error; err != nil {
+	if err := DB.Model(&routine).Where("id = ? AND deleted_at = ? ", id, 0).Updates(data).Error; err != nil {
 		return nil, err
 	}
 

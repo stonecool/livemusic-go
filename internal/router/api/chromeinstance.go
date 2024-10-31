@@ -12,13 +12,13 @@ type chromeInstanceForm struct {
 	Port int    `json:"port" valid:"Required;Min(9222);Max(65535)"`
 }
 
-// CreateLocalChromeInstance
+// CreateChromeInstance
 // @Summary	Create a local chrome instance
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
 // @Router		/api/v1/create-instance [post]
-func CreateLocalChromeInstance(ctx *gin.Context) {
+func CreateChromeInstance(ctx *gin.Context) {
 	context := http2.Context{Context: ctx}
 
 	if ins, err := internal.CreateLocalChromeInstance(); err != nil {

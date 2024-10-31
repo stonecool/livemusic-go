@@ -1,9 +1,12 @@
-package model
+package instance
 
-import "gorm.io/gorm"
+import (
+	"github.com/stonecool/livemusic-go/internal/model"
+	"gorm.io/gorm"
+)
 
-type ChromeInstance struct {
-	Model
+type instanceModel struct {
+	model.Model
 
 	IP          string
 	Port        int
@@ -11,15 +14,15 @@ type ChromeInstance struct {
 	Status      int
 }
 
-func AddChromeInstance(data map[string]interface{}) (*ChromeInstance, error) {
-	ins := ChromeInstance{
+func AddChromeInstance(data map[string]interface{}) (*instanceModel, error) {
+	ins := instanceModel{
 		IP:          data["ip"].(string),
 		Port:        data["port"].(int),
 		DebuggerUrl: data["debugger_url"].(string),
 		Status:      data["status"].(int),
 	}
 
-	if err := db.Create(&ins).Error; err != nil {
+	if err := model.DB.Create(&ins).Error; err != nil {
 		return nil, err
 	}
 
@@ -27,8 +30,8 @@ func AddChromeInstance(data map[string]interface{}) (*ChromeInstance, error) {
 }
 
 func ExistsChromeInstance(ip string, port int) (bool, error) {
-	var ins ChromeInstance
-	err := db.Select("id").Where("ip = '?' AND port = ?",
+	var ins instanceModel
+	err := model.DB.Select("id").Where("ip = '?' AND port = ?",
 		ip, port).First(&ins).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err

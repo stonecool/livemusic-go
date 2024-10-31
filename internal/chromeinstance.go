@@ -3,19 +3,19 @@ package internal
 import (
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal/chrome"
-	"github.com/stonecool/livemusic-go/internal/model"
+	"github.com/stonecool/livemusic-go/internal/instance"
 )
 
 // CreateLocalChromeInstance Create a local chrome instance
-func CreateLocalChromeInstance() (*chrome.Instance, error) {
+func CreateLocalChromeInstance() (*instance.Instance, error) {
 	ip := "127.0.0.1"
-	port, err := chrome.FindAvailablePort(9222)
+	port, err := instance.FindAvailablePort(9222)
 	if err != nil {
 		fmt.Printf("Failed to find an available port: %v\n", err)
 		return nil, err
 	}
 
-	exists, err := model.ExistsChromeInstance(ip, port)
+	exists, err := instance.ExistsChromeInstance(ip, port)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return nil, err
@@ -26,13 +26,13 @@ func CreateLocalChromeInstance() (*chrome.Instance, error) {
 	}
 
 	fmt.Printf("Using ip:%s port: %d\n", ip, port)
-	err = chrome.CreateInstance(port)
+	err = instance.CreateInstance(port)
 	if err != nil {
 		fmt.Printf("Create instance on port:%d error: %v\n", port, err)
 		return nil, err
 	}
 
-	ok, url := chrome.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
+	ok, url := instance.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 	if !ok {
 		fmt.Printf("Instance health check error: %v\n", err)
 		return nil, err
@@ -45,19 +45,19 @@ func CreateLocalChromeInstance() (*chrome.Instance, error) {
 		"status":       INS_OK,
 	}
 
-	m, err := model.AddChromeInstance(data)
+	m, err := instance.AddChromeInstance(data)
 	if err != nil {
 		return nil, err
 	}
 
-	ins := chrome.InitInstance(m)
+	ins := instance.InitInstance(m)
 	chrome.Pool.AddInstance(ins)
 	return ins, nil
 }
 
 // BindChromeInstance
-func BindChromeInstance(ip string, port int) (*chrome.Instance, error) {
-	exists, err := model.ExistsChromeInstance(ip, port)
+func BindChromeInstance(ip string, port int) (*instance.Instance, error) {
+	exists, err := instance.ExistsChromeInstance(ip, port)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return nil, err
@@ -67,7 +67,7 @@ func BindChromeInstance(ip string, port int) (*chrome.Instance, error) {
 		return nil, fmt.Errorf("port:%d occupied", port)
 	}
 
-	ok, url := chrome.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
+	ok, url := instance.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 	if !ok {
 		fmt.Printf("Instance health check error: %v\n", err)
 		return nil, err
@@ -80,12 +80,12 @@ func BindChromeInstance(ip string, port int) (*chrome.Instance, error) {
 		"status":       INS_OK,
 	}
 
-	m, err := model.AddChromeInstance(data)
+	m, err := instance.AddChromeInstance(data)
 	if err != nil {
 		return nil, err
 	}
 
-	ins := chrome.InitInstance(m)
+	ins := instance.InitInstance(m)
 	chrome.Pool.AddInstance(ins)
 	return ins, nil
 }

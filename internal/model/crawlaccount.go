@@ -9,16 +9,22 @@ type CrawlAccount struct {
 	AccountName  string
 	LastLoginURL string
 	Cookies      []byte
-	InstanceAddr string
+	InstanceID   int
+	Status       int
 }
 
 // AddCrawlAccount Adds a new crawl account
 func AddCrawlAccount(data map[string]interface{}) (*CrawlAccount, error) {
 	account := CrawlAccount{
-		Category: data["category"].(string),
+		Category:     data["category"].(string),
+		AccountName:  data["account_name"].(string),
+		LastLoginURL: data["last_login_url"].(string),
+		Cookies:      data["cookies"].([]byte),
+		InstanceID:   data["instance_id"].(int),
+		Status:       data["status"].(int),
 	}
 
-	if err := db.Create(&account).Error; err != nil {
+	if err := DB.Create(&account).Error; err != nil {
 		return nil, err
 	}
 
@@ -29,7 +35,7 @@ func AddCrawlAccount(data map[string]interface{}) (*CrawlAccount, error) {
 func GetCrawlAccount(id int) (*CrawlAccount, error) {
 	var account CrawlAccount
 	// FIXME
-	if err := db.Where("id = ? AND deleted_at = ?", id, 0).First(&account).Error; err != nil {
+	if err := DB.Where("id = ? AND deleted_at = ?", id, 0).First(&account).Error; err != nil {
 		return nil, err
 	}
 
@@ -38,7 +44,7 @@ func GetCrawlAccount(id int) (*CrawlAccount, error) {
 
 func GetCrawlAccountAll() ([]*CrawlAccount, error) {
 	var accounts []*CrawlAccount
-	if err := db.Where("deleted_at = ?", 0).Find(&accounts).Error; err != nil {
+	if err := DB.Where("deleted_at = ?", 0).Find(&accounts).Error; err != nil {
 		return nil, err
 	}
 
@@ -46,18 +52,18 @@ func GetCrawlAccountAll() ([]*CrawlAccount, error) {
 }
 
 func EditCrawlAccount(id int, data interface{}) error {
-	return db.Model(&CrawlAccount{}).Where("id = ? AND deleted_at = ?", id, 0).Updates(data).Error
+	return DB.Model(&CrawlAccount{}).Where("id = ? AND deleted_at = ?", id, 0).Updates(data).Error
 }
 
 // DeleteCrawlAccount Deletes a crawl account
 func DeleteCrawlAccount(account *CrawlAccount) error {
-	return db.Model(account).Where("deleted_at = ?", 0).Update("deleted_at", time.Now().Unix()).Error
+	return DB.Model(account).Where("deleted_at = ?", 0).Update("deleted_at", time.Now().Unix()).Error
 }
 
 // GetCrawlAccountsByType Gets crawl accounts by type
 func GetCrawlAccountsByType(crawlType string) ([]*CrawlAccount, error) {
 	var crawls []CrawlAccount
-	if err := db.Where("deleted_at = 0 AND account_type = ?", crawlType).Find(&crawls).Error; err != nil {
+	if err := DB.Where("deleted_at = 0 AND account_type = ?", crawlType).Find(&crawls).Error; err != nil {
 		return nil, err
 	}
 

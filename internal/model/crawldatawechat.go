@@ -35,7 +35,7 @@ func addCrawlDataWechat(data map[string]interface{}, tableName string) error {
 		RawId:        data["raw_id"].(int),
 	}
 
-	return db.Table(tableName).Create(&m).Error
+	return DB.Table(tableName).Create(&m).Error
 }
 
 func AddCrawlDataWechat(data map[string]interface{}) error {

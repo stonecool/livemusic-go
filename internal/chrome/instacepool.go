@@ -2,11 +2,12 @@ package chrome
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/instance"
 	"sync"
 )
 
 type InstancePool struct {
-	instances  map[string]*Instance
+	instances  map[string]*instance.Instance
 	categories map[string]*Category
 	mu         sync.Mutex
 }
@@ -16,13 +17,13 @@ var Pool = newInstancePool()
 // newInstancePool 创建chrome实例池
 func newInstancePool() *InstancePool {
 	return &InstancePool{
-		instances:  make(map[string]*Instance),
+		instances:  make(map[string]*instance.Instance),
 		categories: make(map[string]*Category),
 	}
 }
 
 // AddInstance 添加新的实例到池
-func (ip *InstancePool) AddInstance(ins *Instance) {
+func (ip *InstancePool) AddInstance(ins *instance.Instance) {
 	if _, exists := ip.instances[ins.getAddr()]; exists {
 		fmt.Printf("instance on:%s exists", ins.getAddr())
 		return
@@ -42,7 +43,7 @@ func (ip *InstancePool) AddInstance(ins *Instance) {
 	}
 }
 
-func (ip *InstancePool) GetInstancesByCategory(cat string) []*Instance {
+func (ip *InstancePool) GetInstancesByCategory(cat string) []*instance.Instance {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
@@ -53,7 +54,7 @@ func (ip *InstancePool) GetInstancesByCategory(cat string) []*Instance {
 	}
 }
 
-func (ip *InstancePool) ExecuteTask(cat string, task func(instance *Instance)) {
+func (ip *InstancePool) ExecuteTask(cat string, task func(instance *instance.Instance)) {
 	for _, ins := range ip.GetInstancesByCategory(cat) {
 		if ins.isAvailable(cat) {
 			task(ins)

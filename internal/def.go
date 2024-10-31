@@ -17,3 +17,9 @@ const (
 	INS_OK InstanceStatus = iota
 	INS_ERR
 )
+
+type AccountStatus uint8
+
+const (
+	ACC_OK AccountStatus = iota
+)

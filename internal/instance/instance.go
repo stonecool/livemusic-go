@@ -1,11 +1,11 @@
-package chrome
+package instance
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/model"
+	"github.com/stonecool/livemusic-go/internal/cache"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -15,6 +15,21 @@ import (
 	"time"
 )
 
+var instanceCache *cache.Memo
+
+func init() {
+	instanceCache = cache.New(getInstance)
+}
+
+func getInstance(id int) (interface{}, error) {
+	return nil, nil
+}
+
+func getInstance1(ip string, port int) (interface{}, error) {
+	return nil, nil
+}
+
+// Instance
 type Instance struct {
 	Id          int
 	IP          string
@@ -24,7 +39,7 @@ type Instance struct {
 	Status      internal.InstanceStatus
 }
 
-func InitInstance(m *model.ChromeInstance) *Instance {
+func InitInstance(m *instanceModel) *Instance {
 	return &Instance{
 		Id:          m.ID,
 		IP:          m.IP,

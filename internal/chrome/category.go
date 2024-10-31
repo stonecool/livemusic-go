@@ -1,14 +1,16 @@
 package chrome
 
+import "github.com/stonecool/livemusic-go/internal/instance"
+
 type Category struct {
 	name      string
-	instances []*Instance
+	instances []*instance.Instance
 }
 
-func (c *Category) AddInstance(ins *Instance) {
+func (c *Category) AddInstance(ins *instance.Instance) {
 	c.instances = append(c.instances, ins)
 }
 
-func (c *Category) GetInstances() []*Instance {
+func (c *Category) GetInstances() []*instance.Instance {
 	return c.instances
 }

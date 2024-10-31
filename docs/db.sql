@@ -2,7 +2,7 @@
 CREATE TABLE `chrome_instance` (
      `id`               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
      `ip`               VARCHAR(20) NOT NULL COMMENT 'ip',
-     `port`             UNSIGNED INT NOT NULL COMMENT 'port',
+     `port`             INT(10) UNSIGNED NOT NULL COMMENT 'port',
      `debugger_url`     VARCHAR(100) NOT NULL COMMENT 'debugger_url',
      `status`           TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
      `created_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
@@ -20,7 +20,8 @@ CREATE TABLE `crawl_account` (
     `account_name`      VARCHAR(100) NOT NULL COMMENT 'account name',
     `last_login_url`    VARCHAR(100) NOT NULL COMMENT 'last login url',
     `cookies`           BLOB COMMENT 'cookies',
-    `instance_addr`     CHAR(20) NOT NULL COMMENT 'instance addr',
+    `instance_id`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'instance id',
+    `status`            TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
     `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
     `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',

@@ -13,6 +13,8 @@ func InitRouter(engine *gin.Engine) error {
 
 	apiV1 := router.Group("/api/v1")
 	// chrome实例
+	apiV1.POST("/create-instance", api.CreateChromeInstance)
+	apiV1.POST("/bind-instance", api.BindChromeInstance)
 
 	// 爬虫账号
 	apiV1.POST("/crawl-accounts", api.AddCrawlAccount)

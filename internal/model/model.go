@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-var db *gorm.DB
+var DB *gorm.DB
 
 type Model struct {
 	ID        int `gorm:"primary key"`
@@ -33,7 +33,7 @@ func init() {
 	}
 
 	var err error
-	db, err = gorm.Open(dialector, &gorm.Config{
+	DB, err = gorm.Open(dialector, &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
 			TablePrefix:   config.Database.TablePrefix,
@@ -51,5 +51,5 @@ func init() {
 
 // TODO
 func closeDB() {
-	//defer db()
+	//defer DB()
 }
