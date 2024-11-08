@@ -55,14 +55,24 @@ func BindChromeInstance(ctx *gin.Context) {
 	}
 }
 
-func GetChromeInstances() {
+// GetChromeInstances
+// @Summary	Get multiple chrome instances
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	500	{object}	http.Response
+// @Router		/api/v1/instances [get]
+func GetChromeInstances(ctx *gin.Context) {
+	var context = http2.Context{Context: ctx}
 
+	account := &internal.CrawlAccount{}
+	//chrome.GetAllChromeInstance()
+	if accounts, err := account.GetAll(); err != nil {
+		context.Response(http.StatusBadRequest, 0, nil)
+	} else {
+		context.Response(http.StatusBadRequest, 0, accounts)
+	}
 }
 
-func DeleteChromeInstance() {
-
-}
-
-func EditChromeInstance() {
+func DeleteChromeInstance(ctx *gin.Context) {
 
 }

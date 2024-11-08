@@ -26,6 +26,16 @@ func (ca *CrawlAccount) init(m *model.CrawlAccount) {
 	ca.lastLoginURL = m.LastLoginURL
 }
 
+func InitCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
+	return &CrawlAccount{
+		ID:           m.ID,
+		Category:     m.Category,
+		AccountName:  m.AccountName,
+		cookies:      m.Cookies,
+		lastLoginURL: m.LastLoginURL,
+	}
+}
+
 func (ca *CrawlAccount) Add() error {
 	_, ok := config.AccountMap[ca.Category]
 	if !ok {
@@ -60,9 +70,7 @@ func (ca *CrawlAccount) GetAll() ([]*CrawlAccount, error) {
 		var s []*CrawlAccount
 
 		for _, account := range accounts {
-			acc := &CrawlAccount{}
-			acc.init(account)
-			s = append(s, acc)
+			s = append(s, InitCrawlAccount(account))
 		}
 
 		return s, nil

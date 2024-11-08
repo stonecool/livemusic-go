@@ -1,11 +1,16 @@
-package instance
+package chrome
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/chromedp/chromedp"
+
+	//"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/cache"
+	"github.com/stonecool/livemusic-go/internal/model"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -22,11 +27,21 @@ func init() {
 }
 
 func getInstance(id int) (interface{}, error) {
-	return nil, nil
+	instance, err := model.GetChromeInstance(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return InitInstance(instance), nil
 }
 
-func getInstance1(ip string, port int) (interface{}, error) {
-	return nil, nil
+func GetInstance(id int) (*Instance, error) {
+	ins, err := instanceCache.Get(id)
+	if err != nil {
+		return nil, err
+	} else {
+		return ins.(*Instance), nil
+	}
 }
 
 // Instance
@@ -34,20 +49,56 @@ type Instance struct {
 	Id          int
 	IP          string
 	Port        int
+	Addr        string
 	accounts    map[string]*internal.CrawlAccount
 	DebuggerUrl string
 	Status      internal.InstanceStatus
+	ctx         context.Context
+	cancelFunc  context.CancelFunc
 }
 
-func InitInstance(m *instanceModel) *Instance {
-	return &Instance{
+func InitInstance(m *model.ChromeInstance) *Instance {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, m.DebuggerUrl)
+	browserCtx, browserCancel := chromedp.NewContext(allocatorCtx)
+	deferFunc := func() {
+		browserCancel()
+		allocatorCancel()
+		cancel()
+	}
+
+	i := Instance{
 		Id:          m.ID,
 		IP:          m.IP,
 		Port:        m.Port,
 		accounts:    map[string]*internal.CrawlAccount{},
 		DebuggerUrl: m.DebuggerUrl,
 		Status:      internal.InstanceStatus(m.Status),
+		ctx:         browserCtx,
+		cancelFunc:  deferFunc,
 	}
+
+	go i.heartBeat()
+
+	return &i
+}
+
+// heartBeat 心跳
+func (i *Instance) heartBeat() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			ok, _ := RetryCheckChromeHealth(i.Addr, 1, 0)
+			if !ok {
+				i.Status = internal.INS_DISCONNECTED
+				break
+			}
+		}
+	}
+
 }
 
 func (i *Instance) getAccounts() map[string]*internal.CrawlAccount {

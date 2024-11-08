@@ -11,11 +11,16 @@ const (
 	AS_RUNNING                     // 正在运行
 )
 
+//StateIdle State = iota
+//StateRunning
+//StatePaused
+//StateStopped
+
 type InstanceStatus uint8
 
 const (
-	INS_OK InstanceStatus = iota
-	INS_ERR
+	INS_CONNECTED InstanceStatus = iota
+	INS_DISCONNECTED
 )
 
 type AccountStatus uint8

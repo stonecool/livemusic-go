@@ -15,6 +15,9 @@ func InitRouter(engine *gin.Engine) error {
 	// chrome实例
 	apiV1.POST("/create-instance", api.CreateChromeInstance)
 	apiV1.POST("/bind-instance", api.BindChromeInstance)
+	apiV1.GET("/instances", api.GetChromeInstances)
+	apiV1.GET("/instances/:id", api.BindChromeInstance)
+	apiV1.DELETE("/instances/:id", api.DeleteChromeInstance)
 
 	// 爬虫账号
 	apiV1.POST("/crawl-accounts", api.AddCrawlAccount)
