@@ -1,24 +1,26 @@
-package chrome
+package instance
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/chromedp/chromedp"
-
-	//"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/cache"
-	"github.com/stonecool/livemusic-go/internal/model"
-	"net/http"
-	"os/exec"
-	"runtime"
-	"strconv"
-	"strings"
-	"sync"
 	"time"
+	"github.com/chromedp/chromedp"
+	"internal/model"
 )
+
+type Instance struct {
+	Id          int
+	IP          string
+	Port        int
+	Addr        string
+	accounts    map[string]*internal.CrawlAccount
+	DebuggerUrl string
+	State       InstanceState
+	stateChan   chan stateEvent
+	ctx         context.Context
+	cancelFunc  context.CancelFunc
+	opts        *InstanceOptions
+}
 
 var instanceCache *cache.Memo
 
@@ -27,13 +29,18 @@ func init() {
 }
 
 func getInstance(id int) (interface{}, error) {
-	instance, err := model.GetChromeInstance(id)
+	modelInstance, err := model.GetChromeInstance(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return InitInstance(instance), nil
-}
+	ins := instance.NewInstance(modelInstance)
+	if err := ins.Initialize(); err != nil {
+		return nil, fmt.Errorf("initialize instance failed: %w", err)
+	}
+
+	return ins, nil
+} 
 
 func GetInstance(id int) (*Instance, error) {
 	ins, err := instanceCache.Get(id)
@@ -44,61 +51,92 @@ func GetInstance(id int) (*Instance, error) {
 	}
 }
 
-// Instance
-type Instance struct {
-	Id          int
-	IP          string
-	Port        int
-	Addr        string
-	accounts    map[string]*internal.CrawlAccount
-	DebuggerUrl string
-	Status      internal.InstanceStatus
-	ctx         context.Context
-	cancelFunc  context.CancelFunc
+func NewInstance(m *model.ChromeInstance, opts *InstanceOptions) *Instance {
+	if opts == nil {
+		opts = DefaultOptions()
+	}
+	
+	return &Instance{
+		Id:          m.ID,
+		IP:          m.IP,
+		Port:        m.Port,
+		accounts:    make(map[string]*internal.CrawlAccount),
+		DebuggerUrl: m.DebuggerUrl,
+		State:       STATE_UNINITIALIZED,
+		stateChan:   make(chan stateEvent),
+		opts:        opts,
+	}
 }
 
-func InitInstance(m *model.ChromeInstance) *Instance {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, m.DebuggerUrl)
+func (i *Instance) Initialize() error {
+	if i.State != STATE_UNINITIALIZED {
+		return fmt.Errorf("instance in invalid state: %v", i.State)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), i.opts.InitTimeout)
+	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerUrl)
 	browserCtx, browserCancel := chromedp.NewContext(allocatorCtx)
-	deferFunc := func() {
+
+	i.ctx = browserCtx
+	i.cancelFunc = func() {
 		browserCancel()
 		allocatorCancel()
 		cancel()
 	}
 
-	i := Instance{
-		Id:          m.ID,
-		IP:          m.IP,
-		Port:        m.Port,
-		accounts:    map[string]*internal.CrawlAccount{},
-		DebuggerUrl: m.DebuggerUrl,
-		Status:      internal.InstanceStatus(m.Status),
-		ctx:         browserCtx,
-		cancelFunc:  deferFunc,
+	go i.stateManager()
+
+	if ok, _ := RetryCheckChromeHealth(i.getAddr(), 1, 0); !ok {
+		i.cancelFunc()
+		i.handleEvent(EVENT_INIT_FAIL)
+		return fmt.Errorf("instance initialization failed: health check failed")
+	}
+
+	if err := i.handleEvent(EVENT_INIT_SUCCESS); err != nil {
+		i.cancelFunc()
+		return fmt.Errorf("failed to update state: %w", err)
 	}
 
 	go i.heartBeat()
 
-	return &i
+	return nil
 }
 
-// heartBeat 心跳
-func (i *Instance) heartBeat() {
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			ok, _ := RetryCheckChromeHealth(i.Addr, 1, 0)
-			if !ok {
-				i.Status = internal.INS_DISCONNECTED
-				break
-			}
+func (i *Instance) RetryInitialize(maxAttempts int) error {
+	var lastErr error
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		if err := i.Initialize(); err == nil {
+			return nil
+		} else {
+			lastErr = err
+			time.Sleep(time.Second * time.Duration(attempt))  // 指数退避
 		}
 	}
+	return fmt.Errorf("failed after %d attempts: %w", maxAttempts, lastErr)
+} 
 
+// 心跳检查
+func (i *Instance) heartBeat() {
+    ticker := time.NewTicker(i.opts.HeartbeatInterval)
+    defer ticker.Stop()
+
+    for {
+        select {
+        case <-ticker.C:
+            state := i.GetState()
+            if state != STATE_CONNECTED {
+                continue
+            }
+            
+            ok, _ := RetryCheckChromeHealth(i.getAddr(), 1, 0)
+            if !ok {
+                i.handleEvent(EVENT_HEALTH_CHECK_FAIL)
+            }
+            
+        case <-i.ctx.Done():
+            return
+        }
+    }
 }
 
 func (i *Instance) getAccounts() map[string]*internal.CrawlAccount {
@@ -115,129 +153,98 @@ func (i *Instance) isAvailable(cat string) bool {
 }
 
 func (i *Instance) getAddr() string {
-	return i.IP + strconv.Itoa(i.Port)
+	return i.addr
 }
 
-func checkPortAvailable(port int) bool {
-	var cmd *exec.Cmd
-	portStr := strconv.Itoa(port)
-
-	switch runtime.GOOS {
-	case "darwin", "linux":
-		cmd = exec.Command("lsof", "-i", ":"+portStr)
-	case "windows":
-		cmd = exec.Command("netstat", "-an", "|", "findstr", ":"+portStr)
-
-	default:
-		return false
+func (i *Instance) Close() error {
+	if i.cancelFunc != nil {
+		i.cancelFunc()  // 取消 context，会导致 stateManager 和 heartBeat 退出
 	}
-
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		// 如果命令执行失败，假设端口可用
-		return true
-	}
-
-	return !strings.Contains(out.String(), portStr)
-}
-
-func FindAvailablePort(startPort int) (int, error) {
-	var wg sync.WaitGroup
-	portChan := make(chan int, 1)
-
-	for port := startPort; port < 65535; port++ {
-		wg.Add(1)
-		go func(p int) {
-			defer wg.Done()
-			if checkPortAvailable(p) {
-				select {
-				case portChan <- p:
-				default:
-				}
-			}
-		}(port)
-	}
-
-	go func() {
-		wg.Wait()
-		close(portChan)
-	}()
-
-	select {
-	case port := <-portChan:
-		return port, nil
-	case <-time.After(10 * time.Second):
-		return 0, fmt.Errorf("no available port found")
-	}
-}
-
-func CreateInstance(port int) error {
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "darwin":
-		// macOS
-		cmd = exec.Command("open", "-a", "Google Chrome", "--args", "--remote-debugging-port="+strconv.Itoa(port))
-	case "windows":
-		// Windows
-		cmd = exec.Command("cmd", "/c", "start", "chrome", "--remote-debugging-port="+strconv.Itoa(port))
-	default:
-		// Linux
-		cmd = exec.Command("google-chrome", "--remote-debugging-port="+strconv.Itoa(port))
-	}
-
-	if err := cmd.Start(); err != nil {
-		fmt.Printf("Failed to start Google Chrome: %v\n", err)
-		return err
-	}
-
-	// 等待几秒钟确保chrome实例启动
-	time.Sleep(5)
-	fmt.Println("Google Chrome started successfully")
-
 	return nil
 }
 
-// checkChromeHealth 通过远程调试端口检查 Chrome 实例的健康状态
-func checkChromeHealth(addr string) (bool, string) {
-	url := fmt.Sprintf("http://%s/json", addr)
-	resp, err := http.Get(url)
-	if err != nil {
-		return false, ""
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, ""
-	}
-
-	type chromeVersion struct {
-		Browser              string `json:"Browser"`
-		ProtocolVersion      string `json:"Protocol-Version"`
-		UserAgent            string `json:"User-Agent"`
-		V8Version            string `json:"V8-Version"`
-		WebKitVersion        string `json:"WebKit-Version"`
-		WebSocketDebuggerURL string `json:"webSocketDebuggerUrl"`
-	}
-
-	var version chromeVersion
-	err = json.NewDecoder(resp.Body).Decode(&version)
-	if err != nil {
-		return false, ""
-	}
-
-	debuggerUrl := version.WebSocketDebuggerURL
-	return len(debuggerUrl) > 0, debuggerUrl
+// 判断实例是否可用
+func (i *Instance) IsAvailable() bool {
+    return i.GetState() == STATE_CONNECTED
 }
 
-// RetryCheckChromeHealth 带重试机制的健康检查
-func RetryCheckChromeHealth(addr string, retryCount int, retryDelay time.Duration) (bool, string) {
-	for i := 0; i < retryCount; i++ {
-		if ok, url := checkChromeHealth(addr); ok {
-			return true, url
+// 状态管理器
+func (i *Instance) stateManager() {
+	for {
+		select {
+		case evt := <-i.stateChan:
+			var err error
+			oldState := i.State
+
+			switch evt.event {
+			case EVENT_GET_STATE:
+				evt.response <- i.State
+				continue
+
+			case EVENT_INIT_SUCCESS:
+				if i.State == STATE_UNINITIALIZED {
+					i.State = STATE_CONNECTED
+				} else {
+					err = fmt.Errorf("cannot initialize from state: %v", i.State)
+				}
+
+			case EVENT_INIT_FAIL:
+				if i.State == STATE_UNINITIALIZED {
+					i.State = STATE_INIT_FAILED
+				} else {
+					err = fmt.Errorf("cannot fail initialization from state: %v", i.State)
+				}
+
+			case EVENT_HEALTH_CHECK_SUCCESS:
+				if i.State == STATE_DISCONNECTED {
+					i.State = STATE_CONNECTED
+				}
+
+			case EVENT_HEALTH_CHECK_FAIL:
+				if i.State == STATE_CONNECTED {
+					i.State = STATE_DISCONNECTED
+				}
+			}
+
+			if err == nil && oldState != i.State {
+				// TODO: 更新实例状态
+			}
+
+			evt.response <- err
+
+		case <-i.ctx.Done():
+			return
 		}
-		time.Sleep(retryDelay)
 	}
-	return false, ""
 }
+
+// 处理状态事件
+func (i *Instance) handleEvent(event InstanceEvent) error {
+	response := make(chan interface{}, 1)
+	i.stateChan <- stateEvent{
+		event:    event,
+		response: response,
+	}
+	result := <-response
+	if err, ok := result.(error); ok {
+		return err
+	}
+	return nil
+}
+
+// 获取当前状态
+func (i *Instance) GetState() InstanceState {
+	response := make(chan interface{}, 1)
+	i.stateChan <- stateEvent{
+		event:    EVENT_GET_STATE,
+		response: response,
+	}
+	result := <-response
+	return result.(InstanceState)
+}
+
+// 判断是否需要重新初始化
+func (i *Instance) NeedsReInitialize() bool {
+	state := i.GetState()
+	return state == STATE_INIT_FAILED || state == STATE_DISCONNECTED
+} 
