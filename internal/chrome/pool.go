@@ -5,20 +5,26 @@ import (
 	"sync"
 )
 
+// 全局唯一的实例池
+var globalPool *InstancePool
+
 type InstancePool struct {
 	instances  map[string]*Instance
 	categories map[string]*Category
 	mu         sync.Mutex
 }
 
-var Pool = newInstancePool()
-
-// newInstancePool 创建chrome实例池
-func newInstancePool() *InstancePool {
-	return &InstancePool{
+// 在包初始化时创建实例池
+func init() {
+	globalPool = &InstancePool{
 		instances:  make(map[string]*Instance),
 		categories: make(map[string]*Category),
 	}
+}
+
+// 获取全局实例池
+func GetPool() *InstancePool {
+	return globalPool
 }
 
 // AddInstance 添加新的实例到池
@@ -60,11 +66,15 @@ func (ip *InstancePool) GetInstancesByCategory(cat string) []*Instance {
 	}
 }
 
-func (ip *InstancePool) ExecuteTask(cat string, task func(instance *Instance)) {
+func (ip *InstancePool) ExecuteTask(cat string, task func(instance *Instance) error) error {
 	for _, ins := range ip.GetInstancesByCategory(cat) {
 		if ins.isAvailable(cat) {
-			task(ins)
-			break
+			err := task(ins)
+			if err != nil {
+				return err
+			}
+			return nil
 		}
 	}
+	return fmt.Errorf("no instance available for category: %s", cat)
 }

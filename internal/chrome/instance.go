@@ -247,4 +247,34 @@ func (i *Instance) GetState() InstanceState {
 func (i *Instance) NeedsReInitialize() bool {
 	state := i.GetState()
 	return state == STATE_INIT_FAILED || state == STATE_DISCONNECTED
-} 
+}
+
+func (i *Instance) cleanupTabs() {
+    ticker := time.NewTicker(5 * time.Minute)  // 每5分钟检查一次
+    defer ticker.Stop()
+
+    for {
+        select {
+        case <-ticker.C:
+            // 获取所有 targets (tabs)
+            targets, err := chromedp.Targets(i.ctx)
+            if err != nil {
+                continue
+            }
+
+            now := time.Now()
+            for _, t := range targets {
+                // 跳过主页面
+                if t.Type == "page" && t.URL != "about:blank" {
+                    // 如果 tab 超过30分钟没有活动，关闭它
+                    if now.Sub(t.LastActivityTime) > 30*time.Minute {
+                        chromedp.CloseTarget(i.ctx, t.TargetID)
+                    }
+                }
+            }
+
+        case <-i.ctx.Done():
+            return
+        }
+    }
+}

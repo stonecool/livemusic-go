@@ -63,21 +63,26 @@ func (ca *CrawlAccount) Get() error {
 	}
 }
 
-func (ca *CrawlAccount) GetAll() ([]*CrawlAccount, error) {
-	if accounts, err := model.GetCrawlAccountAll(); err != nil {
-		return nil, err
-	} else {
-		var s []*CrawlAccount
+// FIXME
+// func (ca *CrawlAccount) GetAll() ([]*CrawlAccount, error) {
+// 	if accounts, err := model.GetCrawlAccountAll(); err != nil {
+// 		return nil, err
+// 	} else {
+// 		var s []*CrawlAccount
 
-		for _, account := range accounts {
-			s = append(s, InitCrawlAccount(account))
-		}
+// 		for _, account := range accounts {
+// 			s = append(s, InitCrawlAccount(account))
+// 		}
 
-		return s, nil
-	}
-}
+// 		return s, nil
+// 	}
+// }
 
 func (ca *CrawlAccount) Edit() error {
+	if ca.ID == 0 {
+		return fmt.Errorf("invalid account id")
+	}
+	
 	data := map[string]interface{}{
 		"account_name":   ca.AccountName,
 		"last_login_url": ca.lastLoginURL,
