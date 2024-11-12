@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"net/http"
 )
@@ -64,7 +65,7 @@ func BindChromeInstance(ctx *gin.Context) {
 func GetChromeInstances(ctx *gin.Context) {
 	var context = http2.Context{Context: ctx}
 
-	account := &internal.CrawlAccount{}
+	account := &crawlaccount.CrawlAccount{}
 	//chrome.GetAllChromeInstance()
 	if accounts, err := account.GetAll(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)

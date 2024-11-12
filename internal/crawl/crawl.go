@@ -1,33 +1,34 @@
-package internal
+package crawl
 
 import (
 	"context"
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/config"
 )
 
-type Crawl struct {
-	Account *CrawlAccount
+type Callback func(map[string]interface{})
 
-	state   CrawlState
+type Crawl struct {
+	state   internal.CrawlState
 	config  *config.Account
-	ch      chan *ClientMessage
+	ch      chan *internal.ClientMessage
 	context context.Context
 }
 
 func (c *Crawl) GetId() int {
-	return c.Account.ID
+	return 0
 }
 
 func (c *Crawl) GetName() string {
-	return c.Account.AccountName
+	return ""
 }
 
-func (c *Crawl) GetState() CrawlState {
+func (c *Crawl) GetState() internal.CrawlState {
 	return c.state
 }
 
-func (c *Crawl) SetState(state CrawlState) {
+func (c *Crawl) SetState(state internal.CrawlState) {
 	c.state = state
 }
 
@@ -50,15 +51,14 @@ func (c *Crawl) WaitLogin() chromedp.ActionFunc {
 }
 
 func (c *Crawl) SaveCookies(cookies []byte) error {
-	c.Account.cookies = cookies
-	return c.Account.Edit()
+	return nil
 }
 
 func (c *Crawl) GetCookies() []byte {
-	return c.Account.cookies
+	return nil
 }
 
-func (c *Crawl) GetChan() chan *ClientMessage {
+func (c *Crawl) GetChan() chan *internal.ClientMessage {
 	return c.ch
 }
 

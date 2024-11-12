@@ -7,6 +7,8 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/config"
+	crawl2 "github.com/stonecool/livemusic-go/internal/crawl"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"log"
 )
 
@@ -17,7 +19,7 @@ func init() {
 }
 
 func getCrawl(id int) (interface{}, error) {
-	account := &CrawlAccount{ID: id}
+	account := &crawlaccount.CrawlAccount{ID: id}
 	err := account.Get()
 	if err != nil {
 		log.Printf("error: %s", err)
@@ -33,7 +35,7 @@ func getCrawl(id int) (interface{}, error) {
 	switch account.Category {
 	case "wechat":
 		crawl = &WeChatCrawl{
-			Crawl: Crawl{
+			Crawl: crawl2.Crawl{
 				Account: account,
 				state:   CrawlState_Uninitialized,
 				config:  &cfg,

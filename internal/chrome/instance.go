@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/cache"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"github.com/stonecool/livemusic-go/internal/model"
 	"time"
 )
@@ -14,7 +14,7 @@ type Instance struct {
 	Id          int
 	IP          string
 	Port        int
-	accounts    map[string]*internal.CrawlAccount
+	accounts    map[string]*crawlaccount.CrawlAccount
 	DebuggerURL string
 	State       InstanceState
 	stateChan   chan stateEvent
@@ -61,7 +61,7 @@ func newInstance(m *model.ChromeInstance, opts *InstanceOptions) *Instance {
 		Id:          m.ID,
 		IP:          m.IP,
 		Port:        m.Port,
-		accounts:    make(map[string]*internal.CrawlAccount),
+		accounts:    make(map[string]*crawlaccount.CrawlAccount),
 		DebuggerURL: m.DebuggerURL,
 		State:       STATE_UNINITIALIZED,
 		stateChan:   make(chan stateEvent),
@@ -140,7 +140,7 @@ func (i *Instance) heartBeat() {
 	}
 }
 
-func (i *Instance) getAccounts() map[string]*internal.CrawlAccount {
+func (i *Instance) getAccounts() map[string]*crawlaccount.CrawlAccount {
 	return i.accounts
 }
 

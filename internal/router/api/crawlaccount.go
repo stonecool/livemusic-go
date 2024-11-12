@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
 	"log"
@@ -33,7 +34,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	account := &internal.CrawlAccount{Category: form.AccountType}
+	account := &crawlaccount.CrawlAccount{Category: form.AccountType}
 	if err := account.Add(); err != nil {
 		context.Response(http.StatusBadRequest, http2.ErrorNotExists, nil)
 	} else {
@@ -61,7 +62,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	account := &internal.CrawlAccount{ID: form.ID}
+	account := &crawlaccount.CrawlAccount{ID: form.ID}
 	if err := account.Get(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
@@ -78,7 +79,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 func GetCrawlAccounts(ctx *gin.Context) {
 	var context = http2.Context{Context: ctx}
 
-	account := &internal.CrawlAccount{}
+	account := &crawlaccount.CrawlAccount{}
 	if accounts, err := account.GetAll(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
@@ -106,7 +107,7 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	account := &internal.CrawlAccount{ID: form.ID}
+	account := &crawlaccount.CrawlAccount{ID: form.ID}
 	if err := account.Delete(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {

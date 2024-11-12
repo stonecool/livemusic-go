@@ -1,11 +1,9 @@
-package internal
+package crawl
 
 import (
 	"context"
 	"github.com/chromedp/chromedp"
 )
-
-type Callback func(map[string]interface{})
 
 type ICrawl interface {
 	GetId() int

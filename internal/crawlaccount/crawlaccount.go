@@ -1,7 +1,8 @@
-package internal
+package crawlaccount
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
 	"sync"
@@ -14,7 +15,7 @@ type CrawlAccount struct {
 	lastURL      string
 	cookies      []byte
 	instanceAddr string
-	state        AccountState
+	state        internal.AccountState
 	mu           sync.RWMutex
 }
 
@@ -109,5 +110,5 @@ func (ca *CrawlAccount) IsAvailable() bool {
 	ca.mu.Lock()
 	defer ca.mu.Unlock()
 
-	return ca.state == AS_RUNNING
+	return ca.state == internal.AS_RUNNING
 }

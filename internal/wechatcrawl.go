@@ -7,13 +7,14 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/crawl"
 	"log"
 	"net/url"
 	"strings"
 )
 
 type WeChatCrawl struct {
-	Crawl
+	crawl.Crawl
 }
 
 func (crawl *WeChatCrawl) GetQRCodeSelector() string {

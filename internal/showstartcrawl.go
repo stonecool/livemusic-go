@@ -1,9 +1,12 @@
 package internal
 
-import "github.com/chromedp/chromedp"
+import (
+	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/crawl"
+)
 
 type ShowStartCrawl struct {
-	Crawl
+	crawl.Crawl
 }
 
 func (crawl *ShowStartCrawl) GoCrawl(callback Callback) chromedp.ActionFunc {
