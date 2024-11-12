@@ -5,23 +5,23 @@ import "time"
 type CrawlAccount struct {
 	Model
 
-	Category     string
-	AccountName  string
-	LastLoginURL string
-	Cookies      []byte
-	InstanceID   int
-	Status       int
+	Category    string
+	AccountName string
+	LastURL     string
+	Cookies     []byte
+	InstanceID  int
+	State       int
 }
 
 // AddCrawlAccount Adds a new crawl account
 func AddCrawlAccount(data map[string]interface{}) (*CrawlAccount, error) {
 	account := CrawlAccount{
-		Category:     data["category"].(string),
-		AccountName:  data["account_name"].(string),
-		LastLoginURL: data["last_login_url"].(string),
-		Cookies:      data["cookies"].([]byte),
-		InstanceID:   data["instance_id"].(int),
-		Status:       data["status"].(int),
+		Category:    data["category"].(string),
+		AccountName: data["account_name"].(string),
+		LastURL:     data["last_url"].(string),
+		Cookies:     data["cookies"].([]byte),
+		InstanceID:  data["instance_id"].(int),
+		State:       data["status"].(int),
 	}
 
 	if err := DB.Create(&account).Error; err != nil {

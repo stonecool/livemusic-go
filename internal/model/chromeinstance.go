@@ -9,16 +9,16 @@ type ChromeInstance struct {
 
 	IP          string
 	Port        int
-	DebuggerUrl string
-	Status      int
+	DebuggerURL string
+	State       int
 }
 
 func AddChromeInstance(data map[string]interface{}) (*ChromeInstance, error) {
 	ins := ChromeInstance{
 		IP:          data["ip"].(string),
 		Port:        data["port"].(int),
-		DebuggerUrl: data["debugger_url"].(string),
-		Status:      data["status"].(int),
+		DebuggerURL: data["debugger_url"].(string),
+		State:       data["state"].(int),
 	}
 
 	if err := DB.Create(&ins).Error; err != nil {

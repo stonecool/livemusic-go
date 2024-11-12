@@ -21,11 +21,11 @@ func (crawl *WeChatCrawl) GetQRCodeSelector() string {
 }
 
 func (crawl *WeChatCrawl) SetLastLoginURL(url string) {
-	crawl.Account.lastLoginURL = url
+	crawl.Account.lastURL = url
 }
 
 func (crawl *WeChatCrawl) GetLastLoginURL() string {
-	return crawl.Account.lastLoginURL
+	return crawl.Account.lastURL
 }
 
 func (crawl *WeChatCrawl) WaitLogin() chromedp.ActionFunc {

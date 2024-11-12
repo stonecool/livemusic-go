@@ -1,20 +1,21 @@
-package instance
+package chrome
 
 import (
 	"context"
 	"fmt"
-	"time"
 	"github.com/chromedp/chromedp"
-	"internal/model"
+	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/cache"
+	"github.com/stonecool/livemusic-go/internal/model"
+	"time"
 )
 
 type Instance struct {
 	Id          int
 	IP          string
 	Port        int
-	Addr        string
 	accounts    map[string]*internal.CrawlAccount
-	DebuggerUrl string
+	DebuggerURL string
 	State       InstanceState
 	stateChan   chan stateEvent
 	ctx         context.Context
@@ -34,13 +35,13 @@ func getInstance(id int) (interface{}, error) {
 		return nil, err
 	}
 
-	ins := instance.NewInstance(modelInstance)
-	if err := ins.Initialize(); err != nil {
+	ins := newInstance(modelInstance, nil)
+	if err := ins.initialize(); err != nil {
 		return nil, fmt.Errorf("initialize instance failed: %w", err)
 	}
 
 	return ins, nil
-} 
+}
 
 func GetInstance(id int) (*Instance, error) {
 	ins, err := instanceCache.Get(id)
@@ -51,30 +52,30 @@ func GetInstance(id int) (*Instance, error) {
 	}
 }
 
-func NewInstance(m *model.ChromeInstance, opts *InstanceOptions) *Instance {
+func newInstance(m *model.ChromeInstance, opts *InstanceOptions) *Instance {
 	if opts == nil {
 		opts = DefaultOptions()
 	}
-	
+
 	return &Instance{
 		Id:          m.ID,
 		IP:          m.IP,
 		Port:        m.Port,
 		accounts:    make(map[string]*internal.CrawlAccount),
-		DebuggerUrl: m.DebuggerUrl,
+		DebuggerURL: m.DebuggerURL,
 		State:       STATE_UNINITIALIZED,
 		stateChan:   make(chan stateEvent),
 		opts:        opts,
 	}
 }
 
-func (i *Instance) Initialize() error {
+func (i *Instance) initialize() error {
 	if i.State != STATE_UNINITIALIZED {
 		return fmt.Errorf("instance in invalid state: %v", i.State)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), i.opts.InitTimeout)
-	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerUrl)
+	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
 	browserCtx, browserCancel := chromedp.NewContext(allocatorCtx)
 
 	i.ctx = browserCtx
@@ -86,7 +87,7 @@ func (i *Instance) Initialize() error {
 
 	go i.stateManager()
 
-	if ok, _ := RetryCheckChromeHealth(i.getAddr(), 1, 0); !ok {
+	if ok, _ := RetryCheckChromeHealth(i.GetAddr(), 1, 0); !ok {
 		i.cancelFunc()
 		i.handleEvent(EVENT_INIT_FAIL)
 		return fmt.Errorf("instance initialization failed: health check failed")
@@ -105,38 +106,38 @@ func (i *Instance) Initialize() error {
 func (i *Instance) RetryInitialize(maxAttempts int) error {
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		if err := i.Initialize(); err == nil {
+		if err := i.initialize(); err == nil {
 			return nil
 		} else {
 			lastErr = err
-			time.Sleep(time.Second * time.Duration(attempt))  // 指数退避
+			time.Sleep(time.Second * time.Duration(attempt)) // 指数退避
 		}
 	}
 	return fmt.Errorf("failed after %d attempts: %w", maxAttempts, lastErr)
-} 
+}
 
 // 心跳检查
 func (i *Instance) heartBeat() {
-    ticker := time.NewTicker(i.opts.HeartbeatInterval)
-    defer ticker.Stop()
+	ticker := time.NewTicker(i.opts.HeartbeatInterval)
+	defer ticker.Stop()
 
-    for {
-        select {
-        case <-ticker.C:
-            state := i.GetState()
-            if state != STATE_CONNECTED {
-                continue
-            }
-            
-            ok, _ := RetryCheckChromeHealth(i.getAddr(), 1, 0)
-            if !ok {
-                i.handleEvent(EVENT_HEALTH_CHECK_FAIL)
-            }
-            
-        case <-i.ctx.Done():
-            return
-        }
-    }
+	for {
+		select {
+		case <-ticker.C:
+			state := i.GetState()
+			if state != STATE_CONNECTED {
+				continue
+			}
+
+			ok, _ := RetryCheckChromeHealth(i.GetAddr(), 1, 0)
+			if !ok {
+				i.handleEvent(EVENT_HEALTH_CHECK_FAIL)
+			}
+
+		case <-i.ctx.Done():
+			return
+		}
+	}
 }
 
 func (i *Instance) getAccounts() map[string]*internal.CrawlAccount {
@@ -152,20 +153,20 @@ func (i *Instance) isAvailable(cat string) bool {
 	return account.IsAvailable()
 }
 
-func (i *Instance) getAddr() string {
-	return i.addr
+func (i *Instance) GetAddr() string {
+	return fmt.Sprintf("%s:%d", i.IP, i.Port)
 }
 
 func (i *Instance) Close() error {
 	if i.cancelFunc != nil {
-		i.cancelFunc()  // 取消 context，会导致 stateManager 和 heartBeat 退出
+		i.cancelFunc() // 取消 context，会导致 stateManager 和 heartBeat 退出
 	}
 	return nil
 }
 
 // 判断实例是否可用
 func (i *Instance) IsAvailable() bool {
-    return i.GetState() == STATE_CONNECTED
+	return i.GetState() == STATE_CONNECTED
 }
 
 // 状态管理器
@@ -232,7 +233,7 @@ func (i *Instance) handleEvent(event InstanceEvent) error {
 	return nil
 }
 
-// 获取当前状态
+// GetState 获取当前状态
 func (i *Instance) GetState() InstanceState {
 	response := make(chan interface{}, 1)
 	i.stateChan <- stateEvent{
@@ -243,38 +244,38 @@ func (i *Instance) GetState() InstanceState {
 	return result.(InstanceState)
 }
 
-// 判断是否需要重新初始化
+// NeedsReInitialize 判断是否需要重新初始化
 func (i *Instance) NeedsReInitialize() bool {
 	state := i.GetState()
 	return state == STATE_INIT_FAILED || state == STATE_DISCONNECTED
 }
 
 func (i *Instance) cleanupTabs() {
-    ticker := time.NewTicker(5 * time.Minute)  // 每5分钟检查一次
-    defer ticker.Stop()
+	ticker := time.NewTicker(5 * time.Minute) // 每5分钟检查一次
+	defer ticker.Stop()
 
-    for {
-        select {
-        case <-ticker.C:
-            // 获取所有 targets (tabs)
-            targets, err := chromedp.Targets(i.ctx)
-            if err != nil {
-                continue
-            }
+	for {
+		select {
+		//case <-ticker.C:
+		//	// 获取所有 targets (tabs)
+		//	targets, err := chromedp.Targets(i.ctx)
+		//	if err != nil {
+		//		continue
+		//	}
+		//
+		//	now := time.Now()
+		//	for _, t := range targets {
+		//		// 跳过主页面
+		//		if t.Type == "page" && t.URL != "about:blank" {
+		//			// 如果 tab 超过30分钟没有活动，关闭它
+		//			if now.Sub(t.LastActivityTime) > 30*time.Minute {
+		//				chromedp.CloseTarget(i.ctx, t.TargetID)
+		//			}
+		//		}
+		//	}
 
-            now := time.Now()
-            for _, t := range targets {
-                // 跳过主页面
-                if t.Type == "page" && t.URL != "about:blank" {
-                    // 如果 tab 超过30分钟没有活动，关闭它
-                    if now.Sub(t.LastActivityTime) > 30*time.Minute {
-                        chromedp.CloseTarget(i.ctx, t.TargetID)
-                    }
-                }
-            }
-
-        case <-i.ctx.Done():
-            return
-        }
-    }
+		case <-i.ctx.Done():
+			return
+		}
+	}
 }

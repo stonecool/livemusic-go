@@ -11,11 +11,11 @@ type CrawlAccount struct {
 	ID           int    `json:"id"`
 	Category     string `json:"category"`
 	AccountName  string `json:"account_name"`
-	lastLoginURL string
+	lastURL      string
 	cookies      []byte
 	instanceAddr string
 	state        AccountState
-	mu           sync.Mutex
+	mu           sync.RWMutex
 }
 
 func (ca *CrawlAccount) init(m *model.CrawlAccount) {
@@ -23,16 +23,16 @@ func (ca *CrawlAccount) init(m *model.CrawlAccount) {
 	ca.Category = m.Category
 	ca.AccountName = m.AccountName
 	ca.cookies = m.Cookies
-	ca.lastLoginURL = m.LastLoginURL
+	ca.lastURL = m.LastURL
 }
 
 func InitCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
 	return &CrawlAccount{
-		ID:           m.ID,
-		Category:     m.Category,
-		AccountName:  m.AccountName,
-		cookies:      m.Cookies,
-		lastLoginURL: m.LastLoginURL,
+		ID:          m.ID,
+		Category:    m.Category,
+		AccountName: m.AccountName,
+		cookies:     m.Cookies,
+		lastURL:     m.LastURL,
 	}
 }
 
@@ -82,10 +82,10 @@ func (ca *CrawlAccount) Edit() error {
 	if ca.ID == 0 {
 		return fmt.Errorf("invalid account id")
 	}
-	
+
 	data := map[string]interface{}{
 		"account_name":   ca.AccountName,
-		"last_login_url": ca.lastLoginURL,
+		"last_login_url": ca.lastURL,
 		"cookies":        ca.cookies,
 	}
 

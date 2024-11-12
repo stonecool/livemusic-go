@@ -14,7 +14,7 @@ type InstancePool struct {
 	mu         sync.Mutex
 }
 
-// 在包初始化时创建实例池
+// init 在包初始化时创建实例池
 func init() {
 	globalPool = &InstancePool{
 		instances:  make(map[string]*Instance),
@@ -22,7 +22,7 @@ func init() {
 	}
 }
 
-// 获取全局实例池
+// GetPool 获取全局实例池
 func GetPool() *InstancePool {
 	return globalPool
 }
@@ -37,12 +37,12 @@ func (ip *InstancePool) AddInstance(id int) (*Instance, error) {
 		return nil, err
 	}
 
-	if _, exists := ip.instances[ins.getAddr()]; exists {
-		fmt.Printf("instance on:%s exists", ins.getAddr())
+	if _, exists := ip.instances[ins.GetAddr()]; exists {
+		fmt.Printf("instance on:%s exists", ins.GetAddr())
 		return nil, nil
 	}
 
-	ip.instances[ins.getAddr()] = ins
+	ip.instances[ins.GetAddr()] = ins
 	for cat := range ins.getAccounts() {
 		if _, exists := ip.categories[cat]; !exists {
 			ip.categories[cat] = &Category{
