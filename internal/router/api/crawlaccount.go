@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/chrome"
 	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
@@ -79,12 +80,12 @@ func GetCrawlAccount(ctx *gin.Context) {
 func GetCrawlAccounts(ctx *gin.Context) {
 	var context = http2.Context{Context: ctx}
 
-	account := &crawlaccount.CrawlAccount{}
-	if accounts, err := account.GetAll(); err != nil {
-		context.Response(http.StatusBadRequest, 0, nil)
-	} else {
-		context.Response(http.StatusBadRequest, 0, accounts)
-	}
+	//account := &crawlaccount.CrawlAccount{}
+	//if accounts, err := account.GetAll(); err != nil {
+	context.Response(http.StatusBadRequest, 0, nil)
+	//} else {
+	//	context.Response(http.StatusBadRequest, 0, accounts)
+	//}
 }
 
 // DeleteCrawlAccount
@@ -138,4 +139,19 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 	if err := internal.HandleWebsocket(form.ID, ctx); err != nil {
 		log.Printf("%v", err)
 	}
+}
+
+// CrawlAccountLogin
+// @Summary	Crawl Account websocket
+// @Param		id	path	int	true	"ID"	default(1)
+// @Produce	json
+// @Success	200	{object}	http.Response
+// @Failure	500	{object}	http.Response
+// @Router		/api/v1/crawl-accounts/ws/{ID} [get]
+func CrawlAccountLogin(ctx *gin.Context) {
+	instanceID := 123
+	accountType := "wx"
+
+	chrome.GetPool().Login(instanceID, accountType)
+
 }

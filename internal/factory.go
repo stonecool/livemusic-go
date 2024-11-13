@@ -7,7 +7,6 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/config"
-	crawl2 "github.com/stonecool/livemusic-go/internal/crawl"
 	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"log"
 )
@@ -58,7 +57,7 @@ func GetCrawl(id int) (ICrawl, error) {
 }
 
 func startCrawl(crawl ICrawl) {
-	log.Printf("Start crawl:%d\n", crawl.GetId())
+	log.Printf("Start account:%d\n", crawl.GetId())
 
 	ctx, cancel := chromedp.NewExecAllocator(
 		context.Background(),
@@ -133,15 +132,15 @@ func startCrawl(crawl ICrawl) {
 	}
 }
 
-func initialCrawl(crawl ICrawl) bool {
-	if len(crawl.GetCookies()) == 0 || len(crawl.GetLastLoginURL()) == 0 {
+func initialCrawl(account crawlaccount.ICrawlAccount) bool {
+	if len(account.GetCookies()) == 0 || len(account.GetLoginURL()) == 0 {
 		return false
 	}
 
-	err := chromedp.Run(crawl.GetContext(),
-		setCookies(crawl),
-		chromedp.Navigate(crawl.GetLastLoginURL()),
-		crawl.CheckLogin(),
+	err := chromedp.Run(account.GetContext(),
+		SetCookies(account),
+		chromedp.Navigate(account.GetLastLoginURL()),
+		account.CheckLogin(),
 	)
 
 	if err != nil {
@@ -154,7 +153,7 @@ func initialCrawl(crawl ICrawl) bool {
 func GoCrawl(crawl ICrawl, callback Callback) bool {
 	err := chromedp.Run(crawl.GetContext(),
 		network.Enable(),
-		setCookies(crawl),
+		SetCookies(crawl),
 		chromedp.Navigate(crawl.GetLastLoginURL()),
 		crawl.CheckLogin(),
 		crawl.GoCrawl(callback),

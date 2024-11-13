@@ -2,6 +2,7 @@ package crawlaccount
 
 import (
 	"fmt"
+	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
@@ -19,15 +20,7 @@ type CrawlAccount struct {
 	mu           sync.RWMutex
 }
 
-func (ca *CrawlAccount) init(m *model.CrawlAccount) {
-	ca.ID = m.ID
-	ca.Category = m.Category
-	ca.AccountName = m.AccountName
-	ca.cookies = m.Cookies
-	ca.lastURL = m.LastURL
-}
-
-func InitCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
+func NewCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
 	return &CrawlAccount{
 		ID:          m.ID,
 		Category:    m.Category,
@@ -47,21 +40,19 @@ func (ca *CrawlAccount) Add() error {
 		"account_type": ca.Category,
 	}
 
-	if account, err := model.AddCrawlAccount(data); err != nil {
+	if _, err := model.AddCrawlAccount(data); err != nil {
 		return err
 	} else {
-		ca.init(account)
 		return nil
 	}
 }
 
 func (ca *CrawlAccount) Get() error {
-	if account, err := model.GetCrawlAccount(ca.ID); err != nil {
-		return err
-	} else {
-		ca.init(account)
-		return nil
-	}
+	//if account, err := model.GetCrawlAccount(ca.ID); err != nil {
+	//	return err
+	//} else {
+	return nil
+	//}
 }
 
 // FIXME
@@ -72,7 +63,7 @@ func (ca *CrawlAccount) Get() error {
 // 		var s []*CrawlAccount
 
 // 		for _, account := range accounts {
-// 			s = append(s, InitCrawlAccount(account))
+// 			s = append(s, newCrawlAccount(account))
 // 		}
 
 // 		return s, nil
@@ -102,8 +93,62 @@ func (ca *CrawlAccount) Delete() error {
 	return model.DeleteCrawlAccount(account)
 }
 
-func (ca *CrawlAccount) getCategory() string {
+func (ca *CrawlAccount) GetId() int {
+	return ca.ID
+}
+
+func (ca *CrawlAccount) GetName() string {
+	return ca.AccountName
+}
+
+func (ca *CrawlAccount) GetCategory() string {
 	return ca.Category
+}
+
+func (ca *CrawlAccount) GetState() internal.AccountState {
+	return ca.state
+}
+
+func (ca *CrawlAccount) SetState(state internal.AccountState) {
+	ca.state = state
+}
+
+func (ca *CrawlAccount) CheckLogin() chromedp.ActionFunc {
+	return nil
+}
+
+func (ca *CrawlAccount) WaitLogin() chromedp.ActionFunc {
+	return nil
+}
+
+func (ca *CrawlAccount) GetLoginURL() string {
+	return ""
+}
+
+func (ca *CrawlAccount) Login() error {
+	return nil
+}
+
+func (ca *CrawlAccount) GetQRCode([]byte) {
+}
+
+func (ca *CrawlAccount) GetQRCodeSelector() string {
+	return ""
+}
+
+func (ca *CrawlAccount) SaveCookies([]byte) error {
+	return nil
+}
+
+func (ca *CrawlAccount) GetCookies() []byte {
+	return nil
+}
+
+func (ca *CrawlAccount) GetLastURL() string {
+	return ""
+}
+
+func (ca *CrawlAccount) SetLastURL(url string) {
 }
 
 func (ca *CrawlAccount) IsAvailable() bool {

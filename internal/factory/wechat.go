@@ -1,19 +1,11 @@
 package factory
 
 import (
-	"github.com/stonecool/livemusic-go/internal/config"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 )
 
 type WeChatFactory struct{}
 
-func (f *WeChatFactory) CreateCrawl(config *config.Account) ICrawl {
-	return &WeChatCrawl{
-		state:  CrawlState_Uninitialized,
-		config: config,
-		ch:     make(chan *ClientMessage),
-	}
-}
-
-func (f *WeChatFactory) CreateAccount() IAccount {
-	return &WeChatAccount{}
+func (f *WeChatFactory) CreateAccount() crawlaccount.ICrawlAccount {
+	return &crawlaccount.WeChatAccount{}
 }

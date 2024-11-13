@@ -4,67 +4,46 @@ import (
 	"context"
 	"fmt"
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"log"
 	"os"
-	"time"
 )
 
 // QRCodeLogin
-func QRCodeLogin(iCrawl ICrawl) error {
-	ctx, _ := chromedp.NewExecAllocator(
-		context.Background(),
-
-		append(
-			chromedp.DefaultExecAllocatorOptions[:],
-			//chromedp.NoDefaultBrowserCheck,
-			chromedp.Flag("headless", false),
-			//chromedp.Flag("hide-scrollbars", false),
-			//chromedp.Flag("mute-audio", false),
-			//chromedp.Flag("ignore-certificate-errors", true),
-			//chromedp.Flag("disable-web-security", true),
-			//chromedp.Flag("disable-gpu", false),
-			//chromedp.NoFirstRun,
-			//chromedp.Flag("enable-automation", false),
-			//chromedp.Flag("disable-extensions", false),
-		)...,
-	)
-
-	// create chrome instance
-	ctx, cancel := chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
-	defer cancel()
-
-	// create a timeout
-	ctx, cancel = context.WithTimeout(ctx, 150*time.Second)
-	defer cancel()
-
-	err := chromedp.Run(ctx,
-		getQRCode(iCrawl),
-		iCrawl.WaitLogin(),
-		saveCookies(iCrawl),
-		chromedp.Stop(),
-	)
-
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-
+func QRCodeLogin() error {
+	//ctx, _ := chromedp.NewExecAllocator(
+	//	context.Background(),
+	//
+	//	append(
+	//		chromedp.DefaultExecAllocatorOptions[:],
+	//		//chromedp.NoDefaultBrowserCheck,
+	//		chromedp.Flag("headless", false),
+	//		//chromedp.Flag("hide-scrollbars", false),
+	//		//chromedp.Flag("mute-audio", false),
+	//		//chromedp.Flag("ignore-certificate-errors", true),
+	//		//chromedp.Flag("disable-web-security", true),
+	//		//chromedp.Flag("disable-gpu", false),
+	//		//chromedp.NoFirstRun,
+	//		//chromedp.Flag("enable-automation", false),
+	//		//chromedp.Flag("disable-extensions", false),
+	//	)...,
+	//)
 	return nil
 }
 
-// getQRCode get qr code
-func getQRCode(iCrawl ICrawl) chromedp.ActionFunc {
+// GetQRCode get qr code
+func GetQRCode(account crawlaccount.ICrawlAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
-		if err := chromedp.Navigate(iCrawl.GetLoginURL()).Do(ctx); err != nil {
+		if err := chromedp.Navigate(account.GetLoginURL()).Do(ctx); err != nil {
 			return err
 		}
 
-		if err = chromedp.WaitVisible(iCrawl.GetQRCodeSelector(), chromedp.ByID).Do(ctx); err != nil {
+		if err = chromedp.WaitVisible(account.GetQRCodeSelector(), chromedp.ByID).Do(ctx); err != nil {
 			return err
 		}
 
 		var code []byte
-		if err = chromedp.Screenshot(iCrawl.GetQRCodeSelector(), &code, chromedp.ByID).Do(ctx); err != nil {
+		if err = chromedp.Screenshot(account.GetQRCodeSelector(), &code, chromedp.ByID).Do(ctx); err != nil {
 			return err
 		}
 
@@ -73,7 +52,7 @@ func getQRCode(iCrawl ICrawl) chromedp.ActionFunc {
 			return
 		}
 
-		iCrawl.GetQRCode(code)
+		account.GetQRCode(code)
 		return
 	}
 }

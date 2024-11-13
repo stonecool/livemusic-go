@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"log"
 	"sync"
 	"time"
@@ -24,17 +25,17 @@ const (
 )
 
 type Client struct {
-	crawl ICrawl
-	conn  *websocket.Conn
-	send  chan *Message
+	account crawlaccount.ICrawlAccount
+	conn    *websocket.Conn
+	send    chan *Message
 }
 
 var (
-	clients = make(map[ICrawl]*Client)
+	clients = make(map[crawlaccount.ICrawlAccount]*Client)
 	mu      sync.Mutex
 )
 
-func newClient(crawl ICrawl, ctx *gin.Context) (*Client, error) {
+func newClient(crawl crawlaccount.ICrawlAccount, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -46,7 +47,7 @@ func newClient(crawl ICrawl, ctx *gin.Context) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{crawl: crawl, conn: conn, send: make(chan *Message)}, nil
+	return &Client{account: crawl, conn: conn, send: make(chan *Message)}, nil
 }
 
 func (c *Client) Read() {
@@ -92,7 +93,7 @@ func (c *Client) Read() {
 
 			if str == "login" {
 				message.Cmd = CrawlCmd_Login
-			} else if str == "crawl" {
+			} else if str == "account" {
 				message.Cmd = CrawlCmd_Crawl
 			} else {
 				message.Cmd = CrawlCmd_Initial
@@ -102,7 +103,7 @@ func (c *Client) Read() {
 			//	message.Cmd = CrawlCmd_Login
 			//}
 
-			c.crawl.GetChan() <- &ClientMessage{message: &message, client: c}
+			c.account.GetChan() <- &ClientMessage{message: &message, client: c}
 
 		//case websocket.BinaryMessage:
 		//	fmt.Println("Received Binary Message:", data)
@@ -114,7 +115,7 @@ func (c *Client) Read() {
 		//		continue
 		//	}
 		//
-		//	c.crawl.GetChan() <- message
+		//	c.account.GetChan() <- message
 		default:
 			fmt.Println("Received Unknown Message Type")
 		}

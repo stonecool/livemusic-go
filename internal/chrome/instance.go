@@ -11,16 +11,16 @@ import (
 )
 
 type Instance struct {
-	Id          int
-	IP          string
-	Port        int
-	accounts    map[string]*crawlaccount.CrawlAccount
-	DebuggerURL string
-	State       InstanceState
-	stateChan   chan stateEvent
-	ctx         context.Context
-	cancelFunc  context.CancelFunc
-	opts        *InstanceOptions
+	ID           int
+	IP           string
+	Port         int
+	accounts     map[string]*crawlaccount.CrawlAccount
+	DebuggerURL  string
+	State        InstanceState
+	stateChan    chan stateEvent
+	allocatorCtx context.Context
+	cancelFunc   context.CancelFunc
+	opts         *InstanceOptions
 }
 
 var instanceCache *cache.Memo
@@ -58,7 +58,7 @@ func newInstance(m *model.ChromeInstance, opts *InstanceOptions) *Instance {
 	}
 
 	return &Instance{
-		Id:          m.ID,
+		ID:          m.ID,
 		IP:          m.IP,
 		Port:        m.Port,
 		accounts:    make(map[string]*crawlaccount.CrawlAccount),
@@ -76,11 +76,9 @@ func (i *Instance) initialize() error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), i.opts.InitTimeout)
 	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
-	browserCtx, browserCancel := chromedp.NewContext(allocatorCtx)
 
-	i.ctx = browserCtx
+	i.allocatorCtx = allocatorCtx
 	i.cancelFunc = func() {
-		browserCancel()
 		allocatorCancel()
 		cancel()
 	}
@@ -101,6 +99,10 @@ func (i *Instance) initialize() error {
 	go i.heartBeat()
 
 	return nil
+}
+
+func (i *Instance) GetNewContext() (context.Context, context.CancelFunc) {
+	return chromedp.NewContext(i.allocatorCtx)
 }
 
 func (i *Instance) RetryInitialize(maxAttempts int) error {
@@ -134,7 +136,7 @@ func (i *Instance) heartBeat() {
 				i.handleEvent(EVENT_HEALTH_CHECK_FAIL)
 			}
 
-		case <-i.ctx.Done():
+		case <-i.allocatorCtx.Done():
 			return
 		}
 	}
@@ -213,7 +215,7 @@ func (i *Instance) stateManager() {
 
 			evt.response <- err
 
-		case <-i.ctx.Done():
+		case <-i.allocatorCtx.Done():
 			return
 		}
 	}
@@ -258,7 +260,7 @@ func (i *Instance) cleanupTabs() {
 		select {
 		//case <-ticker.C:
 		//	// 获取所有 targets (tabs)
-		//	targets, err := chromedp.Targets(i.ctx)
+		//	targets, err := chromedp.Targets(i.allocatorCtx)
 		//	if err != nil {
 		//		continue
 		//	}
@@ -269,12 +271,12 @@ func (i *Instance) cleanupTabs() {
 		//		if t.Type == "page" && t.URL != "about:blank" {
 		//			// 如果 tab 超过30分钟没有活动，关闭它
 		//			if now.Sub(t.LastActivityTime) > 30*time.Minute {
-		//				chromedp.CloseTarget(i.ctx, t.TargetID)
+		//				chromedp.CloseTarget(i.allocatorCtx, t.TargetID)
 		//			}
 		//		}
 		//	}
 
-		case <-i.ctx.Done():
+		case <-i.allocatorCtx.Done():
 			return
 		}
 	}
