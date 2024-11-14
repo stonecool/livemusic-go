@@ -2,12 +2,20 @@ package crawlaccount
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
-	"sync"
 )
+
+type Task struct {
+	Type    string
+	Payload interface{}
+	Result  chan interface{}
+}
 
 type CrawlAccount struct {
 	ID           int    `json:"id"`
@@ -18,16 +26,73 @@ type CrawlAccount struct {
 	instanceAddr string
 	state        internal.AccountState
 	mu           sync.RWMutex
+	taskChan     chan *Task
+	done         chan struct{}
 }
 
 func NewCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
-	return &CrawlAccount{
+	ca := &CrawlAccount{
 		ID:          m.ID,
 		Category:    m.Category,
 		AccountName: m.AccountName,
 		cookies:     m.Cookies,
 		lastURL:     m.LastURL,
+		taskChan:    make(chan *Task),
+		done:        make(chan struct{}),
 	}
+	go ca.processTask()
+	return ca
+}
+
+func (ca *CrawlAccount) processTask() {
+	for {
+		select {
+		case task := <-ca.taskChan:
+			switch task.Type {
+			case "login":
+				result := ca.handleLogin()
+				task.Result <- result
+			case "crawl":
+				result := ca.handleCrawl(task.Payload)
+				task.Result <- result
+				// 可以添加更多任务类型
+			}
+		case <-ca.done:
+			return
+		}
+	}
+}
+
+// SendTask 发送任务到账号处理
+func (ca *CrawlAccount) SendTask(taskType string, payload interface{}) (interface{}, error) {
+	result := make(chan interface{})
+	task := &Task{
+		Type:    taskType,
+		Payload: payload,
+		Result:  result,
+	}
+
+	select {
+	case ca.taskChan <- task:
+		return <-result, nil
+	case <-time.After(30 * time.Second):
+		return nil, fmt.Errorf("send task timeout")
+	}
+}
+
+// Close 关闭账号的任务处理
+func (ca *CrawlAccount) Close() {
+	close(ca.done)
+}
+
+func (ca *CrawlAccount) handleLogin() interface{} {
+	// 处理登录任务的具体逻辑
+	return nil
+}
+
+func (ca *CrawlAccount) handleCrawl(payload interface{}) interface{} {
+	// 处理爬取任务的具体逻辑
+	return nil
 }
 
 func (ca *CrawlAccount) Add() error {
@@ -156,4 +221,9 @@ func (ca *CrawlAccount) IsAvailable() bool {
 	defer ca.mu.Unlock()
 
 	return ca.state == internal.AS_RUNNING
+}
+
+// GetTaskChan 返回任务 channel，用于外部发送任务
+func (ca *CrawlAccount) GetTaskChan() chan<- *Task {
+	return ca.taskChan
 }

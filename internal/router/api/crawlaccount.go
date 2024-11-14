@@ -5,7 +5,6 @@ import (
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/chrome"
 	"github.com/stonecool/livemusic-go/internal/crawlaccount"
-	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
 	"log"
 	"net/http"
@@ -25,21 +24,21 @@ type crawlAccountForm struct {
 // @Router		/api/v1/crawl-accounts [post]
 func AddCrawlAccount(ctx *gin.Context) {
 	var (
-		context = http2.Context{Context: ctx}
+		context = internal.Context{Context: ctx}
 		form    crawlAccountForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != http2.Success {
+	if errCode != internal.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
 	account := &crawlaccount.CrawlAccount{Category: form.AccountType}
 	if err := account.Add(); err != nil {
-		context.Response(http.StatusBadRequest, http2.ErrorNotExists, nil)
+		context.Response(http.StatusBadRequest, internal.ErrorNotExists, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, account)
+		context.Response(http.StatusCreated, internal.Success, account)
 	}
 }
 
@@ -52,13 +51,13 @@ func AddCrawlAccount(ctx *gin.Context) {
 // @Router		/api/v1/crawl-accounts/{id} [get]
 func GetCrawlAccount(ctx *gin.Context) {
 	var (
-		context = http2.Context{Context: ctx}
+		context = internal.Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != http2.Success {
+	if errCode != internal.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -78,7 +77,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 // @Failure	500	{object}	http.Response
 // @Router		/api/v1/crawl-accounts [get]
 func GetCrawlAccounts(ctx *gin.Context) {
-	var context = http2.Context{Context: ctx}
+	var context = internal.Context{Context: ctx}
 
 	//account := &crawlaccount.CrawlAccount{}
 	//if accounts, err := account.GetAll(); err != nil {
@@ -97,13 +96,13 @@ func GetCrawlAccounts(ctx *gin.Context) {
 // @Router		/api/v1/crawl-accounts/{ID} [delete]
 func DeleteCrawlAccount(ctx *gin.Context) {
 	var (
-		context = http2.Context{Context: ctx}
+		context = internal.Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != http2.Success {
+	if errCode != internal.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -125,13 +124,13 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 // @Router		/api/v1/crawl-accounts/ws/{ID} [get]
 func CrawlAccountWebSocket(ctx *gin.Context) {
 	var (
-		context = http2.Context{Context: ctx}
+		context = internal.Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != http2.Success {
+	if errCode != internal.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}

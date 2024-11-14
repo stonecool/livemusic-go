@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
-	http2 "github.com/stonecool/livemusic-go/internal/http"
 	"github.com/unknwon/com"
 	"net/http"
 )
@@ -23,12 +22,12 @@ type livehouseForm struct {
 // @Router		/api/v1/livehouses [post]
 func AddLivehouse(ctx *gin.Context) {
 	var (
-		context = http2.Context{Context: ctx}
+		context = internal.Context{Context: ctx}
 		form    livehouseForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != http2.Success {
+	if errCode != internal.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -38,9 +37,9 @@ func AddLivehouse(ctx *gin.Context) {
 	}
 
 	if err := house.Add(); err != nil {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
+		context.Response(http.StatusBadRequest, internal.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, house)
+		context.Response(http.StatusCreated, internal.Success, house)
 	}
 }
 
@@ -53,22 +52,22 @@ func AddLivehouse(ctx *gin.Context) {
 // @Router		/api/v1/livehouses/{ID} [get]
 func GetLivehouse(ctx *gin.Context) {
 	var (
-		context = http2.Context{Context: ctx}
+		context = internal.Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("ID")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != http2.Success {
+	if errCode != internal.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
 	house := &internal.Livehouse{ID: form.ID}
 	if err := house.Get(); err != nil {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
+		context.Response(http.StatusBadRequest, internal.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, house)
+		context.Response(http.StatusCreated, internal.Success, house)
 	}
 }
 
@@ -79,13 +78,13 @@ func GetLivehouse(ctx *gin.Context) {
 // @Failure	400	{object}	http.Response
 // @Router		/api/v1/livehouses [get]
 func GetLivehouses(ctx *gin.Context) {
-	var context = http2.Context{Context: ctx}
+	var context = internal.Context{Context: ctx}
 
 	house := &internal.Livehouse{}
 	if houses, err := house.GetAll(); err != nil {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
+		context.Response(http.StatusBadRequest, internal.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, http2.Success, houses)
+		context.Response(http.StatusCreated, internal.Success, houses)
 	}
 }
 
@@ -99,13 +98,13 @@ func GetLivehouses(ctx *gin.Context) {
 // @Router		/api/v1/livehouses/{id} [put]
 func EditLivehouse(ctx *gin.Context) {
 	var (
-		context = http2.Context{Context: ctx}
+		context = internal.Context{Context: ctx}
 		form    livehouseForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != http2.Success {
+	if errCode != internal.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -116,9 +115,9 @@ func EditLivehouse(ctx *gin.Context) {
 	}
 
 	if err := house.Edit(); err != nil {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
+		context.Response(http.StatusBadRequest, internal.Error, nil)
 	} else {
-		context.Response(http.StatusOK, http2.Error, house)
+		context.Response(http.StatusOK, internal.Error, house)
 	}
 }
 
@@ -131,21 +130,21 @@ func EditLivehouse(ctx *gin.Context) {
 // @Router		/api/v1/livehouses/{id} [delete]
 func DeleteLivehouse(ctx *gin.Context) {
 	var (
-		context = http2.Context{Context: ctx}
+		context = internal.Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != http2.Success {
+	if errCode != internal.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
 	house := &internal.Livehouse{ID: form.ID}
 	if err := house.Delete(); err != nil {
-		context.Response(http.StatusBadRequest, http2.Error, nil)
+		context.Response(http.StatusBadRequest, internal.Error, nil)
 	} else {
-		context.Response(http.StatusOK, http2.Error, nil)
+		context.Response(http.StatusOK, internal.Error, nil)
 	}
 }

@@ -3,11 +3,12 @@ package chrome
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"github.com/stonecool/livemusic-go/internal/model"
-	"time"
 )
 
 type Instance struct {
@@ -279,5 +280,23 @@ func (i *Instance) cleanupTabs() {
 		case <-i.allocatorCtx.Done():
 			return
 		}
+	}
+}
+
+func (i *Instance) ExecuteTask(task *crawlaccount.Task) error {
+	account, exists := i.accounts[task.Category]
+	if !exists {
+		return fmt.Errorf("no account found for category: %s", task.Category)
+	}
+
+	if !account.IsAvailable() {
+		return fmt.Errorf("account not available")
+	}
+
+	select {
+	case account.TaskChan <- task:
+		return nil
+	case <-time.After(5 * time.Second):
+		return fmt.Errorf("send task timeout")
 	}
 }

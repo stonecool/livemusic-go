@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/beego/beego/v2/core/validation"
 	"github.com/gin-gonic/gin"
-	http2 "github.com/stonecool/livemusic-go/internal/http"
+	http2 "github.com/stonecool/livemusic-go/internal"
 	"log"
 	"net/http"
 )

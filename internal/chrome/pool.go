@@ -3,13 +3,14 @@ package chrome
 import (
 	"context"
 	"fmt"
+	"log"
+	"sync"
+	"time"
+
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"github.com/stonecool/livemusic-go/internal/model"
-	"log"
-	"sync"
-	"time"
 )
 
 // 全局唯一的实例池
@@ -132,15 +133,16 @@ func (ip *InstancePool) GetInstancesByCategory(cat string) []*Instance {
 	}
 }
 
-func (ip *InstancePool) ExecuteTask(cat string, task func(instance *Instance) error) error {
-	for _, ins := range ip.GetInstancesByCategory(cat) {
-		if ins.isAvailable(cat) {
-			err := task(ins)
-			if err != nil {
-				return err
-			}
-			return nil
+func (ip *InstancePool) DispatchTask(category string, task *crawlaccount.Task) error {
+	ip.mu.Lock()
+	defer ip.mu.Unlock()
+
+	// 查找可用的实例
+	for _, instance := range ip.instances {
+		if instance.isAvailable(category) {
+			return instance.ExecuteTask(task)
 		}
 	}
-	return fmt.Errorf("no instance available for category: %s", cat)
+
+	return fmt.Errorf("no available instance for category: %s", category)
 }
