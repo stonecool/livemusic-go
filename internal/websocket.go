@@ -1,13 +1,15 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 )
 
 const (
@@ -25,9 +27,10 @@ const (
 )
 
 type Client struct {
-	account crawlaccount.ICrawlAccount
-	conn    *websocket.Conn
-	send    chan *Message
+	account     crawlaccount.ICrawlAccount
+	conn        *websocket.Conn
+	accountChan chan *Message // 用于接收来自 CrawlAccount 的消息
+	done        chan struct{} // 用于关闭客户端
 }
 
 var (
@@ -35,7 +38,7 @@ var (
 	mu      sync.Mutex
 )
 
-func newClient(crawl crawlaccount.ICrawlAccount, ctx *gin.Context) (*Client, error) {
+func newClient(account crawlaccount.ICrawlAccount, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -43,159 +46,126 @@ func newClient(crawl crawlaccount.ICrawlAccount, ctx *gin.Context) (*Client, err
 
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 
-	return &Client{account: crawl, conn: conn, send: make(chan *Message)}, nil
+	client := &Client{
+		account:     account,
+		conn:        conn,
+		accountChan: make(chan *Message),
+		done:        make(chan struct{}),
+	}
+
+	return client, nil
 }
 
-func (c *Client) Read() {
+func (c *Client) readPump() {
 	defer func() {
-		err := c.conn.Close()
-		if err != nil {
-			return
-		}
+		close(c.done)
+		c.conn.Close()
 	}()
 
 	c.conn.SetReadLimit(maxMessageSize)
-	err := c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	if err != nil {
-		log.Printf("error: %v", err)
-	}
-
+	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error {
-		err = c.conn.SetReadDeadline(time.Now().Add(pongWait))
-		if err != nil {
-			log.Printf("error: %v", err)
-
-			return err
-		}
+		c.conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
 
 	for {
-		dataType, data, err := c.conn.ReadMessage()
+		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
-			break
+			return
 		}
 
-		switch dataType {
-		case websocket.TextMessage:
-			fmt.Println("Received Text Message:", string(data))
+		// 解析消息并处理
+		msg := &Message{}
+		if err := json.Unmarshal(message, msg); err != nil {
+			log.Printf("error parsing message: %v", err)
+			continue
+		}
 
-			str := string(data)
-			message := Message{}
-			//if str == "init" {
-
-			if str == "login" {
-				message.Cmd = CrawlCmd_Login
-			} else if str == "account" {
-				message.Cmd = CrawlCmd_Crawl
-			} else {
-				message.Cmd = CrawlCmd_Initial
-			}
-
-			//} else if str == "login" {
-			//	message.Cmd = CrawlCmd_Login
-			//}
-
-			c.account.GetChan() <- &ClientMessage{message: &message, client: c}
-
-		//case websocket.BinaryMessage:
-		//	fmt.Println("Received Binary Message:", data)
-		//
-		//	message := &Message{}
-		//
-		//	if err := proto.Unmarshal(data, message); err != nil {
-		//		log.Printf("unmarshal data error:%v\n", err)
-		//		continue
-		//	}
-		//
-		//	c.account.GetChan() <- message
-		default:
-			fmt.Println("Received Unknown Message Type")
+		if err := c.handleWebSocketMessage(msg); err != nil {
+			log.Printf("error handling websocket message: %v", err)
+			continue
 		}
 	}
 }
 
-func (c *Client) Write() {
+func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		err := c.conn.Close()
-		if err != nil {
-			return
-		}
+		c.conn.Close()
 	}()
 
 	for {
 		select {
-		case message, ok := <-c.send:
-			if !ok {
-				err := c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-				if err != nil {
-					return
-				}
+		case msg := <-c.accountChan:
+			if err := c.handleAccountMessage(msg); err != nil {
+				log.Printf("handle account message error: %v", err)
 				return
 			}
 
-			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				return
-			}
-
-			w, err := c.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-
-			_, err = w.Write(message.Data)
-			if err != nil {
-				return
-			}
-
-			if err := w.Close(); err != nil {
-				return
-			}
 		case <-ticker.C:
-			err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err != nil {
-				return
-			}
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
+
+		case <-c.done:
+			return
 		}
 	}
 }
 
+func (c *Client) handleWebSocketMessage(msg *Message) error {
+	switch msg.Cmd {
+	case CrawlCmd_Login:
+		// 发送登录任务到 CrawlAccount
+		result, err := c.account.SendTask("login", nil)
+		if err != nil {
+			return err
+		}
+		// 将结果发送回 WebSocket
+		c.accountChan <- &Message{
+			Cmd:  CrawlCmd_Login,
+			Data: []byte(fmt.Sprintf("%v", result)),
+		}
+	}
+	return nil
+}
+
+func (c *Client) handleAccountMessage(msg *Message) error {
+	// 将消息写入 WebSocket
+	return c.conn.WriteMessage(websocket.TextMessage, msg.Data)
+}
+
 func HandleWebsocket(accountId int, ctx *gin.Context) error {
-	c, err := GetCrawl(accountId)
+	account, err := GetCrawl(accountId)
 	if err != nil {
 		return err
 	}
 
 	mu.Lock()
-	client, err := newClient(c, ctx)
+	client, err := newClient(account, ctx)
 	if err != nil {
+		mu.Unlock()
 		return err
 	}
 
-	if oldClient, ok := clients[c]; ok {
-		err := oldClient.conn.Close()
-		if err != nil {
-			return err
-		}
+	if oldClient, ok := clients[account]; ok {
+		oldClient.conn.Close()
 	}
 
-	clients[c] = client
+	clients[account] = client
 	mu.Unlock()
 
-	go client.Read()
-	go client.Write()
+	go client.readPump()
+	go client.writePump()
 
 	return nil
 }
