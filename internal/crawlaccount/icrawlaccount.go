@@ -35,4 +35,6 @@ type ICrawlAccount interface {
 	GetLastURL() string
 
 	SetLastURL(url string)
+
+	GetMsgChan() chan *internal.AsyncMessage
 }

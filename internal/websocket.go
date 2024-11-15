@@ -125,12 +125,14 @@ func (c *Client) writePump() {
 func (c *Client) handleWebSocketMessage(msg *Message) error {
 	switch msg.Cmd {
 	case CrawlCmd_Login:
-		// 发送登录任务到 CrawlAccount
-		result, err := c.account.SendTask("login", nil)
-		if err != nil {
-			return err
-		}
-		// 将结果发送回 WebSocket
+		// 创建任务消息
+		asyncMessage := NewAsyncMessage(msg)
+
+		// 发送任务并等待结果
+		c.account.GetMsgChan() <- asyncMessage
+		result := <-asyncMessage.Result
+
+		// 发送结果回 WebSocket
 		c.accountChan <- &Message{
 			Cmd:  CrawlCmd_Login,
 			Data: []byte(fmt.Sprintf("%v", result)),
@@ -142,6 +144,23 @@ func (c *Client) handleWebSocketMessage(msg *Message) error {
 func (c *Client) handleAccountMessage(msg *Message) error {
 	// 将消息写入 WebSocket
 	return c.conn.WriteMessage(websocket.TextMessage, msg.Data)
+}
+
+func (c *Client) Close() {
+	// 关闭 done channel 来通知所有 goroutine 退出
+	close(c.done)
+
+	// 关闭 WebSocket 连接
+	c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	c.conn.Close()
+
+	// 关闭 accountChan
+	close(c.accountChan)
+
+	// 从全局 clients map 中移除
+	mu.Lock()
+	delete(clients, c.account)
+	mu.Unlock()
 }
 
 func HandleWebsocket(accountId int, ctx *gin.Context) error {
@@ -158,7 +177,7 @@ func HandleWebsocket(accountId int, ctx *gin.Context) error {
 	}
 
 	if oldClient, ok := clients[account]; ok {
-		oldClient.conn.Close()
+		oldClient.Close()
 	}
 
 	clients[account] = client

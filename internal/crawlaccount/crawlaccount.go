@@ -3,19 +3,12 @@ package crawlaccount
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/config"
 	"github.com/stonecool/livemusic-go/internal/model"
 )
-
-type Task struct {
-	Type    string
-	Payload interface{}
-	Result  chan interface{}
-}
 
 type CrawlAccount struct {
 	ID           int    `json:"id"`
@@ -26,7 +19,7 @@ type CrawlAccount struct {
 	instanceAddr string
 	state        internal.AccountState
 	mu           sync.RWMutex
-	taskChan     chan *Task
+	msgChan      chan *internal.AsyncMessage // 改用 AsyncMessage
 	done         chan struct{}
 }
 
@@ -37,7 +30,7 @@ func NewCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
 		AccountName: m.AccountName,
 		cookies:     m.Cookies,
 		lastURL:     m.LastURL,
-		taskChan:    make(chan *Task),
+		msgChan:     make(chan *internal.AsyncMessage),
 		done:        make(chan struct{}),
 	}
 	go ca.processTask()
@@ -47,15 +40,14 @@ func NewCrawlAccount(m *model.CrawlAccount) *CrawlAccount {
 func (ca *CrawlAccount) processTask() {
 	for {
 		select {
-		case task := <-ca.taskChan:
-			switch task.Type {
-			case "login":
+		case msg := <-ca.msgChan:
+			switch msg.Cmd {
+			case internal.CrawlCmd_Login:
 				result := ca.handleLogin()
-				task.Result <- result
-			case "crawl":
-				result := ca.handleCrawl(task.Payload)
-				task.Result <- result
-				// 可以添加更多任务类型
+				msg.Data = []byte(fmt.Sprintf("%v", result))
+			case internal.CrawlCmd_Crawl:
+				result := ca.handleCrawl(msg.Data)
+				msg.Data = []byte(fmt.Sprintf("%v", result))
 			}
 		case <-ca.done:
 			return
@@ -63,24 +55,6 @@ func (ca *CrawlAccount) processTask() {
 	}
 }
 
-// SendTask 发送任务到账号处理
-func (ca *CrawlAccount) SendTask(taskType string, payload interface{}) (interface{}, error) {
-	result := make(chan interface{})
-	task := &Task{
-		Type:    taskType,
-		Payload: payload,
-		Result:  result,
-	}
-
-	select {
-	case ca.taskChan <- task:
-		return <-result, nil
-	case <-time.After(30 * time.Second):
-		return nil, fmt.Errorf("send task timeout")
-	}
-}
-
-// Close 关闭账号的任务处理
 func (ca *CrawlAccount) Close() {
 	close(ca.done)
 }
@@ -223,7 +197,6 @@ func (ca *CrawlAccount) IsAvailable() bool {
 	return ca.state == internal.AS_RUNNING
 }
 
-// GetTaskChan 返回任务 channel，用于外部发送任务
-func (ca *CrawlAccount) GetTaskChan() chan<- *Task {
-	return ca.taskChan
+func (ca *CrawlAccount) GetMsgChan() chan *internal.AsyncMessage {
+	return ca.msgChan
 }

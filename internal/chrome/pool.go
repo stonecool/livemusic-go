@@ -133,16 +133,22 @@ func (ip *InstancePool) GetInstancesByCategory(cat string) []*Instance {
 	}
 }
 
-func (ip *InstancePool) DispatchTask(category string, task *crawlaccount.Task) error {
+func (ip *InstancePool) DispatchTask(category string, task *internal.CrawlTask) error {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
-	// 查找可用的实例
-	for _, instance := range ip.instances {
-		if instance.isAvailable(category) {
-			return instance.ExecuteTask(task)
+	// 获取该分类下的所有实例
+	instances := ip.GetInstancesByCategory(category)
+	if len(instances) == 0 {
+		return fmt.Errorf("no instance available for category: %s", category)
+	}
+
+	// 遍历实例找到可用的账号
+	for _, instance := range instances {
+		if err := instance.ExecuteTask(task); err == nil {
+			return nil
 		}
 	}
 
-	return fmt.Errorf("no available instance for category: %s", category)
+	return fmt.Errorf("no available account found for category: %s", category)
 }
