@@ -16,20 +16,20 @@ func GetFactory(category string) (ICrawlFactory, error) {
 }
 
 //func getCrawl(id int) (interface{}, error) {
-//	account := &CrawlAccount{ID: id}
-//	err := account.Get()
+//	crawlaccount := &CrawlAccount{ID: id}
+//	err := crawlaccount.Get()
 //	if err != nil {
 //		return nil, err
 //	}
 //
-//	factory, err := GetFactory(account.Category)
+//	factory, err := GetFactory(crawlaccount.Category)
 //	if err != nil {
 //		return nil, err
 //	}
 //
-//	cfg, ok := config.AccountMap[account.Category]
+//	cfg, ok := config.AccountMap[crawlaccount.Category]
 //	if !ok {
-//		return nil, fmt.Errorf("config not found for category: %s", account.Category)
+//		return nil, fmt.Errorf("config not found for category: %s", crawlaccount.Category)
 //	}
 //
 //	crawl := factory.CreateCrawl(&cfg)

@@ -3,6 +3,7 @@ package chrome
 import (
 	"context"
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/crawltask"
 	"log"
 	"sync"
 	"time"
@@ -133,7 +134,7 @@ func (ip *InstancePool) GetInstancesByCategory(cat string) []*Instance {
 	}
 }
 
-func (ip *InstancePool) DispatchTask(category string, task *internal.CrawlTask) error {
+func (ip *InstancePool) DispatchTask(category string, task *crawltask.CrawlTask) error {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
@@ -150,5 +151,5 @@ func (ip *InstancePool) DispatchTask(category string, task *internal.CrawlTask) 
 		}
 	}
 
-	return fmt.Errorf("no available account found for category: %s", category)
+	return fmt.Errorf("no available crawlaccount found for category: %s", category)
 }

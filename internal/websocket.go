@@ -3,13 +3,13 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 )
 
 const (
@@ -106,7 +106,7 @@ func (c *Client) writePump() {
 		select {
 		case msg := <-c.accountChan:
 			if err := c.handleAccountMessage(msg); err != nil {
-				log.Printf("handle account message error: %v", err)
+				log.Printf("handle crawlaccount message error: %v", err)
 				return
 			}
 

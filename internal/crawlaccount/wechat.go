@@ -7,7 +7,7 @@ import (
 )
 
 type WeChatAccount struct {
-	CrawlAccount
+	Account
 }
 
 func (account *WeChatAccount) GetQRCodeSelector() string {
@@ -35,7 +35,7 @@ func (account *WeChatAccount) CheckLogin() chromedp.ActionFunc {
 	}
 }
 
-//func (account *WeChatAccount) GoCrawl(callback Callback) chromedp.ActionFunc {
+//func (crawlaccount *WeChatAccount) GoCrawl(callback Callback) chromedp.ActionFunc {
 //	return func(ctx context.Context) (err error) {
 //		var currentURL string
 //		err = chromedp.Location(&currentURL).Do(ctx)

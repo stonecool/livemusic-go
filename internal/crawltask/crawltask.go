@@ -1,7 +1,8 @@
-package internal
+package crawltask
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal"
 	"log"
 	reflect "reflect"
 	"time"
@@ -55,7 +56,7 @@ func (t *CrawlTask) Add() error {
 	}
 
 	if exist, err := model.ExistCrawlTask(t.MetaType, t.MetaID, t.Category); err != nil {
-		Logger.Warn("m exists")
+		internal.Logger.Warn("m exists")
 		return fmt.Errorf("some error")
 	} else if exist {
 		return fmt.Errorf("exists")
@@ -74,7 +75,7 @@ func (t *CrawlTask) Add() error {
 	} else {
 		t := NewCrawlTask(m)
 		// 添加到调度器
-		return GetScheduler().AddTask(t)
+		return internal.GetScheduler().AddTask(t)
 	}
 }
 
@@ -84,8 +85,8 @@ func (t *CrawlTask) Execute() error {
 		retryDelay = 5 // 重试间隔(秒)
 	)
 
-	msg := NewAsyncMessage(&Message{
-		Cmd:  CrawlCmd_Crawl,
+	msg := internal.NewAsyncMessage(&internal.Message{
+		Cmd:  internal.CrawlCmd_Crawl,
 		Data: t,
 	})
 
@@ -132,7 +133,7 @@ func GetAllCrawlTasks() ([]*CrawlTask, error) {
 }
 
 func dataTypeIdExists(dataType string, dataId int) (bool, error) {
-	val, ok := dataType2StructMap[dataType]
+	val, ok := internal.dataType2StructMap[dataType]
 	if !ok {
 		return false, fmt.Errorf("data_type:%s illegal", dataType)
 	}
@@ -140,7 +141,7 @@ func dataTypeIdExists(dataType string, dataId int) (bool, error) {
 	originalType := reflect.TypeOf(val).Elem()
 	newVar := reflect.New(originalType).Elem()
 
-	pointer := newVar.Addr().Interface().(IDataTable)
+	pointer := newVar.Addr().Interface().(internal.IDataTable)
 	pointer.setId(dataId)
 
 	return pointer.exist()

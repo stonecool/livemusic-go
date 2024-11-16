@@ -15,9 +15,9 @@ type crawlAccountForm struct {
 }
 
 // AddCrawlAccount
-// @Summary	Add crawl account
+// @Summary	Add crawl crawlaccount
 // @Accept		json
-// @Param		form	body	api.crawlAccountForm	true	"created crawl account object"
+// @Param		form	body	api.crawlAccountForm	true	"created crawl crawlaccount object"
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
@@ -43,7 +43,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 }
 
 // GetCrawlAccount
-// @Summary	Get crawl account
+// @Summary	Get crawl crawlaccount
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
@@ -79,8 +79,8 @@ func GetCrawlAccount(ctx *gin.Context) {
 func GetCrawlAccounts(ctx *gin.Context) {
 	var context = internal.Context{Context: ctx}
 
-	//account := &crawlaccount.CrawlAccount{}
-	//if accounts, err := account.GetAll(); err != nil {
+	//crawlaccount := &crawlaccount.CrawlAccount{}
+	//if accounts, err := crawlaccount.GetAll(); err != nil {
 	context.Response(http.StatusBadRequest, 0, nil)
 	//} else {
 	//	context.Response(http.StatusBadRequest, 0, accounts)
@@ -88,7 +88,7 @@ func GetCrawlAccounts(ctx *gin.Context) {
 }
 
 // DeleteCrawlAccount
-// @Summary	Delete crawl account
+// @Summary	Delete crawl crawlaccount
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response

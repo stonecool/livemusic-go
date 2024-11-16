@@ -3,7 +3,7 @@ package chrome
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/crawltask"
 	"time"
 
 	"github.com/chromedp/chromedp"
@@ -284,14 +284,14 @@ func (i *Instance) cleanupTabs() {
 	}
 }
 
-func (i *Instance) ExecuteTask(task *internal.CrawlTask) error {
+func (i *Instance) ExecuteTask(task *crawltask.CrawlTask) error {
 	account, exists := i.accounts[task.Category]
 	if !exists {
-		return fmt.Errorf("no account found for category: %s", task.Category)
+		return fmt.Errorf("no crawlaccount found for category: %s", task.Category)
 	}
 
 	if !account.IsAvailable() {
-		return fmt.Errorf("account not available")
+		return fmt.Errorf("crawlaccount not available")
 	}
 
 	select {

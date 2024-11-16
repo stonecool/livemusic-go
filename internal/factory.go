@@ -57,7 +57,7 @@ func GetCrawl(id int) (ICrawl, error) {
 }
 
 func startCrawl(crawl crawlaccount.ICrawlAccount) {
-	log.Printf("Start account:%d\n", crawl.GetId())
+	log.Printf("Start crawlaccount:%d\n", crawl.GetId())
 
 	ctx, cancel := chromedp.NewExecAllocator(
 		context.Background(),
