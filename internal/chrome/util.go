@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/model"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -146,7 +145,7 @@ func CreateLocalChromeInstance() (*Instance, error) {
 		return nil, err
 	}
 
-	exists, err := model.ExistsChromeInstance(ip, port)
+	exists, err := ExistsChromeInstance(ip, port)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return nil, err
@@ -175,7 +174,7 @@ func CreateLocalChromeInstance() (*Instance, error) {
 		"debugger_url": url,
 	}
 
-	m, err := model.AddChromeInstance(data)
+	m, err := AddChromeInstance(data)
 	if err != nil {
 		return nil, err
 	}

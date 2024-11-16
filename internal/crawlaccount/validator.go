@@ -13,7 +13,7 @@ func NewValidator() *Validator {
 	return &Validator{}
 }
 
-func (v *Validator) ValidateAccount(account *Account) error {
+func (v *Validator) ValidateAccount(account *CrawlAccount) error {
 	if err := v.validateCategory(account.GetCategory()); err != nil {
 		return err
 	}

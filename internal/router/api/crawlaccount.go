@@ -116,7 +116,7 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 }
 
 // CrawlAccountWebSocket
-// @Summary	Crawl Account websocket
+// @Summary	Crawl CrawlAccount websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
@@ -141,7 +141,7 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 }
 
 // CrawlAccountLogin
-// @Summary	Crawl Account websocket
+// @Summary	Crawl CrawlAccount websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response

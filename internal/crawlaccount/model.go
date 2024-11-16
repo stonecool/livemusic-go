@@ -2,9 +2,10 @@ package crawlaccount
 
 import (
 	"github.com/stonecool/livemusic-go/internal"
+	"gorm.io/gorm"
 )
 
-type accountModel struct {
+type model struct {
 	internal.RawModel
 
 	Category    string `gorm:"type:varchar(50);not null"`
@@ -15,12 +16,12 @@ type accountModel struct {
 	State       int    `gorm:"default:0"`
 }
 
-func (*accountModel) TableName() string {
+func (*model) TableName() string {
 	return "crawl_accounts"
 }
 
-func (m *accountModel) toEntity() *Account {
-	return &Account{
+func (m *model) toEntity() *CrawlAccount {
+	return &CrawlAccount{
 		ID:          m.ID,
 		Category:    m.Category,
 		AccountName: m.AccountName,
@@ -33,7 +34,7 @@ func (m *accountModel) toEntity() *Account {
 	}
 }
 
-func (m *accountModel) fromEntity(account *Account) {
+func (m *model) fromEntity(account *CrawlAccount) {
 	m.ID = account.ID
 	m.Category = account.Category
 	m.AccountName = account.AccountName
@@ -41,4 +42,20 @@ func (m *accountModel) fromEntity(account *Account) {
 	m.Cookies = account.cookies
 	m.InstanceID = account.InstanceID
 	m.State = int(account.State)
+}
+
+func (m *model) Validate() error {
+	v := NewValidator()
+	return v.ValidateAccount(&CrawlAccount{
+		Category:    m.Category,
+		AccountName: m.AccountName,
+	})
+}
+
+func (m *model) BeforeCreate(tx *gorm.DB) error {
+	return m.Validate()
+}
+
+func (m *model) BeforeUpdate(tx *gorm.DB) error {
+	return m.Validate()
 }

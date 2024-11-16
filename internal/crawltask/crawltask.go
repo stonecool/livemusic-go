@@ -9,7 +9,6 @@ import (
 
 	"github.com/stonecool/livemusic-go/internal/chrome"
 	"github.com/stonecool/livemusic-go/internal/config"
-	"github.com/stonecool/livemusic-go/internal/model"
 )
 
 type CrawlTask struct {
@@ -25,7 +24,7 @@ type CrawlTask struct {
 	cronSpec  string
 }
 
-func NewCrawlTask(m *model.CrawlTask) *CrawlTask {
+func NewCrawlTask(m *CrawlTask) *CrawlTask {
 	return &CrawlTask{
 		ID:        m.ID,
 		Category:  m.Category,
@@ -55,7 +54,7 @@ func (t *CrawlTask) Add() error {
 		return fmt.Errorf("data table not exists")
 	}
 
-	if exist, err := model.ExistCrawlTask(t.MetaType, t.MetaID, t.Category); err != nil {
+	if exist, err := ExistCrawlTask(t.MetaType, t.MetaID, t.Category); err != nil {
 		internal.Logger.Warn("m exists")
 		return fmt.Errorf("some error")
 	} else if exist {
@@ -70,7 +69,7 @@ func (t *CrawlTask) Add() error {
 		"cron_spec":         t.CronSpec,
 	}
 
-	if m, err := model.AddCrawlTask(data); err != nil {
+	if m, err := AddCrawlTask(data); err != nil {
 		return err
 	} else {
 		t := NewCrawlTask(m)
@@ -117,7 +116,7 @@ func (t *CrawlTask) Execute() error {
 }
 
 func GetAllCrawlTasks() ([]*CrawlTask, error) {
-	modelTasks, err := model.GetCrawlTaskAll()
+	modelTasks, err := GetCrawlTaskAll()
 	if err != nil {
 		return nil, err
 	}

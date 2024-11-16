@@ -9,7 +9,6 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/crawlaccount"
-	"github.com/stonecool/livemusic-go/internal/model"
 )
 
 type Instance struct {
@@ -32,7 +31,7 @@ func init() {
 }
 
 func getInstance(id int) (interface{}, error) {
-	modelInstance, err := model.GetChromeInstance(id)
+	modelInstance, err := GetChromeInstance(id)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +53,7 @@ func GetInstance(id int) (*Instance, error) {
 	}
 }
 
-func newInstance(m *model.ChromeInstance, opts *InstanceOptions) *Instance {
+func newInstance(m *ChromeInstance, opts *InstanceOptions) *Instance {
 	if opts == nil {
 		opts = DefaultOptions()
 	}

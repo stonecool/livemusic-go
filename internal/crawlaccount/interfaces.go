@@ -25,15 +25,15 @@ type ICrawlAccount interface {
 }
 
 type IRepository interface {
-	Create(account *Account) error
-	Get(id int) (*Account, error)
-	Update(account *Account) error
+	Create(account *CrawlAccount) error
+	Get(id int) (*CrawlAccount, error)
+	Update(account *CrawlAccount) error
 	Delete(id int) error
-	GetAll() ([]*Account, error)
-	FindByCategory(category string) ([]*Account, error)
-	FindByInstance(instanceID int) ([]*Account, error)
+	GetAll() ([]*CrawlAccount, error)
+	FindByCategory(category string) ([]*CrawlAccount, error)
+	FindByInstance(instanceID int) ([]*CrawlAccount, error)
 }
 
 type IFactory interface {
-	CreateAccount(category string) (*Account, error)
+	CreateAccount(category string) (*CrawlAccount, error)
 }
