@@ -48,5 +48,3 @@ func AddCrawlTask(ctx *gin.Context) {
 		context.Response(http.StatusCreated, internal.Success, task)
 	}
 }
-
-// 其他handler类似

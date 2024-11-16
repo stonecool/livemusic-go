@@ -38,7 +38,7 @@ func (s *Scheduler) AddTask(task *CrawlTask) error {
 	}
 
 	// 添加新任务
-	entryID, err := s.cron.AddFunc(task.CronSpec, func() {
+	entryID, err := s.cron.AddFunc(task.cronSpec, func() {
 		s.executeTask(task)
 	})
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *Scheduler) Stop() {
 	s.cron.Stop()
 }
 
-func (s *Scheduler) executeTask(task *internal.CrawlTask) {
+func (s *Scheduler) executeTask(task *CrawlTask) {
 	if err := task.Execute(); err != nil {
 		log.Printf("Failed to execute task %d: %v", task.ID, err)
 		return
