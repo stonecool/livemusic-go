@@ -1,4 +1,4 @@
-package internal
+package database
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 var DB *gorm.DB
 
-type RawModel struct {
+type BaseModel struct {
 	ID        int `gorm:"primary key"`
 	CreatedAt int
 	UpdatedAt int
@@ -19,6 +19,7 @@ type RawModel struct {
 }
 
 // init initializes the database instance
+// TODO func Initialize() {?
 func init() {
 	var dialector gorm.Dialector
 	if config.Database.Type == "mysql" {
@@ -46,10 +47,12 @@ func init() {
 	} else {
 		log.Println("database connect finish!")
 	}
-
 }
 
-// TODO
-func closeDB() {
-	//defer DB()
+func Close() error {
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
 }

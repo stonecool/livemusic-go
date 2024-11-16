@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/crawlaccount"
+	"github.com/stonecool/livemusic-go/internal/account"
 	"log"
 	"os"
 )
@@ -32,7 +32,7 @@ func QRCodeLogin() error {
 }
 
 // GetQRCode get qr code
-func GetQRCode(account crawlaccount.ICrawlAccount) chromedp.ActionFunc {
+func GetQRCode(account account.ICrawlAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		if err := chromedp.Navigate(account.GetLoginURL()).Do(ctx); err != nil {
 			return err

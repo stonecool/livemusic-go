@@ -1,4 +1,4 @@
-package crawltask
+package task
 
 import (
 	"fmt"
@@ -6,16 +6,6 @@ import (
 
 	"gorm.io/gorm"
 )
-
-type Repository interface {
-	Create(task *CrawlTask) error
-	Get(id int) (*CrawlTask, error)
-	Update(task *CrawlTask) error
-	Delete(id int) error
-	GetAll() ([]*CrawlTask, error)
-	FindByCategory(category string) ([]*CrawlTask, error)
-	ExistsByMeta(metaType string, metaID int, category string) (bool, error)
-}
 
 type repositoryDBImpl struct {
 	db *gorm.DB
@@ -25,8 +15,8 @@ func NewRepositoryDB(db *gorm.DB) Repository {
 	return &repositoryDBImpl{db: db}
 }
 
-func (r *repositoryDBImpl) Create(task *CrawlTask) error {
-	model := &Model{}
+func (r *repositoryDBImpl) Create(task *Task) error {
+	model := &model{}
 	model.FromEntity(task)
 
 	if err := r.db.Create(model).Error; err != nil {
@@ -37,8 +27,8 @@ func (r *repositoryDBImpl) Create(task *CrawlTask) error {
 	return nil
 }
 
-func (r *repositoryDBImpl) Get(id int) (*CrawlTask, error) {
-	var model Model
+func (r *repositoryDBImpl) Get(id int) (*Task, error) {
+	var model model
 	if err := r.db.First(&model, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("task not found: %d", id)
@@ -49,8 +39,8 @@ func (r *repositoryDBImpl) Get(id int) (*CrawlTask, error) {
 	return model.ToEntity(), nil
 }
 
-func (r *repositoryDBImpl) Update(task *CrawlTask) error {
-	model := &Model{}
+func (r *repositoryDBImpl) Update(task *Task) error {
+	model := &model{}
 	model.FromEntity(task)
 
 	if err := r.db.Save(model).Error; err != nil {
@@ -60,33 +50,33 @@ func (r *repositoryDBImpl) Update(task *CrawlTask) error {
 }
 
 func (r *repositoryDBImpl) Delete(id int) error {
-	if err := r.db.Model(&Model{}).Where("id = ?", id).
+	if err := r.db.Model(&model{}).Where("id = ?", id).
 		Update("deleted_at", time.Now()).Error; err != nil {
 		return fmt.Errorf("failed to delete task: %w", err)
 	}
 	return nil
 }
 
-func (r *repositoryDBImpl) GetAll() ([]*CrawlTask, error) {
-	var models []Model
+func (r *repositoryDBImpl) GetAll() ([]*Task, error) {
+	var models []model
 	if err := r.db.Find(&models).Error; err != nil {
 		return nil, fmt.Errorf("failed to get all tasks: %w", err)
 	}
 
-	tasks := make([]*CrawlTask, len(models))
+	tasks := make([]*Task, len(models))
 	for i, model := range models {
 		tasks[i] = model.ToEntity()
 	}
 	return tasks, nil
 }
 
-func (r *repositoryDBImpl) FindByCategory(category string) ([]*CrawlTask, error) {
-	var models []Model
+func (r *repositoryDBImpl) FindByCategory(category string) ([]*Task, error) {
+	var models []model
 	if err := r.db.Where("category = ?", category).Find(&models).Error; err != nil {
 		return nil, fmt.Errorf("failed to find tasks by category: %w", err)
 	}
 
-	tasks := make([]*CrawlTask, len(models))
+	tasks := make([]*Task, len(models))
 	for i, model := range models {
 		tasks[i] = model.ToEntity()
 	}
@@ -95,7 +85,7 @@ func (r *repositoryDBImpl) FindByCategory(category string) ([]*CrawlTask, error)
 
 func (r *repositoryDBImpl) ExistsByMeta(metaType string, metaID int, category string) (bool, error) {
 	var count int64
-	err := r.db.Model(&Model{}).
+	err := r.db.Model(&model{}).
 		Where("meta_type = ? AND meta_id = ? AND category = ? AND deleted_at IS NULL",
 			metaType, metaID, category).
 		Count(&count).Error

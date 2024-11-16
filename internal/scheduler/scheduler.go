@@ -1,8 +1,8 @@
-package internal
+package scheduler
 
 import (
 	"github.com/robfig/cron/v3"
-	"github.com/stonecool/livemusic-go/internal/crawltask"
+	"github.com/stonecool/livemusic-go/internal/task"
 	"log"
 	"sync"
 )
@@ -29,7 +29,7 @@ func GetScheduler() *Scheduler {
 	return scheduler
 }
 
-func (s *Scheduler) AddTask(task *crawltask.CrawlTask) error {
+func (s *Scheduler) AddTask(task *task.Task) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -52,7 +52,7 @@ func (s *Scheduler) AddTask(task *crawltask.CrawlTask) error {
 
 func (s *Scheduler) Start() {
 	// 启动时加载所有任务
-	tasks, err := crawltask.GetAllCrawlTasks()
+	tasks, err := task.GetAllCrawlTasks()
 	if err != nil {
 		log.Printf("Failed to load crawl tasks: %v", err)
 		return
@@ -71,7 +71,7 @@ func (s *Scheduler) Stop() {
 	s.cron.Stop()
 }
 
-func (s *Scheduler) executeTask(task *crawltask.CrawlTask) {
+func (s *Scheduler) executeTask(task *task.Task) {
 	if err := task.Execute(); err != nil {
 		log.Printf("Failed to execute task %d: %v", task.ID, err)
 		return

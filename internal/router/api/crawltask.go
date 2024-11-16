@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/stonecool/livemusic-go/internal/crawltask"
+	"github.com/stonecool/livemusic-go/internal/task"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,7 +35,7 @@ func AddCrawlTask(ctx *gin.Context) {
 		return
 	}
 
-	task := crawltask.CrawlTask{
+	task := task.Task{
 		DataType:        form.DataType,
 		DataId:          form.DataId,
 		AccountType:     form.AccountType,

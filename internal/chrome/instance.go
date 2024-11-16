@@ -3,19 +3,19 @@ package chrome
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/crawltask"
+	"github.com/stonecool/livemusic-go/internal/task"
 	"time"
 
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/cache"
-	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 )
 
 type Instance struct {
 	ID           int
 	IP           string
 	Port         int
-	accounts     map[string]*crawlaccount.CrawlAccount
+	accounts     map[string]*account.Account
 	DebuggerURL  string
 	State        InstanceState
 	stateChan    chan stateEvent
@@ -53,7 +53,7 @@ func GetInstance(id int) (*Instance, error) {
 	}
 }
 
-func newInstance(m *ChromeInstance, opts *InstanceOptions) *Instance {
+func newInstance(m *model, opts *InstanceOptions) *Instance {
 	if opts == nil {
 		opts = DefaultOptions()
 	}
@@ -62,7 +62,7 @@ func newInstance(m *ChromeInstance, opts *InstanceOptions) *Instance {
 		ID:          m.ID,
 		IP:          m.IP,
 		Port:        m.Port,
-		accounts:    make(map[string]*crawlaccount.CrawlAccount),
+		accounts:    make(map[string]*account.Account),
 		DebuggerURL: m.DebuggerURL,
 		State:       STATE_UNINITIALIZED,
 		stateChan:   make(chan stateEvent),
@@ -143,7 +143,7 @@ func (i *Instance) heartBeat() {
 	}
 }
 
-func (i *Instance) getAccounts() map[string]*crawlaccount.CrawlAccount {
+func (i *Instance) getAccounts() map[string]*account.Account {
 	return i.accounts
 }
 
@@ -283,14 +283,14 @@ func (i *Instance) cleanupTabs() {
 	}
 }
 
-func (i *Instance) ExecuteTask(task *crawltask.CrawlTask) error {
+func (i *Instance) ExecuteTask(task *task.Task) error {
 	account, exists := i.accounts[task.Category]
 	if !exists {
-		return fmt.Errorf("no crawlaccount found for category: %s", task.Category)
+		return fmt.Errorf("no account found for category: %s", task.Category)
 	}
 
 	if !account.IsAvailable() {
-		return fmt.Errorf("crawlaccount not available")
+		return fmt.Errorf("account not available")
 	}
 
 	select {

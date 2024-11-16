@@ -1,7 +1,8 @@
-package crawltask
+package task
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal"
 
 	"github.com/robfig/cron/v3"
 	"github.com/stonecool/livemusic-go/internal/config"
@@ -13,16 +14,16 @@ func NewValidator() *Validator {
 	return &Validator{}
 }
 
-func (v *Validator) ValidateTask(task *CrawlTask) error {
+func (v *Validator) ValidateTask(task *Task) error {
 	if err := v.ValidateCategory(task.Category); err != nil {
 		return err
 	}
 
-	if err := v.ValidateDataType(task.DataType); err != nil {
+	if err := v.ValidateMetaType(task.MetaType); err != nil {
 		return err
 	}
 
-	if err := v.ValidateCronSpec(task.CronSpec); err != nil {
+	if err := v.ValidateCronSpec(task.cronSpec); err != nil {
 		return err
 	}
 
@@ -41,13 +42,13 @@ func (v *Validator) ValidateCategory(category string) error {
 	return nil
 }
 
-func (v *Validator) ValidateDataType(dataType string) error {
-	if dataType == "" {
+func (v *Validator) ValidateMetaType(metaType string) error {
+	if metaType == "" {
 		return fmt.Errorf("data type cannot be empty")
 	}
 
-	if _, ok := internal.dataType2StructMap[dataType]; !ok {
-		return fmt.Errorf("unsupported data type: %s", dataType)
+	if _, ok := internal.DataType2StructMap[metaType]; !ok {
+		return fmt.Errorf("unsupported data type: %s", metaType)
 	}
 
 	return nil

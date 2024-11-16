@@ -1,4 +1,4 @@
-package crawlaccount
+package account
 
 import (
 	"fmt"
@@ -15,21 +15,21 @@ func NewFactory(repo IRepository) IFactory {
 	return &factoryImpl{repo: repo}
 }
 
-func (f *factoryImpl) CreateAccount(category string) (*CrawlAccount, error) {
+func (f *factoryImpl) CreateAccount(category string) (*Account, error) {
 	v := NewValidator()
 	if err := v.validateCategory(category); err != nil {
-		return nil, fmt.Errorf("invalid crawlaccount category: %w", err)
+		return nil, fmt.Errorf("invalid account category: %w", err)
 	}
 
 	if _, ok := config.AccountMap[category]; !ok {
-		return nil, fmt.Errorf("unsupported crawlaccount category: %s", category)
+		return nil, fmt.Errorf("unsupported account category: %s", category)
 	}
 
 	model := &model{Category: category}
 	account := model.toEntity()
 
 	if err := v.ValidateAccount(account); err != nil {
-		return nil, fmt.Errorf("invalid crawlaccount: %w", err)
+		return nil, fmt.Errorf("invalid account: %w", err)
 	}
 
 	// return f.repo.Transaction(func(r IRepository) error {
@@ -37,15 +37,15 @@ func (f *factoryImpl) CreateAccount(category string) (*CrawlAccount, error) {
 	// })
 
 	if err := f.repo.Create(account); err != nil {
-		return nil, fmt.Errorf("failed to create crawlaccount: %w", err)
+		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
 
 	account.Init()
 	return account, nil
 }
 
-// 在 internal/crawlaccount/factory.go 中添加一个便捷的创建方法
-func CreateAccount(db *gorm.DB, category string) (*CrawlAccount, error) {
+// 在 internal/account/factory.go 中添加一个便捷的创建方法
+func CreateAccount(db *gorm.DB, category string) (*Account, error) {
 	repo := NewRepositoryDB(db)
 	factory := NewFactory(repo)
 	return factory.CreateAccount(category)
@@ -55,7 +55,7 @@ func CreateAccount(db *gorm.DB, category string) (*CrawlAccount, error) {
 // func CreateAccountHandler(c *gin.Context) {
 //     category := c.PostForm("category")
 
-//     account, err := crawlaccount.CreateAccount(db, category)
+//     account, err := account.CreateAccount(db, category)
 //     if err != nil {
 //         c.JSON(400, gin.H{"error": err.Error()})
 //         return
@@ -68,20 +68,20 @@ func CreateAccount(db *gorm.DB, category string) (*CrawlAccount, error) {
 // }
 
 //func getCrawl(id int) (interface{}, error) {
-//	crawlaccount := &CrawlAccount{ID: id}
-//	err := crawlaccount.Get()
+//	account := &Account{ID: id}
+//	err := account.Get()
 //	if err != nil {
 //		return nil, err
 //	}
 //
-//	factory, err := GetFactory(crawlaccount.Category)
+//	factory, err := GetFactory(account.Category)
 //	if err != nil {
 //		return nil, err
 //	}
 //
-//	cfg, ok := config.AccountMap[crawlaccount.Category]
+//	cfg, ok := config.AccountMap[account.Category]
 //	if !ok {
-//		return nil, fmt.Errorf("config not found for category: %s", crawlaccount.Category)
+//		return nil, fmt.Errorf("config not found for category: %s", account.Category)
 //	}
 //
 //	crawl := factory.CreateCrawl(&cfg)

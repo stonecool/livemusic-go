@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/crawlaccount"
+	"github.com/stonecool/livemusic-go/internal/account"
 	"log"
 )
 
 // SetCookies
-func SetCookies(account crawlaccount.ICrawlAccount) chromedp.ActionFunc {
+func SetCookies(account account.ICrawlAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookiesParams := network.SetCookiesParams{}
 		if err = cookiesParams.UnmarshalJSON(account.GetCookies()); err != nil {
@@ -23,7 +23,7 @@ func SetCookies(account crawlaccount.ICrawlAccount) chromedp.ActionFunc {
 }
 
 // SaveCookies
-func SaveCookies(account crawlaccount.ICrawlAccount) chromedp.ActionFunc {
+func SaveCookies(account account.ICrawlAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookies, err := network.GetCookies().Do(ctx)
 		if err != nil {

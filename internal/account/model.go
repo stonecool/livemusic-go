@@ -1,12 +1,13 @@
-package crawlaccount
+package account
 
 import (
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )
 
 type model struct {
-	internal.RawModel
+	database.BaseModel
 
 	Category    string `gorm:"type:varchar(50);not null"`
 	AccountName string `gorm:"type:varchar(50);not null"`
@@ -20,8 +21,8 @@ func (*model) TableName() string {
 	return "crawl_accounts"
 }
 
-func (m *model) toEntity() *CrawlAccount {
-	return &CrawlAccount{
+func (m *model) toEntity() *Account {
+	return &Account{
 		ID:          m.ID,
 		Category:    m.Category,
 		AccountName: m.AccountName,
@@ -34,7 +35,7 @@ func (m *model) toEntity() *CrawlAccount {
 	}
 }
 
-func (m *model) fromEntity(account *CrawlAccount) {
+func (m *model) fromEntity(account *Account) {
 	m.ID = account.ID
 	m.Category = account.Category
 	m.AccountName = account.AccountName
@@ -46,7 +47,7 @@ func (m *model) fromEntity(account *CrawlAccount) {
 
 func (m *model) Validate() error {
 	v := NewValidator()
-	return v.ValidateAccount(&CrawlAccount{
+	return v.ValidateAccount(&Account{
 		Category:    m.Category,
 		AccountName: m.AccountName,
 	})

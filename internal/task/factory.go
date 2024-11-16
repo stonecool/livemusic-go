@@ -1,4 +1,4 @@
-package crawltask
+package task
 
 import (
 	"fmt"
@@ -12,13 +12,13 @@ func NewFactory(repo Repository) Factory {
 	return &factoryImpl{repo: repo}
 }
 
-func (f *factoryImpl) CreateTask(category string, data map[string]interface{}) (*CrawlTask, error) {
+func (f *factoryImpl) CreateTask(category string, data map[string]interface{}) (*Task, error) {
 	v := NewValidator()
 	if err := v.ValidateCategory(category); err != nil {
 		return nil, fmt.Errorf("invalid task category: %w", err)
 	}
 
-	model := &Model{
+	model := &model{
 		Category:  category,
 		DataType:  data["data_type"].(string),
 		DataID:    data["data_id"].(int),

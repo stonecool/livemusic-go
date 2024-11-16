@@ -1,7 +1,7 @@
-package model
+package database
 
 type CrawlDataWechat struct {
-	Model
+	BaseModel
 
 	RID          int `gorm:"column:rid"`
 	UID          string

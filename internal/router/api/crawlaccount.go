@@ -3,8 +3,8 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome"
-	"github.com/stonecool/livemusic-go/internal/crawlaccount"
 	"github.com/unknwon/com"
 	"log"
 	"net/http"
@@ -15,9 +15,9 @@ type crawlAccountForm struct {
 }
 
 // AddCrawlAccount
-// @Summary	Add crawl crawlaccount
+// @Summary	Add crawl account
 // @Accept		json
-// @Param		form	body	api.crawlAccountForm	true	"created crawl crawlaccount object"
+// @Param		form	body	api.crawlAccountForm	true	"created crawl account object"
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
@@ -34,7 +34,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	account := &crawlaccount.CrawlAccount{Category: form.AccountType}
+	account := &account.Account{Category: form.AccountType}
 	if err := account.Add(); err != nil {
 		context.Response(http.StatusBadRequest, internal.ErrorNotExists, nil)
 	} else {
@@ -43,7 +43,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 }
 
 // GetCrawlAccount
-// @Summary	Get crawl crawlaccount
+// @Summary	Get crawl account
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
@@ -62,7 +62,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	account := &crawlaccount.CrawlAccount{ID: form.ID}
+	account := &account.Account{ID: form.ID}
 	if err := account.Get(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
@@ -79,8 +79,8 @@ func GetCrawlAccount(ctx *gin.Context) {
 func GetCrawlAccounts(ctx *gin.Context) {
 	var context = internal.Context{Context: ctx}
 
-	//crawlaccount := &crawlaccount.CrawlAccount{}
-	//if accounts, err := crawlaccount.GetAll(); err != nil {
+	//account := &account.Account{}
+	//if accounts, err := account.GetAll(); err != nil {
 	context.Response(http.StatusBadRequest, 0, nil)
 	//} else {
 	//	context.Response(http.StatusBadRequest, 0, accounts)
@@ -88,7 +88,7 @@ func GetCrawlAccounts(ctx *gin.Context) {
 }
 
 // DeleteCrawlAccount
-// @Summary	Delete crawl crawlaccount
+// @Summary	Delete crawl account
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
@@ -107,7 +107,7 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	account := &crawlaccount.CrawlAccount{ID: form.ID}
+	account := &account.Account{ID: form.ID}
 	if err := account.Delete(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
@@ -116,7 +116,7 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 }
 
 // CrawlAccountWebSocket
-// @Summary	Crawl CrawlAccount websocket
+// @Summary	Crawl Account websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
@@ -141,7 +141,7 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 }
 
 // CrawlAccountLogin
-// @Summary	Crawl CrawlAccount websocket
+// @Summary	Crawl Account websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response

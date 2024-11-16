@@ -1,4 +1,4 @@
-package model
+package database
 
 import (
 	"gorm.io/gorm"
@@ -6,7 +6,7 @@ import (
 )
 
 type Livehouse struct {
-	Model
+	BaseModel
 
 	Name string `json:"name"`
 }

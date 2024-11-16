@@ -43,10 +43,10 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Add crawl crawlaccount",
+                "summary": "Add crawl account",
                 "parameters": [
                     {
-                        "description": "created crawl crawlaccount object",
+                        "description": "created crawl account object",
                         "name": "form",
                         "in": "body",
                         "required": true,
@@ -108,7 +108,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Delete crawl crawlaccount",
+                "summary": "Delete crawl account",
                 "parameters": [
                     {
                         "type": "integer",
@@ -140,7 +140,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get crawl crawlaccount",
+                "summary": "Get crawl account",
                 "parameters": [
                     {
                         "type": "integer",

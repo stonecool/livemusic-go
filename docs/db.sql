@@ -11,13 +11,13 @@ CREATE TABLE `chrome_instance` (
 
      PRIMARY KEY (`id`),
      UNIQUE KEY unique_addr (ip, port)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl crawlaccount';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl account';
 
 -- 爬虫账号
 CREATE TABLE `crawl_account` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `category`          VARCHAR(100) NOT NULL COMMENT 'category',
-    `account_name`      VARCHAR(100) NOT NULL COMMENT 'crawlaccount name',
+    `account_name`      VARCHAR(100) NOT NULL COMMENT 'account name',
     `last_login_url`    VARCHAR(100) NOT NULL COMMENT 'last login url',
     `cookies`           BLOB COMMENT 'cookies',
     `instance_id`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'instance id',
@@ -27,7 +27,7 @@ CREATE TABLE `crawl_account` (
     `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
 
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl crawlaccount';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl account';
 
 -- 爬虫任务
 CREATE TABLE crawl_task (

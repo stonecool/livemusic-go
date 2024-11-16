@@ -1,11 +1,11 @@
-package model
+package database
 
 import (
 	"gorm.io/gorm"
 )
 
 type Musician struct {
-	Model
+	BaseModel
 
 	Name string `json:"name"`
 }

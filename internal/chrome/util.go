@@ -184,7 +184,7 @@ func CreateLocalChromeInstance() (*Instance, error) {
 
 // BindChromeInstance
 //func BindChromeInstance(ip string, port int) (*Instance, error) {
-//	exists, err := model.ExistsChromeInstance(ip, port)
+//	exists, err := database.ExistsChromeInstance(ip, port)
 //	if err != nil {
 //		fmt.Printf("%v\n", err)
 //		return nil, err

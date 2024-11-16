@@ -1,4 +1,4 @@
-package crawlaccount
+package account
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 )
 
 type WeChatAccount struct {
-	CrawlAccount
+	Account
 }
 
 func (account *WeChatAccount) GetQRCodeSelector() string {
@@ -35,7 +35,7 @@ func (account *WeChatAccount) CheckLogin() chromedp.ActionFunc {
 	}
 }
 
-//func (crawlaccount *WeChatAccount) GoCrawl(callback Callback) chromedp.ActionFunc {
+//func (account *WeChatAccount) GoCrawl(callback Callback) chromedp.ActionFunc {
 //	return func(ctx context.Context) (err error) {
 //		var currentURL string
 //		err = chromedp.Location(&currentURL).Do(ctx)
@@ -100,7 +100,7 @@ func (account *WeChatAccount) CheckLogin() chromedp.ActionFunc {
 //
 //		fakeId := ""
 //		for _, item := range searchNameResp.List {
-//			if item.Nickname == crawl.CrawlAccount.AccountName {
+//			if item.Nickname == crawl.Account.AccountName {
 //				fakeId = item.FakeId
 //				break
 //			}

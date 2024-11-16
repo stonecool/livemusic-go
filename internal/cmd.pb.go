@@ -86,14 +86,14 @@ var (
 		1: "Login",
 		2: "LoginAck",
 		3: "StateAck",
-		4: "CrawlAccount",
+		4: "Account",
 	}
 	CrawlCmd_value = map[string]int32{
 		"Initial":  0,
 		"Login":    1,
 		"LoginAck": 2,
 		"StateAck": 3,
-		"CrawlAccount":  4,
+		"Account":  4,
 	}
 )
 

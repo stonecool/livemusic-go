@@ -3,7 +3,7 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/crawlaccount"
+	"github.com/stonecool/livemusic-go/internal/account"
 	"log"
 	"sync"
 	"time"
@@ -27,18 +27,18 @@ const (
 )
 
 type Client struct {
-	account     crawlaccount.ICrawlAccount
+	account     account.ICrawlAccount
 	conn        *websocket.Conn
-	accountChan chan *Message // 用于接收来自 CrawlAccount 的消息
+	accountChan chan *Message // 用于接收来自 Account 的消息
 	done        chan struct{} // 用于关闭客户端
 }
 
 var (
-	clients = make(map[crawlaccount.ICrawlAccount]*Client)
+	clients = make(map[account.ICrawlAccount]*Client)
 	mu      sync.Mutex
 )
 
-func newClient(account crawlaccount.ICrawlAccount, ctx *gin.Context) (*Client, error) {
+func newClient(account account.ICrawlAccount, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -106,7 +106,7 @@ func (c *Client) writePump() {
 		select {
 		case msg := <-c.accountChan:
 			if err := c.handleAccountMessage(msg); err != nil {
-				log.Printf("handle crawlaccount message error: %v", err)
+				log.Printf("handle account message error: %v", err)
 				return
 			}
 

@@ -2,7 +2,7 @@ package internal
 
 import (
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/model"
+	"github.com/stonecool/livemusic-go/internal/database"
 )
 
 type Livehouse struct {
@@ -10,7 +10,7 @@ type Livehouse struct {
 	Name string `json:"name"`
 }
 
-func (h *Livehouse) init(house *model.Livehouse) {
+func (h *Livehouse) init(house *database.Livehouse) {
 	h.ID = house.ID
 	h.Name = house.Name
 }
@@ -20,7 +20,7 @@ func (h *Livehouse) Add() error {
 		"name": h.Name,
 	}
 
-	if house, err := model.AddLiveHouse(data); err != nil {
+	if house, err := database.AddLiveHouse(data); err != nil {
 		return err
 	} else {
 		h.init(house)
@@ -29,7 +29,7 @@ func (h *Livehouse) Add() error {
 }
 
 func (h *Livehouse) Get() error {
-	if house, err := model.GetLiveHouse(h.ID); err != nil {
+	if house, err := database.GetLiveHouse(h.ID); err != nil {
 		return err
 	} else {
 		h.init(house)
@@ -38,7 +38,7 @@ func (h *Livehouse) Get() error {
 }
 
 func (h *Livehouse) GetAll() ([]*Livehouse, error) {
-	if houses, err := model.GetLiveHouses(); err != nil {
+	if houses, err := database.GetLiveHouses(); err != nil {
 		return nil, err
 	} else {
 		var s []*Livehouse
@@ -58,11 +58,11 @@ func (h *Livehouse) Edit() error {
 		"name": h.Name,
 	}
 
-	return model.EditLiveHouse(h.ID, data)
+	return database.EditLiveHouse(h.ID, data)
 }
 
 func (h *Livehouse) Delete() error {
-	exist, err := model.ExistLivehouse(h.ID)
+	exist, err := database.ExistLivehouse(h.ID)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (h *Livehouse) Delete() error {
 		return fmt.Errorf("not exist")
 	}
 
-	return model.DeleteLiveHouse(h.ID)
+	return database.DeleteLiveHouse(h.ID)
 }
 
 func (h *Livehouse) setId(id int) {
@@ -79,5 +79,5 @@ func (h *Livehouse) setId(id int) {
 }
 
 func (h *Livehouse) exist() (bool, error) {
-	return model.ExistLivehouse(h.ID)
+	return database.ExistLivehouse(h.ID)
 }

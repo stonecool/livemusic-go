@@ -1,4 +1,4 @@
-package crawlaccount
+package account
 
 import (
 	"github.com/chromedp/chromedp"
@@ -25,15 +25,15 @@ type ICrawlAccount interface {
 }
 
 type IRepository interface {
-	Create(account *CrawlAccount) error
-	Get(id int) (*CrawlAccount, error)
-	Update(account *CrawlAccount) error
+	Create(account *Account) error
+	Get(id int) (*Account, error)
+	Update(account *Account) error
 	Delete(id int) error
-	GetAll() ([]*CrawlAccount, error)
-	FindByCategory(category string) ([]*CrawlAccount, error)
-	FindByInstance(instanceID int) ([]*CrawlAccount, error)
+	GetAll() ([]*Account, error)
+	FindByCategory(category string) ([]*Account, error)
+	FindByInstance(instanceID int) ([]*Account, error)
 }
 
 type IFactory interface {
-	CreateAccount(category string) (*CrawlAccount, error)
+	CreateAccount(category string) (*Account, error)
 }

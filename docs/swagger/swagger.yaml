@@ -51,7 +51,7 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: created crawl crawlaccount object
+      - description: created crawl account object
         in: body
         name: form
         required: true
@@ -68,7 +68,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/http.Response'
-      summary: Add crawl crawlaccount
+      summary: Add crawl account
   /api/v1/crawl-accounts/{ID}:
     delete:
       parameters:
@@ -89,7 +89,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/http.Response'
-      summary: Delete crawl crawlaccount
+      summary: Delete crawl account
   /api/v1/crawl-accounts/{id}:
     get:
       parameters:
@@ -110,7 +110,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/http.Response'
-      summary: Get crawl crawlaccount
+      summary: Get crawl account
   /api/v1/crawl-accounts/ws/{ID}:
     get:
       parameters:

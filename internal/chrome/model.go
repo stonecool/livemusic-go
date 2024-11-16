@@ -1,11 +1,12 @@
 package chrome
 
 import (
+	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )
 
-type ChromeInstance struct {
-	Model
+type model struct {
+	database.BaseModel
 
 	IP          string
 	Port        int
@@ -13,8 +14,8 @@ type ChromeInstance struct {
 	State       int
 }
 
-func AddChromeInstance(data map[string]interface{}) (*ChromeInstance, error) {
-	ins := ChromeInstance{
+func AddChromeInstance(data map[string]interface{}) (*model, error) {
+	ins := model{
 		IP:          data["ip"].(string),
 		Port:        data["port"].(int),
 		DebuggerURL: data["debugger_url"].(string),
@@ -29,7 +30,7 @@ func AddChromeInstance(data map[string]interface{}) (*ChromeInstance, error) {
 }
 
 func ExistsChromeInstance(ip string, port int) (bool, error) {
-	var ins ChromeInstance
+	var ins model
 	err := DB.Select("id").Where("ip = '?' AND port = ?",
 		ip, port).First(&ins).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
@@ -39,8 +40,8 @@ func ExistsChromeInstance(ip string, port int) (bool, error) {
 	return ins.ID > 0, nil
 }
 
-func GetChromeInstance(id int) (*ChromeInstance, error) {
-	var instance ChromeInstance
+func GetChromeInstance(id int) (*model, error) {
+	var instance model
 	if err := DB.Where("id = ? AND deleted_at = ?", id, 0).First(&instance).Error; err != nil {
 		return nil, err
 	} else {
@@ -48,8 +49,8 @@ func GetChromeInstance(id int) (*ChromeInstance, error) {
 	}
 }
 
-func GetChromeInstanceAll() ([]*ChromeInstance, error) {
-	var instances []*ChromeInstance
+func GetChromeInstanceAll() ([]*model, error) {
+	var instances []*model
 	if err := DB.Where("deleted_at = ?", 0).Find(&instances).Error; err != nil {
 		return nil, err
 	}

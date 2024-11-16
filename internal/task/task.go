@@ -1,8 +1,9 @@
-package crawltask
+package task
 
 import (
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/scheduler"
 	"log"
 	reflect "reflect"
 	"time"
@@ -11,7 +12,7 @@ import (
 	"github.com/stonecool/livemusic-go/internal/config"
 )
 
-type CrawlTask struct {
+type Task struct {
 	ID        int    `json:"id"`
 	Category  string `json:"category"`
 	TargetID  string `json:"target_id"`
@@ -24,22 +25,22 @@ type CrawlTask struct {
 	cronSpec  string
 }
 
-func NewCrawlTask(m *CrawlTask) *CrawlTask {
-	return &CrawlTask{
+func NewTask(m *Task) *Task {
+	return &Task{
 		ID:        m.ID,
 		Category:  m.Category,
-		TargetID:  m.TargetId,
+		TargetID:  m.TargetID,
 		MetaType:  m.MetaType,
 		MetaID:    m.MetaID,
 		Count:     m.Count,
 		FirstTime: m.FirstTime,
 		LastTime:  m.LastTime,
-		mark:      m.Mark,
-		cronSpec:  m.CronSpec,
+		mark:      m.mark,
+		cronSpec:  m.cronSpec,
 	}
 }
 
-func (t *CrawlTask) Add() error {
+func (t *Task) Add() error {
 	_, ok := config.AccountMap[t.Category]
 	if !ok {
 		return fmt.Errorf("account_type:%s not exists", t.Category)
@@ -72,13 +73,13 @@ func (t *CrawlTask) Add() error {
 	if m, err := AddCrawlTask(data); err != nil {
 		return err
 	} else {
-		t := NewCrawlTask(m)
+		t := NewTask(m)
 		// 添加到调度器
-		return internal.GetScheduler().AddTask(t)
+		return scheduler.GetScheduler().AddTask(t)
 	}
 }
 
-func (t *CrawlTask) Execute() error {
+func (t *Task) Execute() error {
 	const (
 		maxRetries = 3 // 最大重试次数
 		retryDelay = 5 // 重试间隔(秒)
@@ -89,7 +90,7 @@ func (t *CrawlTask) Execute() error {
 		Data: t,
 	})
 
-	task := &CrawlTask{
+	task := &Task{
 		Category: t.AccountType,
 		Message:  msg,
 	}
@@ -115,15 +116,15 @@ func (t *CrawlTask) Execute() error {
 		maxRetries, lastErr)
 }
 
-func GetAllCrawlTasks() ([]*CrawlTask, error) {
+func GetAllCrawlTasks() ([]*Task, error) {
 	modelTasks, err := GetCrawlTaskAll()
 	if err != nil {
 		return nil, err
 	}
 
-	var tasks []*CrawlTask
+	var tasks []*Task
 	for _, mt := range modelTasks {
-		task := &CrawlTask{}
+		task := &Task{}
 		task.init(mt)
 		tasks = append(tasks, task)
 	}

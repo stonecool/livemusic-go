@@ -21,3 +21,30 @@ gofmt -w .
   - 恢复实例，本地、远程
   - 获取当前所有实例
   - 删除某个实例
+
+  internal/
+  ├── account/                 # 账号领域
+  │   ├── model.go            # 数据模型
+  │   ├── repository.go       # 数据访问层
+  │   ├── validator.go        # 验证逻辑
+  │   ├── factory.go          # 工厂方法
+  │   ├── account.go          # 业务对象
+  │   └── interface.go        # 接口定义
+  │
+  ├── task/                   # 任务领域
+  │   ├── model.go           
+  │   ├── repository.go
+  │   ├── validator.go
+  │   ├── factory.go
+  │   ├── task.go
+  │   └── interface.go
+  │
+  ├── chrome/                 # Chrome 实例管理
+  │   ├── instance.go
+  │   └── pool.go
+  │
+  ├── scheduler/              # 任务调度
+  │   └── scheduler.go
+  │
+  └── service/               # 业务服务层
+      └── crawler.go         # 协调不同领域的服务

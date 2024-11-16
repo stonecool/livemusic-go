@@ -3,15 +3,15 @@ package chrome
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/crawltask"
+	"github.com/stonecool/livemusic-go/internal/task"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/crawlaccount"
-	"github.com/stonecool/livemusic-go/internal/model"
+	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/database"
 )
 
 // 全局唯一的实例池
@@ -92,12 +92,12 @@ func (ip *InstancePool) Login(id int, cat string) {
 		"account_type": cat,
 	}
 
-	m, err := model.AddCrawlAccount(data)
+	m, err := database.AddCrawlAccount(data)
 	if err != nil {
 		return
 	}
 
-	crawlAccount := crawlaccount.NewCrawlAccount(m)
+	crawlAccount := account.NewCrawlAccount(m)
 	ctx, cancel := instance.GetNewContext()
 	defer cancel()
 
@@ -134,7 +134,7 @@ func (ip *InstancePool) GetInstancesByCategory(cat string) []*Instance {
 	}
 }
 
-func (ip *InstancePool) DispatchTask(category string, task *crawltask.CrawlTask) error {
+func (ip *InstancePool) DispatchTask(category string, task *task.Task) error {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
@@ -151,5 +151,5 @@ func (ip *InstancePool) DispatchTask(category string, task *crawltask.CrawlTask)
 		}
 	}
 
-	return fmt.Errorf("no available crawlaccount found for category: %s", category)
+	return fmt.Errorf("no available account found for category: %s", category)
 }
