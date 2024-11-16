@@ -2,6 +2,7 @@ package account
 
 import (
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/client"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )
@@ -30,7 +31,7 @@ func (m *model) toEntity() *Account {
 		cookies:     m.Cookies,
 		InstanceID:  m.InstanceID,
 		State:       internal.AccountState(m.State),
-		msgChan:     make(chan *internal.AsyncMessage),
+		msgChan:     make(chan *client.AsyncMessage),
 		done:        make(chan struct{}),
 	}
 }

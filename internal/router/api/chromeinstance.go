@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/router"
 	"net/http"
 )
 
@@ -19,12 +20,12 @@ type chromeInstanceForm struct {
 // @Failure	400	{object}	http.Response
 // @Router		/api/v1/create-instance [post]
 func CreateChromeInstance(ctx *gin.Context) {
-	context := internal.Context{Context: ctx}
+	context := router.Context{Context: ctx}
 
 	if ins, err := internal.CreateLocalChromeInstance(); err != nil {
-		context.Response(http.StatusBadRequest, internal.Error, nil)
+		context.Response(http.StatusBadRequest, router.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, internal.Success, ins)
+		context.Response(http.StatusCreated, router.Success, ins)
 	}
 }
 
@@ -38,20 +39,20 @@ func CreateChromeInstance(ctx *gin.Context) {
 // @Router		/api/v1/bind-instance [post]
 func BindChromeInstance(ctx *gin.Context) {
 	var (
-		context = internal.Context{Context: ctx}
+		context = router.Context{Context: ctx}
 		form    chromeInstanceForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != internal.Success {
+	if errCode != router.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
 	if ins, err := internal.BindChromeInstance(form.Ip, form.Port); err != nil {
-		context.Response(http.StatusBadRequest, internal.Error, nil)
+		context.Response(http.StatusBadRequest, router.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, internal.Success, ins)
+		context.Response(http.StatusCreated, router.Success, ins)
 	}
 }
 
@@ -62,7 +63,7 @@ func BindChromeInstance(ctx *gin.Context) {
 // @Failure	500	{object}	http.Response
 // @Router		/api/v1/instances [get]
 func GetChromeInstances(ctx *gin.Context) {
-	var context = internal.Context{Context: ctx}
+	var context = router.Context{Context: ctx}
 
 	account := &account.Account{}
 	//chrome.GetAllChromeInstance()

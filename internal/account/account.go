@@ -3,6 +3,7 @@ package account
 import (
 	"fmt"
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/client"
 	"sync"
 
 	"github.com/stonecool/livemusic-go/internal"
@@ -17,7 +18,7 @@ type Account struct {
 	InstanceID  int
 	State       internal.AccountState
 	mu          sync.RWMutex
-	msgChan     chan *internal.AsyncMessage
+	msgChan     chan *client.AsyncMessage
 	done        chan struct{}
 }
 
@@ -190,7 +191,7 @@ func (acc *Account) IsAvailable() bool {
 	return acc.State == internal.AS_RUNNING
 }
 
-func (acc *Account) GetMsgChan() chan *internal.AsyncMessage {
+func (acc *Account) GetMsgChan() chan *client.AsyncMessage {
 	return acc.msgChan
 }
 

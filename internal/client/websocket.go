@@ -1,8 +1,9 @@
-package internal
+package client
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
 	"log"
 	"sync"
@@ -29,8 +30,8 @@ const (
 type Client struct {
 	account     account.ICrawlAccount
 	conn        *websocket.Conn
-	accountChan chan *Message // 用于接收来自 Account 的消息
-	done        chan struct{} // 用于关闭客户端
+	accountChan chan *internal.Message // 用于接收来自 Account 的消息
+	done        chan struct{}          // 用于关闭客户端
 }
 
 var (
@@ -52,7 +53,7 @@ func newClient(account account.ICrawlAccount, ctx *gin.Context) (*Client, error)
 	client := &Client{
 		account:     account,
 		conn:        conn,
-		accountChan: make(chan *Message),
+		accountChan: make(chan *internal.Message),
 		done:        make(chan struct{}),
 	}
 
@@ -82,7 +83,7 @@ func (c *Client) readPump() {
 		}
 
 		// 解析消息并处理
-		msg := &Message{}
+		msg := &internal.Message{}
 		if err := json.Unmarshal(message, msg); err != nil {
 			log.Printf("error parsing message: %v", err)
 			continue
@@ -122,9 +123,9 @@ func (c *Client) writePump() {
 	}
 }
 
-func (c *Client) handleWebSocketMessage(msg *Message) error {
+func (c *Client) handleWebSocketMessage(msg *internal.Message) error {
 	switch msg.Cmd {
-	case CrawlCmd_Login:
+	case internal.CrawlCmd_Login:
 		// 创建任务消息
 		asyncMessage := NewAsyncMessage(msg)
 
@@ -133,15 +134,15 @@ func (c *Client) handleWebSocketMessage(msg *Message) error {
 		result := <-asyncMessage.Result
 
 		// 发送结果回 WebSocket
-		c.accountChan <- &Message{
-			Cmd:  CrawlCmd_Login,
+		c.accountChan <- &internal.Message{
+			Cmd:  internal.CrawlCmd_Login,
 			Data: []byte(fmt.Sprintf("%v", result)),
 		}
 	}
 	return nil
 }
 
-func (c *Client) handleAccountMessage(msg *Message) error {
+func (c *Client) handleAccountMessage(msg *internal.Message) error {
 	// 将消息写入 WebSocket
 	return c.conn.WriteMessage(websocket.TextMessage, msg.Data)
 }

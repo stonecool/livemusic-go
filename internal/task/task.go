@@ -3,6 +3,7 @@ package task
 import (
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/client"
 	"github.com/stonecool/livemusic-go/internal/scheduler"
 	"log"
 	reflect "reflect"
@@ -85,13 +86,13 @@ func (t *Task) Execute() error {
 		retryDelay = 5 // 重试间隔(秒)
 	)
 
-	msg := internal.NewAsyncMessage(&internal.Message{
+	msg := client.NewAsyncMessage(&internal.Message{
 		Cmd:  internal.CrawlCmd_Crawl,
 		Data: t,
 	})
 
 	task := &Task{
-		Category: t.AccountType,
+		Category: t.Category,
 		Message:  msg,
 	}
 
@@ -103,7 +104,7 @@ func (t *Task) Execute() error {
 		}
 
 		// 尝试分发任务
-		if err := chrome.GetPool().DispatchTask(t.AccountType, task); err == nil {
+		if err := chrome.GetPool().DispatchTask(t.Category, task); err == nil {
 			return nil
 		} else {
 			lastErr = err
@@ -133,7 +134,7 @@ func GetAllCrawlTasks() ([]*Task, error) {
 }
 
 func dataTypeIdExists(dataType string, dataId int) (bool, error) {
-	val, ok := internal.dataType2StructMap[dataType]
+	val, ok := internal.DataType2StructMap[dataType]
 	if !ok {
 		return false, fmt.Errorf("data_type:%s illegal", dataType)
 	}

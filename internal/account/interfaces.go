@@ -3,6 +3,7 @@ package account
 import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/client"
 )
 
 type ICrawlAccount interface {
@@ -21,7 +22,7 @@ type ICrawlAccount interface {
 	GetCookies() []byte
 	GetLastURL() string
 	SetLastURL(url string)
-	GetMsgChan() chan *internal.AsyncMessage
+	GetMsgChan() chan *client.AsyncMessage
 }
 
 type IRepository interface {

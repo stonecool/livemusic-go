@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/router"
 	"github.com/unknwon/com"
 	"net/http"
 )
@@ -24,12 +25,12 @@ type crawlRoutineForm struct {
 // @Router		/api/v1/crawl-routines 	[post]
 func AddCrawlRoutine(ctx *gin.Context) {
 	var (
-		context = internal.Context{Context: ctx}
+		context = router.Context{Context: ctx}
 		form    crawlRoutineForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != internal.Success {
+	if errCode != router.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -42,9 +43,9 @@ func AddCrawlRoutine(ctx *gin.Context) {
 	}
 
 	if err := routine.Add(); err != nil {
-		context.Response(http.StatusBadRequest, internal.Error, nil)
+		context.Response(http.StatusBadRequest, router.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, internal.Success, routine)
+		context.Response(http.StatusCreated, router.Success, routine)
 	}
 }
 
@@ -57,13 +58,13 @@ func AddCrawlRoutine(ctx *gin.Context) {
 // @Router		/api/v1/crawl-routines/{ID} [get]
 func GetCrawlRoutine(ctx *gin.Context) {
 	var (
-		context = internal.Context{Context: ctx}
+		context = router.Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != internal.Success {
+	if errCode != router.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -72,7 +73,7 @@ func GetCrawlRoutine(ctx *gin.Context) {
 	if err := routine.Get(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
-		context.Response(http.StatusCreated, internal.Success, routine)
+		context.Response(http.StatusCreated, router.Success, routine)
 	}
 }
 
@@ -83,13 +84,13 @@ func GetCrawlRoutine(ctx *gin.Context) {
 // @Failure	400	{object}	http.Response
 // @Router		/api/v1/crawl-routines [get]
 func GetCrawlRoutines(ctx *gin.Context) {
-	var context = internal.Context{Context: ctx}
+	var context = router.Context{Context: ctx}
 
 	msg := internal.CrawlRoutine{}
 	if msgs, err := msg.GetAll(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
-		context.Response(http.StatusCreated, internal.Success, msgs)
+		context.Response(http.StatusCreated, router.Success, msgs)
 	}
 }
 
@@ -102,13 +103,13 @@ func GetCrawlRoutines(ctx *gin.Context) {
 // @Router		/api/v1/crawl-routines/{ID} [delete]
 func DeleteCrawlRoutine(ctx *gin.Context) {
 	var (
-		context = internal.Context{Context: ctx}
+		context = router.Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != internal.Success {
+	if errCode != router.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -117,7 +118,7 @@ func DeleteCrawlRoutine(ctx *gin.Context) {
 	if err := routine.Delete(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
-		context.Response(http.StatusCreated, internal.Success, nil)
+		context.Response(http.StatusCreated, router.Success, nil)
 	}
 }
 
@@ -132,20 +133,20 @@ func DeleteCrawlRoutine(ctx *gin.Context) {
 // @Router		/api/v1/crawl-routines/{ID} 	[put]
 func EditCrawlRoutine(ctx *gin.Context) {
 	var (
-		context = internal.Context{Context: ctx}
+		context = router.Context{Context: ctx}
 		msgForm crawlRoutineForm
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != internal.Success {
+	if errCode != router.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
 	httpCode, errCode = BindAndValid(ctx, &msgForm)
-	if errCode != internal.Success {
+	if errCode != router.Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -158,9 +159,9 @@ func EditCrawlRoutine(ctx *gin.Context) {
 	}
 
 	if err := msg.Edit(); err != nil {
-		context.Response(http.StatusBadRequest, internal.Error, nil)
+		context.Response(http.StatusBadRequest, router.Error, nil)
 	} else {
-		context.Response(http.StatusCreated, internal.Success, msg)
+		context.Response(http.StatusCreated, router.Success, msg)
 	}
 }
 

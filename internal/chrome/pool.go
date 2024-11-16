@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/database"
 )
@@ -107,9 +106,9 @@ func (ip *InstancePool) Login(id int, cat string) {
 	//ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
 
 	err = chromedp.Run(ctx,
-		internal.GetQRCode(crawlAccount),
+		GetQRCode(crawlAccount),
 		crawlAccount.WaitLogin(),
-		internal.SaveCookies(crawlAccount),
+		SaveCookies(crawlAccount),
 		chromedp.Stop(),
 	)
 
