@@ -7,7 +7,8 @@ import (
 )
 
 type Factory interface {
-	CreateInstance(category string) (*Instance, error)
+	CreateChrome(ip string, port int, debuggerURL string) (*Chrome, error)
+	GetChrome(id int) (*Chrome, error)
 }
 
 type factoryImpl struct {
@@ -18,27 +19,63 @@ func NewFactory(repo Repository) Factory {
 	return &factoryImpl{repo: repo}
 }
 
-func (f *factoryImpl) CreateInstance(category string) (*Instance, error) {
+func (f *factoryImpl) CreateChrome(ip string, port int, debuggerURL string) (*Chrome, error) {
+	// 创建 model 实例
+	m := &model{
+		IP:          ip,
+		Port:        port,
+		DebuggerURL: debuggerURL,
+		State:       int(STATE_UNINITIALIZED),
+	}
+
+	// 验证实例
 	v := NewValidator()
-	if err := v.ValidateCategory(category); err != nil {
-		return nil, fmt.Errorf("invalid instance category: %w", err)
+	if err := v.ValidateChrome(&Chrome{
+		IP:          m.IP,
+		Port:        m.Port,
+		DebuggerURL: m.DebuggerURL,
+	}); err != nil {
+		return nil, fmt.Errorf("invalid chrome instance: %w", err)
 	}
 
-	instance, err := NewChromeInstance(category)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create chrome instance: %w", err)
-	}
-
-	if err := f.repo.Create(instance); err != nil {
+	chrome := m.toEntity()
+	if err := f.repo.Create(chrome); err != nil {
 		return nil, fmt.Errorf("failed to save instance: %w", err)
 	}
 
-	return instance, nil
+	if err := chrome.initialize(); err != nil {
+		return nil, fmt.Errorf("failed to initialize chrome instance: %w", err)
+	}
+
+	return chrome, nil
+}
+
+func (f *factoryImpl) GetChrome(id int) (*Chrome, error) {
+	chrome, err := f.repo.Get(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get chrome instance: %w", err)
+	}
+
+	// 如果实例需要重新初始化，则进行初始化
+	if chrome.NeedsReInitialize() {
+		if err := chrome.RetryInitialize(3); err != nil {
+			return nil, fmt.Errorf("failed to reinitialize chrome instance: %w", err)
+		}
+	}
+
+	return chrome, nil
 }
 
 // 便捷创建方法
-func CreateInstance1(db *gorm.DB, category string) (*Instance, error) {
+func CreateInstance1(db *gorm.DB, ip string, port int, debuggerURL string) (*Chrome, error) {
 	repo := NewRepositoryDB(db)
 	factory := NewFactory(repo)
-	return factory.CreateInstance(category)
+	return factory.CreateChrome(ip, port, debuggerURL)
 }
+
+//// 新增便捷获取方法
+//func GetInstance(db *gorm.DB, id int) (*Chrome, error) {
+//	repo := NewRepositoryDB(db)
+//	factory := NewFactory(repo)
+//	return factory.GetChrome(id)
+//}

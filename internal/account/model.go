@@ -19,7 +19,7 @@ type model struct {
 }
 
 func (*model) TableName() string {
-	return "crawl_accounts"
+	return "accounts"
 }
 
 func (m *model) toEntity() *Account {

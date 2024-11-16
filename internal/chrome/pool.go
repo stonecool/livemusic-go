@@ -10,15 +10,14 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/account"
-	"github.com/stonecool/livemusic-go/internal/database"
 )
 
 // 全局唯一的实例池
 var globalPool *InstancePool
 
 type InstancePool struct {
-	instances      map[int]*Instance
-	addr2Instances map[string]*Instance
+	instances      map[int]*Chrome
+	addr2Instances map[string]*Chrome
 	categories     map[string]*Category
 	mu             sync.Mutex
 }
@@ -26,8 +25,8 @@ type InstancePool struct {
 // init 在包初始化时创建实例池
 func init() {
 	globalPool = &InstancePool{
-		instances:      make(map[int]*Instance),
-		addr2Instances: make(map[string]*Instance),
+		instances:      make(map[int]*Chrome),
+		addr2Instances: make(map[string]*Chrome),
 		categories:     make(map[string]*Category),
 	}
 }
@@ -38,7 +37,7 @@ func GetPool() *InstancePool {
 }
 
 // AddInstance 添加新的实例到池
-func (ip *InstancePool) AddInstance(id int) (*Instance, error) {
+func (ip *InstancePool) AddInstance(id int) (*Chrome, error) {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
@@ -63,7 +62,7 @@ func (ip *InstancePool) AddInstance(id int) (*Instance, error) {
 		if _, exists := ip.categories[cat]; !exists {
 			ip.categories[cat] = newCategory(cat)
 		}
-		ip.categories[cat].AddInstance(ins)
+		ip.categories[cat].AddChrome(ins)
 	}
 
 	return ins, nil
@@ -81,22 +80,17 @@ func (ip *InstancePool) Login(id int, cat string) {
 
 	category, ok := ip.categories[cat]
 	if ok {
-		if category.ContainInstance(id) {
+		if category.ContainChrome(id) {
 			fmt.Printf("instance:%d already in cat:%s", id, cat)
 			return
 		}
 	}
 
-	data := map[string]interface{}{
-		"account_type": cat,
-	}
-
-	m, err := database.AddCrawlAccount(data)
+	crawlAccount, err := account.CreateAccount(cat)
 	if err != nil {
 		return
 	}
 
-	crawlAccount := account.NewCrawlAccount(m)
 	ctx, cancel := instance.GetNewContext()
 	defer cancel()
 
@@ -117,17 +111,17 @@ func (ip *InstancePool) Login(id int, cat string) {
 		return
 	}
 
-	category.AddInstance(instance)
+	category.AddChrome(instance)
 
 	return
 }
 
-func (ip *InstancePool) GetInstancesByCategory(cat string) []*Instance {
+func (ip *InstancePool) GetInstancesByCategory(cat string) []*Chrome {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
 	if cat, exists := ip.categories[cat]; exists {
-		return cat.GetInstances()
+		return cat.GetChromes()
 	} else {
 		return nil
 	}

@@ -5,13 +5,13 @@ import (
 )
 
 // 实例状态
-type InstanceState uint8
+type ChromeState uint8
 
 const (
-	STATE_UNINITIALIZED InstanceState = iota // 未初始化：实例刚创建
-	STATE_INIT_FAILED                        // 初始化失败：初始化方法执行失败
-	STATE_CONNECTED                          // 连接成功：包含初始化成功和心跳检查正常
-	STATE_DISCONNECTED                       // 连接断开：心跳检查失败
+	STATE_UNINITIALIZED ChromeState = iota // 未初始化：实例刚创建
+	STATE_INIT_FAILED                      // 初始化失败：初始化方法执行失败
+	STATE_CONNECTED                        // 连接成功：包含初始化成功和心跳检查正常
+	STATE_DISCONNECTED                     // 连接断开：心跳检查失败
 )
 
 // 实例事件

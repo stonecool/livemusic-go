@@ -2,9 +2,9 @@ package account
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/database"
 
 	"github.com/stonecool/livemusic-go/internal/config"
-	"gorm.io/gorm"
 )
 
 type factoryImpl struct {
@@ -44,9 +44,8 @@ func (f *factoryImpl) CreateAccount(category string) (*Account, error) {
 	return account, nil
 }
 
-// 在 internal/account/factory.go 中添加一个便捷的创建方法
-func CreateAccount(db *gorm.DB, category string) (*Account, error) {
-	repo := NewRepositoryDB(db)
+func CreateAccount(category string) (*Account, error) {
+	repo := NewRepositoryDB(database.DB)
 	factory := NewFactory(repo)
 	return factory.CreateAccount(category)
 }

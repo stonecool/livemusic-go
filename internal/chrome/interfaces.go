@@ -19,9 +19,9 @@ type IInstance interface {
 
 // Pool 实例池接口
 type Pool interface {
-	CreateInstance(category string) (Instance, error)
-	GetInstance(id int) (Instance, error)
-	GetInstancesByCategory(category string) []Instance
+	CreateInstance(category string) (Chrome, error)
+	GetInstance(id int) (Chrome, error)
+	GetInstancesByCategory(category string) []Chrome
 	RemoveInstance(id int) error
 	DispatchTask(category string, task *task.Task) error
 }

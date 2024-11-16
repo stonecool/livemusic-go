@@ -7,12 +7,11 @@ import (
 )
 
 type Repository interface {
-	Create(instance *Instance) error
-	Get(id int) (*Instance, error)
-	Update(instance *Instance) error
+	Create(chrome *Chrome) error
+	Get(id int) (*Chrome, error)
+	Update(chrome *Chrome) error
 	Delete(id int) error
-	GetAll() ([]*Instance, error)
-	FindByCategory(category string) ([]*Instance, error)
+	GetAll() ([]*Chrome, error)
 }
 
 type repositoryDBImpl struct {
@@ -23,70 +22,57 @@ func NewRepositoryDB(db *gorm.DB) Repository {
 	return &repositoryDBImpl{db: db}
 }
 
-func (r *repositoryDBImpl) Create(instance *Instance) error {
-	model := &Model{}
-	model.FromEntity(instance)
+func (r *repositoryDBImpl) Create(chrome *Chrome) error {
+	m := &model{}
+	m.fromEntity(chrome)
 
-	if err := r.db.Create(model).Error; err != nil {
+	if err := r.db.Create(m).Error; err != nil {
 		return fmt.Errorf("failed to create instance: %w", err)
 	}
 
-	instance.ID = model.ID
+	chrome.ID = m.ID
 	return nil
 }
 
-func (r *repositoryDBImpl) Get(id int) (*Instance, error) {
-	var model Model
-	if err := r.db.First(&model, id).Error; err != nil {
+func (r *repositoryDBImpl) Get(id int) (*Chrome, error) {
+	var m model
+	if err := r.db.First(&m, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("instance not found: %d", id)
 		}
 		return nil, fmt.Errorf("failed to get instance: %w", err)
 	}
 
-	instance := model.ToEntity()
-	return instance, nil
+	return m.toEntity(), nil
 }
 
-func (r *repositoryDBImpl) Update(instance *Instance) error {
-	model := &Model{}
-	model.FromEntity(instance)
+func (r *repositoryDBImpl) Update(chrome *Chrome) error {
+	m := &model{}
+	m.fromEntity(chrome)
 
-	if err := r.db.Save(model).Error; err != nil {
+	if err := r.db.Save(m).Error; err != nil {
 		return fmt.Errorf("failed to update instance: %w", err)
 	}
 	return nil
 }
 
 func (r *repositoryDBImpl) Delete(id int) error {
-	if err := r.db.Delete(&Model{}, id).Error; err != nil {
+	if err := r.db.Delete(&model{}, id).Error; err != nil {
 		return fmt.Errorf("failed to delete instance: %w", err)
 	}
 	return nil
 }
 
-func (r *repositoryDBImpl) GetAll() ([]*Instance, error) {
-	var models []Model
+func (r *repositoryDBImpl) GetAll() ([]*Chrome, error) {
+	var models []*model
 	if err := r.db.Find(&models).Error; err != nil {
-		return nil, fmt.Errorf("failed to get all instances: %w", err)
+		return nil, fmt.Errorf("failed to get all chromes: %w", err)
 	}
 
-	instances := make([]*Instance, len(models))
-	for i, model := range models {
-		instances[i] = model.ToEntity()
-	}
-	return instances, nil
-}
-
-func (r *repositoryDBImpl) FindByCategory(category string) ([]*Instance, error) {
-	var models []Model
-	if err := r.db.Where("category = ?", category).Find(&models).Error; err != nil {
-		return nil, fmt.Errorf("failed to find instances by category: %w", err)
+	chromes := make([]*Chrome, len(models))
+	for i, m := range models {
+		chromes[i] = m.toEntity()
 	}
 
-	instances := make([]*Instance, len(models))
-	for i, model := range models {
-		instances[i] = model.ToEntity()
-	}
-	return instances, nil
+	return chromes, nil
 }

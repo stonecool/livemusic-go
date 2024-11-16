@@ -3,21 +3,23 @@ package chrome
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/task"
+	"github.com/stonecool/livemusic-go/internal/database"
 	"time"
+
+	"github.com/stonecool/livemusic-go/internal/task"
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/cache"
 )
 
-type Instance struct {
+type Chrome struct {
 	ID           int
 	IP           string
 	Port         int
 	accounts     map[string]*account.Account
 	DebuggerURL  string
-	State        InstanceState
+	State        ChromeState
 	stateChan    chan stateEvent
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc
@@ -31,46 +33,21 @@ func init() {
 }
 
 func getInstance(id int) (interface{}, error) {
-	modelInstance, err := GetChromeInstance(id)
-	if err != nil {
-		return nil, err
-	}
-
-	ins := newInstance(modelInstance, nil)
-	if err := ins.initialize(); err != nil {
-		return nil, fmt.Errorf("initialize instance failed: %w", err)
-	}
-
-	return ins, nil
+	repo := NewRepositoryDB(database.DB)
+	factory := NewFactory(repo)
+	return factory.GetChrome(id)
 }
 
-func GetInstance(id int) (*Instance, error) {
+func GetInstance(id int) (*Chrome, error) {
 	ins, err := instanceCache.Get(id)
 	if err != nil {
 		return nil, err
 	} else {
-		return ins.(*Instance), nil
+		return ins.(*Chrome), nil
 	}
 }
 
-func newInstance(m *model, opts *InstanceOptions) *Instance {
-	if opts == nil {
-		opts = DefaultOptions()
-	}
-
-	return &Instance{
-		ID:          m.ID,
-		IP:          m.IP,
-		Port:        m.Port,
-		accounts:    make(map[string]*account.Account),
-		DebuggerURL: m.DebuggerURL,
-		State:       STATE_UNINITIALIZED,
-		stateChan:   make(chan stateEvent),
-		opts:        opts,
-	}
-}
-
-func (i *Instance) initialize() error {
+func (i *Chrome) initialize() error {
 	if i.State != STATE_UNINITIALIZED {
 		return fmt.Errorf("instance in invalid state: %v", i.State)
 	}
@@ -102,11 +79,11 @@ func (i *Instance) initialize() error {
 	return nil
 }
 
-func (i *Instance) GetNewContext() (context.Context, context.CancelFunc) {
+func (i *Chrome) GetNewContext() (context.Context, context.CancelFunc) {
 	return chromedp.NewContext(i.allocatorCtx)
 }
 
-func (i *Instance) RetryInitialize(maxAttempts int) error {
+func (i *Chrome) RetryInitialize(maxAttempts int) error {
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		if err := i.initialize(); err == nil {
@@ -120,7 +97,7 @@ func (i *Instance) RetryInitialize(maxAttempts int) error {
 }
 
 // 心跳检查
-func (i *Instance) heartBeat() {
+func (i *Chrome) heartBeat() {
 	ticker := time.NewTicker(i.opts.HeartbeatInterval)
 	defer ticker.Stop()
 
@@ -143,11 +120,11 @@ func (i *Instance) heartBeat() {
 	}
 }
 
-func (i *Instance) getAccounts() map[string]*account.Account {
+func (i *Chrome) getAccounts() map[string]*account.Account {
 	return i.accounts
 }
 
-func (i *Instance) isAvailable(cat string) bool {
+func (i *Chrome) isAvailable(cat string) bool {
 	account, exists := i.accounts[cat]
 	if !exists {
 		return false
@@ -156,11 +133,11 @@ func (i *Instance) isAvailable(cat string) bool {
 	return account.IsAvailable()
 }
 
-func (i *Instance) GetAddr() string {
+func (i *Chrome) GetAddr() string {
 	return fmt.Sprintf("%s:%d", i.IP, i.Port)
 }
 
-func (i *Instance) Close() error {
+func (i *Chrome) Close() error {
 	if i.cancelFunc != nil {
 		i.cancelFunc() // 取消 context，会导致 stateManager 和 heartBeat 退出
 	}
@@ -168,12 +145,12 @@ func (i *Instance) Close() error {
 }
 
 // 判断实例是否可用
-func (i *Instance) IsAvailable() bool {
+func (i *Chrome) IsAvailable() bool {
 	return i.GetState() == STATE_CONNECTED
 }
 
 // 状态管理器
-func (i *Instance) stateManager() {
+func (i *Chrome) stateManager() {
 	for {
 		select {
 		case evt := <-i.stateChan:
@@ -223,7 +200,7 @@ func (i *Instance) stateManager() {
 }
 
 // 处理状态事件
-func (i *Instance) handleEvent(event InstanceEvent) error {
+func (i *Chrome) handleEvent(event InstanceEvent) error {
 	response := make(chan interface{}, 1)
 	i.stateChan <- stateEvent{
 		event:    event,
@@ -237,23 +214,23 @@ func (i *Instance) handleEvent(event InstanceEvent) error {
 }
 
 // GetState 获取当前状态
-func (i *Instance) GetState() InstanceState {
+func (i *Chrome) GetState() ChromeState {
 	response := make(chan interface{}, 1)
 	i.stateChan <- stateEvent{
 		event:    EVENT_GET_STATE,
 		response: response,
 	}
 	result := <-response
-	return result.(InstanceState)
+	return result.(ChromeState)
 }
 
 // NeedsReInitialize 判断是否需要重新初始化
-func (i *Instance) NeedsReInitialize() bool {
+func (i *Chrome) NeedsReInitialize() bool {
 	state := i.GetState()
 	return state == STATE_INIT_FAILED || state == STATE_DISCONNECTED
 }
 
-func (i *Instance) cleanupTabs() {
+func (i *Chrome) cleanupTabs() {
 	ticker := time.NewTicker(5 * time.Minute) // 每5分钟检查一次
 	defer ticker.Stop()
 
@@ -283,7 +260,7 @@ func (i *Instance) cleanupTabs() {
 	}
 }
 
-func (i *Instance) ExecuteTask(task *task.Task) error {
+func (i *Chrome) ExecuteTask(task *task.Task) error {
 	account, exists := i.accounts[task.Category]
 	if !exists {
 		return fmt.Errorf("no account found for category: %s", task.Category)

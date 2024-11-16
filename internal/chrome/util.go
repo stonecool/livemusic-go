@@ -137,7 +137,7 @@ func RetryCheckChromeHealth(addr string, retryCount int, retryDelay time.Duratio
 }
 
 // CreateLocalChromeInstance Create a local chrome instance
-func CreateLocalChromeInstance() (*Instance, error) {
+func CreateLocalChromeInstance() (*Chrome, error) {
 	ip := "127.0.0.1"
 	port, err := FindAvailablePort(9222)
 	if err != nil {
@@ -164,7 +164,7 @@ func CreateLocalChromeInstance() (*Instance, error) {
 
 	ok, url := RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 	if !ok {
-		fmt.Printf("Instance health check error: %v\n", err)
+		fmt.Printf("Chrome health check error: %v\n", err)
 		return nil, err
 	}
 
@@ -183,7 +183,7 @@ func CreateLocalChromeInstance() (*Instance, error) {
 }
 
 // BindChromeInstance
-//func BindChromeInstance(ip string, port int) (*Instance, error) {
+//func BindChromeInstance(ip string, port int) (*Chrome, error) {
 //	exists, err := database.ExistsChromeInstance(ip, port)
 //	if err != nil {
 //		fmt.Printf("%v\n", err)
@@ -196,9 +196,9 @@ func CreateLocalChromeInstance() (*Instance, error) {
 //
 //	ok, _ := RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 //	if !ok {
-//		fmt.Printf("Instance health check error: %v\n", err)
+//		fmt.Printf("Chrome health check error: %v\n", err)
 //		return nil, err
 //	}
 //
-//	return globalPool.AddInstance(m.ID)
+//	return globalPool.AddChrome(m.ID)
 //}

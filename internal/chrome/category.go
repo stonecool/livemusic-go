@@ -5,43 +5,43 @@ import (
 )
 
 type Category struct {
-	name      string
-	instances map[int]*Instance
-	mu        sync.RWMutex
+	name    string
+	chromes map[int]*Chrome
+	mu      sync.RWMutex
 }
 
 func newCategory(name string) *Category {
 	return &Category{
-		name:      name,
-		instances: make(map[int]*Instance),
+		name:    name,
+		chromes: make(map[int]*Chrome),
 	}
 }
 
-func (c *Category) AddInstance(ins *Instance) {
+func (c *Category) AddChrome(chrome *Chrome) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if _, ok := c.instances[ins.ID]; ok {
+	if _, ok := c.chromes[chrome.ID]; ok {
 		// TODO log
 		return
 	}
 
-	c.instances[ins.ID] = ins
+	c.chromes[chrome.ID] = chrome
 }
 
-func (c *Category) GetInstances() []*Instance {
+func (c *Category) GetChromes() []*Chrome {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	result := make([]*Instance, len(c.instances))
-	for _, ins := range c.instances {
+	result := make([]*Chrome, len(c.chromes))
+	for _, ins := range c.chromes {
 		result = append(result, ins)
 	}
 
 	return result
 }
 
-func (c *Category) ContainInstance(id int) bool {
-	_, ok := c.instances[id]
+func (c *Category) ContainChrome(id int) bool {
+	_, ok := c.chromes[id]
 	return ok
 }

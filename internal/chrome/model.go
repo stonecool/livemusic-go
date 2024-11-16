@@ -1,6 +1,7 @@
 package chrome
 
 import (
+	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )
@@ -14,46 +15,43 @@ type model struct {
 	State       int
 }
 
-func AddChromeInstance(data map[string]interface{}) (*model, error) {
-	ins := model{
-		IP:          data["ip"].(string),
-		Port:        data["port"].(int),
-		DebuggerURL: data["debugger_url"].(string),
-		State:       data["state"].(int),
-	}
-
-	if err := DB.Create(&ins).Error; err != nil {
-		return nil, err
-	}
-
-	return &ins, nil
+func (*model) TableName() string {
+	return "chromes"
 }
 
-func ExistsChromeInstance(ip string, port int) (bool, error) {
-	var ins model
-	err := DB.Select("id").Where("ip = '?' AND port = ?",
-		ip, port).First(&ins).Error
-	if err != nil && err != gorm.ErrRecordNotFound {
-		return false, err
-	}
-
-	return ins.ID > 0, nil
-}
-
-func GetChromeInstance(id int) (*model, error) {
-	var instance model
-	if err := DB.Where("id = ? AND deleted_at = ?", id, 0).First(&instance).Error; err != nil {
-		return nil, err
-	} else {
-		return &instance, err
+func (m *model) toEntity() *Chrome {
+	return &Chrome{
+		ID:          m.ID,
+		IP:          m.IP,
+		Port:        m.Port,
+		DebuggerURL: m.DebuggerURL,
+		State:       ChromeState(m.State),
+		accounts:    make(map[string]*account.Account),
+		stateChan:   make(chan stateEvent),
+		opts:        DefaultOptions(),
 	}
 }
 
-func GetChromeInstanceAll() ([]*model, error) {
-	var instances []*model
-	if err := DB.Where("deleted_at = ?", 0).Find(&instances).Error; err != nil {
-		return nil, err
-	}
+func (m *model) fromEntity(chrome *Chrome) {
+	m.ID = chrome.ID
+	m.IP = chrome.IP
+	m.Port = chrome.Port
+	m.DebuggerURL = chrome.DebuggerURL
+	m.State = int(chrome.State)
+}
 
-	return instances, nil
+func (m *model) Validate() error {
+	v := NewValidator()
+	return v.ValidateChrome(&Chrome{
+		IP:   m.IP,
+		Port: m.Port,
+	})
+}
+
+func (m *model) BeforeCreate(tx *gorm.DB) error {
+	return m.Validate()
+}
+
+func (m *model) BeforeUpdate(tx *gorm.DB) error {
+	return m.Validate()
 }
