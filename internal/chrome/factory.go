@@ -2,24 +2,18 @@ package chrome
 
 import (
 	"fmt"
-
-	"github.com/stonecool/livemusic-go/internal/database"
 )
 
-type Factory interface {
-	CreateChrome(ip string, port int, debuggerURL string) (*Chrome, error)
-	GetChrome(id int) (*Chrome, error)
+
+type Factory struct {
+	repo repository
 }
 
-type factoryImpl struct {
-	repo Repository
+func NewFactory(repo repository) *Factory {
+	return &Factory{repo: repo}
 }
 
-func NewFactory(repo Repository) Factory {
-	return &factoryImpl{repo: repo}
-}
-
-func (f *factoryImpl) CreateChrome(ip string, port int, debuggerURL string) (*Chrome, error) {
+func (f *Factory) CreateChrome(ip string, port int, debuggerURL string) (*Chrome, error) {
 	// 创建 model 实例
 	m := &model{
 		IP:          ip,
@@ -49,33 +43,3 @@ func (f *factoryImpl) CreateChrome(ip string, port int, debuggerURL string) (*Ch
 
 	return chrome, nil
 }
-
-func (f *factoryImpl) GetChrome(id int) (*Chrome, error) {
-	chrome, err := f.repo.Get(id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get chrome instance: %w", err)
-	}
-
-	// 如果实例需要重新初始化，则进行初始化
-	if chrome.NeedsReInitialize() {
-		if err := chrome.RetryInitialize(3); err != nil {
-			return nil, fmt.Errorf("failed to reinitialize chrome instance: %w", err)
-		}
-	}
-
-	return chrome, nil
-}
-
-// 便捷创建方法
-func CreateInstance1(ip string, port int, debuggerURL string) (*Chrome, error) {
-	repo := NewRepositoryDB(database.DB)
-	factory := NewFactory(repo)
-	return factory.CreateChrome(ip, port, debuggerURL)
-}
-
-//// 新增便捷获取方法
-//func GetInstance(db *gorm.DB, id int) (*Chrome, error) {
-//	repo := NewRepositoryDB(db)
-//	factory := NewFactory(repo)
-//	return factory.GetChrome(id)
-//}

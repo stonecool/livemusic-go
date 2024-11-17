@@ -3,7 +3,6 @@ package chrome
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/database"
 	"time"
 
 	"github.com/stonecool/livemusic-go/internal/task"
@@ -33,9 +32,7 @@ func init() {
 }
 
 func getInstance(id int) (interface{}, error) {
-	repo := NewRepositoryDB(database.DB)
-	factory := NewFactory(repo)
-	return factory.GetChrome(id)
+	return GetChrome(id)
 }
 
 func GetInstance(id int) (*Chrome, error) {
@@ -270,10 +267,11 @@ func (i *Chrome) ExecuteTask(task *task.Task) error {
 		return fmt.Errorf("account not available")
 	}
 
-	select {
-	case account.TaskChan <- task:
-		return nil
-	case <-time.After(5 * time.Second):
-		return fmt.Errorf("send task timeout")
-	}
+	//select {
+	//case account.TaskChan <- task:
+	//	return nil
+	//case <-time.After(5 * time.Second):
+	//	return fmt.Errorf("send task timeout")
+	//}
+	return nil
 }

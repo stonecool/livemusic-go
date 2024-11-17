@@ -2,8 +2,6 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome"
 	"github.com/stonecool/livemusic-go/internal/router"
 	"net/http"
@@ -50,7 +48,7 @@ func BindChromeInstance(ctx *gin.Context) {
 		return
 	}
 
-	if ins, err := internal.BindChromeInstance(form.Ip, form.Port); err != nil {
+	if ins, err := chrome.BindChromeInstance(form.Ip, form.Port); err != nil {
 		context.Response(http.StatusBadRequest, router.Error, nil)
 	} else {
 		context.Response(http.StatusCreated, router.Success, ins)
@@ -66,12 +64,10 @@ func BindChromeInstance(ctx *gin.Context) {
 func GetChromeInstances(ctx *gin.Context) {
 	var context = router.Context{Context: ctx}
 
-	account := &account.Account{}
-	//chrome.GetAllChromeInstance()
-	if accounts, err := account.GetAll(); err != nil {
+	if chromes, err := chrome.GetAllChrome(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
-		context.Response(http.StatusBadRequest, 0, accounts)
+		context.Response(http.StatusBadRequest, 0, chromes)
 	}
 }
 

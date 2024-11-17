@@ -145,7 +145,7 @@ func CreateLocalChromeInstance() (*Chrome, error) {
 		return nil, err
 	}
 
-	exists, err := ExistsChromeInstance(ip, port)
+	exists, err := ExistsByIPAndPort(ip, port)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return nil, err
@@ -168,37 +168,32 @@ func CreateLocalChromeInstance() (*Chrome, error) {
 		return nil, err
 	}
 
-	data := map[string]interface{}{
-		"ip":           ip,
-		"port":         port,
-		"debugger_url": url,
-	}
-
-	m, err := AddChromeInstance(data)
+	m, err := CreateChrome(ip, port, url)
 	if err != nil {
 		return nil, err
 	}
 
-	return globalPool.AddInstance(m.ID)
+	return globalPool.AddChrome(m.ID)
 }
 
 // BindChromeInstance
-//func BindChromeInstance(ip string, port int) (*Chrome, error) {
-//	exists, err := database.ExistsChromeInstance(ip, port)
-//	if err != nil {
-//		fmt.Printf("%v\n", err)
-//		return nil, err
-//	}
-//
-//	if exists {
-//		return nil, fmt.Errorf("port:%d occupied", port)
-//	}
-//
-//	ok, _ := RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
-//	if !ok {
-//		fmt.Printf("Chrome health check error: %v\n", err)
-//		return nil, err
-//	}
-//
-//	return globalPool.AddChrome(m.ID)
-//}
+func BindChromeInstance(ip string, port int) (*Chrome, error) {
+	exists, err := ExistsByIPAndPort(ip, port)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		return nil, err
+	}
+
+	if exists {
+		return nil, fmt.Errorf("port:%d occupied", port)
+	}
+
+	ok, _ := RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
+	if !ok {
+		fmt.Printf("Chrome health check error: %v\n", err)
+		return nil, err
+	}
+
+	// TODO
+	return globalPool.AddChrome(0)
+}

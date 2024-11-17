@@ -6,19 +6,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository interface {
+type repository interface {
 	Create(chrome *Chrome) error
 	Get(id int) (*Chrome, error)
 	Update(chrome *Chrome) error
 	Delete(id int) error
 	GetAll() ([]*Chrome, error)
+	ExistsByIPAndPort(ip string, port int) (bool, error)
 }
 
 type repositoryDBImpl struct {
 	db *gorm.DB
 }
 
-func NewRepositoryDB(db *gorm.DB) Repository {
+func NewRepositoryDB(db *gorm.DB) repository {
 	return &repositoryDBImpl{db: db}
 }
 
@@ -75,4 +76,17 @@ func (r *repositoryDBImpl) GetAll() ([]*Chrome, error) {
 	}
 
 	return chromes, nil
+}
+
+func (r *repositoryDBImpl) ExistsByIPAndPort(ip string, port int) (bool, error) {
+	var count int64
+	err := r.db.Model(&model{}).
+		Where("ip = ? AND port = ?", ip, port).
+		Count(&count).Error
+
+	if err != nil {
+		return false, fmt.Errorf("failed to check ip and port existence: %w", err)
+	}
+
+	return count > 0, nil
 }

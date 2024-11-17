@@ -13,31 +13,31 @@ import (
 )
 
 // 全局唯一的实例池
-var globalPool *InstancePool
+var globalPool *Pool
 
-type InstancePool struct {
-	instances      map[int]*Chrome
-	addr2Instances map[string]*Chrome
-	categories     map[string]*category
+type Pool struct {
+	chromes      map[int]*Chrome
+	addr2Chromes map[string]*Chrome
+	categories   map[string]*category
 	mu             sync.Mutex
 }
 
 // init 在包初始化时创建实例池
 func init() {
-	globalPool = &InstancePool{
-		instances:      make(map[int]*Chrome),
-		addr2Instances: make(map[string]*Chrome),
-		categories:     make(map[string]*category),
+	globalPool = &Pool{
+		chromes:      make(map[int]*Chrome),
+		addr2Chromes: make(map[string]*Chrome),
+		categories:   make(map[string]*category),
 	}
 }
 
 // GetPool 获取全局实例池
-func GetPool() *InstancePool {
+func GetPool() *Pool {
 	return globalPool
 }
 
-// AddInstance 添加新的实例到池
-func (ip *InstancePool) AddInstance(id int) (*Chrome, error) {
+// AddChrome 添加新的实例到池
+func (ip *Pool) AddChrome(id int) (*Chrome, error) {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
@@ -46,18 +46,18 @@ func (ip *InstancePool) AddInstance(id int) (*Chrome, error) {
 		return nil, err
 	}
 
-	if _, exists := ip.instances[ins.ID]; exists {
+	if _, exists := ip.chromes[ins.ID]; exists {
 		fmt.Printf("instance on:%s exists", ins.GetAddr())
 		return nil, nil
 	}
 
-	if _, exists := ip.addr2Instances[ins.GetAddr()]; exists {
+	if _, exists := ip.addr2Chromes[ins.GetAddr()]; exists {
 		fmt.Printf("instance on:%s exists", ins.GetAddr())
 		return nil, nil
 	}
 
-	ip.instances[ins.ID] = ins
-	ip.addr2Instances[ins.GetAddr()] = ins
+	ip.chromes[ins.ID] = ins
+	ip.addr2Chromes[ins.GetAddr()] = ins
 	for cat := range ins.getAccounts() {
 		if _, exists := ip.categories[cat]; !exists {
 			ip.categories[cat] = newCategory(cat)
@@ -68,11 +68,11 @@ func (ip *InstancePool) AddInstance(id int) (*Chrome, error) {
 	return ins, nil
 }
 
-func (ip *InstancePool) Login(id int, cat string) {
+func (ip *Pool) Login(id int, cat string) {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
-	instance, exists := ip.instances[id]
+	instance, exists := ip.chromes[id]
 	if !exists {
 		fmt.Printf("instance:%d not exists in pool", id)
 		return
@@ -116,7 +116,7 @@ func (ip *InstancePool) Login(id int, cat string) {
 	return
 }
 
-func (ip *InstancePool) GetInstancesByCategory(cat string) []*Chrome {
+func (ip *Pool) GetChromesByCategory(cat string) []*Chrome {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
@@ -127,12 +127,12 @@ func (ip *InstancePool) GetInstancesByCategory(cat string) []*Chrome {
 	}
 }
 
-func (ip *InstancePool) DispatchTask(category string, task *task.Task) error {
+func (ip *Pool) DispatchTask(category string, task *task.Task) error {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
 	// 获取该分类下的所有实例
-	instances := ip.GetInstancesByCategory(category)
+	instances := ip.GetChromesByCategory(category)
 	if len(instances) == 0 {
 		return fmt.Errorf("no instance available for category: %s", category)
 	}

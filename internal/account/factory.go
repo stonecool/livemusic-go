@@ -3,8 +3,6 @@ package account
 import (
 	"fmt"
 
-	"github.com/stonecool/livemusic-go/internal/database"
-
 	"github.com/stonecool/livemusic-go/internal/config"
 )
 
@@ -16,7 +14,7 @@ func newFactory(repo IRepository) *factory {
 	return &factory{repo: repo}
 }
 
-func (f *factory) createAccount(category string) (IAccount, error) {
+func (f *factory) createAccount(category string) (*Account, error) {
 	v := NewValidator()
 	if err := v.validateCategory(category); err != nil {
 		return nil, fmt.Errorf("invalid account category: %w", err)
@@ -38,18 +36,5 @@ func (f *factory) createAccount(category string) (IAccount, error) {
 	}
 
 	account.Init()
-	switch account.Category {
-	case "wechat":
-		return &WeChatAccount{Account: *account}, nil
-	default:
-		return account, nil
-	}
+	return account, nil
 }
-
-func CreateAccount(category string) (IAccount, error) {
-	repo := NewRepositoryDB(database.DB)
-	factory := newFactory(repo)
-	return factory.createAccount(category)
-}
-
-
