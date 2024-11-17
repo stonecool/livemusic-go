@@ -32,10 +32,10 @@ func (acc *Account) processTask() {
 		select {
 		case msg := <-acc.msgChan:
 			switch msg.Cmd {
-			case internal.CrawlCmd_Login:
+			case client.CrawlCmd_Login:
 				result := acc.handleLogin()
 				msg.Data = []byte(fmt.Sprintf("%v", result))
-			case internal.CrawlCmd_Crawl:
+			case client.CrawlCmd_Crawl:
 				result := acc.handleCrawl(msg.Data)
 				msg.Data = []byte(fmt.Sprintf("%v", result))
 			}

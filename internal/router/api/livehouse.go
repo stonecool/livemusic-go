@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/router"
 	"github.com/unknwon/com"
 	"net/http"
 )
@@ -23,12 +22,12 @@ type livehouseForm struct {
 // @Router		/api/v1/livehouses [post]
 func AddLivehouse(ctx *gin.Context) {
 	var (
-		context = router.Context{Context: ctx}
+		context = Context{Context: ctx}
 		form    livehouseForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != router.Success {
+	if errCode != Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -38,9 +37,9 @@ func AddLivehouse(ctx *gin.Context) {
 	}
 
 	if err := house.Add(); err != nil {
-		context.Response(http.StatusBadRequest, router.Error, nil)
+		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
-		context.Response(http.StatusCreated, router.Success, house)
+		context.Response(http.StatusCreated, Success, house)
 	}
 }
 
@@ -53,22 +52,22 @@ func AddLivehouse(ctx *gin.Context) {
 // @Router		/api/v1/livehouses/{ID} [get]
 func GetLivehouse(ctx *gin.Context) {
 	var (
-		context = router.Context{Context: ctx}
+		context = Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("ID")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != router.Success {
+	if errCode != Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
 	house := &internal.Livehouse{ID: form.ID}
 	if err := house.Get(); err != nil {
-		context.Response(http.StatusBadRequest, router.Error, nil)
+		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
-		context.Response(http.StatusCreated, router.Success, house)
+		context.Response(http.StatusCreated, Success, house)
 	}
 }
 
@@ -79,13 +78,13 @@ func GetLivehouse(ctx *gin.Context) {
 // @Failure	400	{object}	http.Response
 // @Router		/api/v1/livehouses [get]
 func GetLivehouses(ctx *gin.Context) {
-	var context = router.Context{Context: ctx}
+	var context = Context{Context: ctx}
 
 	house := &internal.Livehouse{}
 	if houses, err := house.GetAll(); err != nil {
-		context.Response(http.StatusBadRequest, router.Error, nil)
+		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
-		context.Response(http.StatusCreated, router.Success, houses)
+		context.Response(http.StatusCreated, Success, houses)
 	}
 }
 
@@ -99,13 +98,13 @@ func GetLivehouses(ctx *gin.Context) {
 // @Router		/api/v1/livehouses/{id} [put]
 func EditLivehouse(ctx *gin.Context) {
 	var (
-		context = router.Context{Context: ctx}
+		context = Context{Context: ctx}
 		form    livehouseForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != router.Success {
+	if errCode != Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
@@ -116,9 +115,9 @@ func EditLivehouse(ctx *gin.Context) {
 	}
 
 	if err := house.Edit(); err != nil {
-		context.Response(http.StatusBadRequest, router.Error, nil)
+		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
-		context.Response(http.StatusOK, router.Error, house)
+		context.Response(http.StatusOK, Error, house)
 	}
 }
 
@@ -131,21 +130,21 @@ func EditLivehouse(ctx *gin.Context) {
 // @Router		/api/v1/livehouses/{id} [delete]
 func DeleteLivehouse(ctx *gin.Context) {
 	var (
-		context = router.Context{Context: ctx}
+		context = Context{Context: ctx}
 		form    idForm
 	)
 
 	form.ID = com.StrTo(ctx.Param("id")).MustInt()
 	httpCode, errCode := Valid(&form)
-	if errCode != router.Success {
+	if errCode != Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
 	house := &internal.Livehouse{ID: form.ID}
 	if err := house.Delete(); err != nil {
-		context.Response(http.StatusBadRequest, router.Error, nil)
+		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
-		context.Response(http.StatusOK, router.Error, nil)
+		context.Response(http.StatusOK, Error, nil)
 	}
 }

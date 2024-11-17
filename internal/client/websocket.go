@@ -3,8 +3,6 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/account"
 	"log"
 	"sync"
 	"time"
@@ -28,18 +26,18 @@ const (
 )
 
 type Client struct {
-	account     account.IAccount
 	conn        *websocket.Conn
-	accountChan chan *internal.Message // 用于接收来自 Account 的消息
-	done        chan struct{}          // 用于关闭客户端
+	accountId   int
+	accountChan chan *AsyncMessage
+	done        chan struct{}
 }
 
 var (
-	clients = make(map[account.IAccount]*Client)
+	clients = make(map[int]*Client)
 	mu      sync.Mutex
 )
 
-func newClient(account account.IAccount, ctx *gin.Context) (*Client, error) {
+func newClient(id int, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -51,9 +49,9 @@ func newClient(account account.IAccount, ctx *gin.Context) (*Client, error) {
 	}
 
 	client := &Client{
-		account:     account,
 		conn:        conn,
-		accountChan: make(chan *internal.Message),
+		accountId:   id,
+		accountChan: make(chan *AsyncMessage),
 		done:        make(chan struct{}),
 	}
 
@@ -83,7 +81,7 @@ func (c *Client) readPump() {
 		}
 
 		// 解析消息并处理
-		msg := &internal.Message{}
+		msg := &Message{}
 		if err := json.Unmarshal(message, msg); err != nil {
 			log.Printf("error parsing message: %v", err)
 			continue
@@ -123,26 +121,28 @@ func (c *Client) writePump() {
 	}
 }
 
-func (c *Client) handleWebSocketMessage(msg *internal.Message) error {
+func (c *Client) handleWebSocketMessage(msg *Message) error {
 	switch msg.Cmd {
-	case internal.CrawlCmd_Login:
+	case CrawlCmd_Login:
 		// 创建任务消息
 		asyncMessage := NewAsyncMessage(msg)
 
 		// 发送任务并等待结果
-		c.account.GetMsgChan() <- asyncMessage
+		c.accountChan <- asyncMessage
 		result := <-asyncMessage.Result
 
 		// 发送结果回 WebSocket
-		c.accountChan <- &internal.Message{
-			Cmd:  internal.CrawlCmd_Login,
+
+		msg := &Message{
+			Cmd:  CrawlCmd_Login,
 			Data: []byte(fmt.Sprintf("%v", result)),
 		}
+		c.accountChan <- NewAsyncMessage(msg)
 	}
 	return nil
 }
 
-func (c *Client) handleAccountMessage(msg *internal.Message) error {
+func (c *Client) handleAccountMessage(msg *AsyncMessage) error {
 	// 将消息写入 WebSocket
 	return c.conn.WriteMessage(websocket.TextMessage, msg.Data)
 }
@@ -160,32 +160,32 @@ func (c *Client) Close() {
 
 	// 从全局 clients map 中移除
 	mu.Lock()
-	delete(clients, c.account)
+	delete(clients, c.accountId)
 	mu.Unlock()
 }
 
 func HandleWebsocket(accountId int, ctx *gin.Context) error {
-	account, err := GetCrawl(accountId)
-	if err != nil {
-		return err
-	}
-
-	mu.Lock()
-	client, err := newClient(account, ctx)
-	if err != nil {
-		mu.Unlock()
-		return err
-	}
-
-	if oldClient, ok := clients[account]; ok {
-		oldClient.Close()
-	}
-
-	clients[account] = client
-	mu.Unlock()
-
-	go client.readPump()
-	go client.writePump()
+	//account, err := GetCrawl(accountId)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//mu.Lock()
+	//client, err := newClient(account, ctx)
+	//if err != nil {
+	//	mu.Unlock()
+	//	return err
+	//}
+	//
+	//if oldClient, ok := clients[account]; ok {
+	//	oldClient.Close()
+	//}
+	//
+	//clients[account] = client
+	//mu.Unlock()
+	//
+	//go client.readPump()
+	//go client.writePump()
 
 	return nil
 }

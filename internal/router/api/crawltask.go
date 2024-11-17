@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/stonecool/livemusic-go/internal/router"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"net/http"
 
@@ -25,19 +24,19 @@ type crawlTaskForm struct {
 // @Router     /api/v1/crawl-tasks     [post]
 func AddCrawlTask(ctx *gin.Context) {
 	var (
-		context = router.Context{Context: ctx}
+		context = Context{Context: ctx}
 		form    crawlTaskForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
-	if errCode != router.Success {
+	if errCode != Success {
 		context.Response(httpCode, errCode, nil)
 		return
 	}
 
 	if t, err := task.CreateTask(form.AccountType, form.DataType, form.DataId, form.CronSpec); err != nil {
-		context.Response(http.StatusBadRequest, router.ErrorNotExists, nil)
+		context.Response(http.StatusBadRequest, ErrorNotExists, nil)
 	} else {
-		context.Response(http.StatusCreated, router.Success, t)
+		context.Response(http.StatusCreated, Success, t)
 	}
 }
