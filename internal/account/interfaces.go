@@ -6,7 +6,7 @@ import (
 	"github.com/stonecool/livemusic-go/internal/client"
 )
 
-type ICrawlAccount interface {
+type IAccount interface {
 	GetId() int
 	GetName() string
 	GetCategory() string
@@ -33,8 +33,4 @@ type IRepository interface {
 	GetAll() ([]*Account, error)
 	FindByCategory(category string) ([]*Account, error)
 	FindByInstance(instanceID int) ([]*Account, error)
-}
-
-type IFactory interface {
-	CreateAccount(category string) (*Account, error)
 }

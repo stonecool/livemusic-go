@@ -4,20 +4,20 @@ import (
 	"sync"
 )
 
-type Category struct {
+type category struct {
 	name    string
 	chromes map[int]*Chrome
 	mu      sync.RWMutex
 }
 
-func newCategory(name string) *Category {
-	return &Category{
+func newCategory(name string) *category {
+	return &category{
 		name:    name,
 		chromes: make(map[int]*Chrome),
 	}
 }
 
-func (c *Category) AddChrome(chrome *Chrome) {
+func (c *category) AddChrome(chrome *Chrome) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -29,7 +29,7 @@ func (c *Category) AddChrome(chrome *Chrome) {
 	c.chromes[chrome.ID] = chrome
 }
 
-func (c *Category) GetChromes() []*Chrome {
+func (c *category) GetChromes() []*Chrome {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -41,7 +41,7 @@ func (c *Category) GetChromes() []*Chrome {
 	return result
 }
 
-func (c *Category) ContainChrome(id int) bool {
+func (c *category) ContainChrome(id int) bool {
 	_, ok := c.chromes[id]
 	return ok
 }

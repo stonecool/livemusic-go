@@ -28,18 +28,18 @@ const (
 )
 
 type Client struct {
-	account     account.ICrawlAccount
+	account     account.IAccount
 	conn        *websocket.Conn
 	accountChan chan *internal.Message // 用于接收来自 Account 的消息
 	done        chan struct{}          // 用于关闭客户端
 }
 
 var (
-	clients = make(map[account.ICrawlAccount]*Client)
+	clients = make(map[account.IAccount]*Client)
 	mu      sync.Mutex
 )
 
-func newClient(account account.ICrawlAccount, ctx *gin.Context) (*Client, error) {
+func newClient(account account.IAccount, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,

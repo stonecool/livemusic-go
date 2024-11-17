@@ -2,20 +2,21 @@ package account
 
 import (
 	"fmt"
+
 	"github.com/stonecool/livemusic-go/internal/database"
 
 	"github.com/stonecool/livemusic-go/internal/config"
 )
 
-type factoryImpl struct {
+type factory struct {
 	repo IRepository
 }
 
-func NewFactory(repo IRepository) IFactory {
-	return &factoryImpl{repo: repo}
+func newFactory(repo IRepository) *factory {
+	return &factory{repo: repo}
 }
 
-func (f *factoryImpl) CreateAccount(category string) (*Account, error) {
+func (f *factory) createAccount(category string) (IAccount, error) {
 	v := NewValidator()
 	if err := v.validateCategory(category); err != nil {
 		return nil, fmt.Errorf("invalid account category: %w", err)
@@ -32,58 +33,23 @@ func (f *factoryImpl) CreateAccount(category string) (*Account, error) {
 		return nil, fmt.Errorf("invalid account: %w", err)
 	}
 
-	// return f.repo.Transaction(func(r IRepository) error {
-	// return r.Create(account)
-	// })
-
 	if err := f.repo.Create(account); err != nil {
 		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
 
 	account.Init()
-	return account, nil
+	switch account.Category {
+	case "wechat":
+		return &WeChatAccount{Account: *account}, nil
+	default:
+		return account, nil
+	}
 }
 
-func CreateAccount(category string) (*Account, error) {
+func CreateAccount(category string) (IAccount, error) {
 	repo := NewRepositoryDB(database.DB)
-	factory := NewFactory(repo)
-	return factory.CreateAccount(category)
+	factory := newFactory(repo)
+	return factory.createAccount(category)
 }
 
-// 例如在 API handler 中
-// func CreateAccountHandler(c *gin.Context) {
-//     category := c.PostForm("category")
 
-//     account, err := account.CreateAccount(db, category)
-//     if err != nil {
-//         c.JSON(400, gin.H{"error": err.Error()})
-//         return
-//     }
-
-//     // 初始化账号
-//     account.Init()
-
-//     c.JSON(200, account)
-// }
-
-//func getCrawl(id int) (interface{}, error) {
-//	account := &Account{ID: id}
-//	err := account.Get()
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	factory, err := GetFactory(account.Category)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	cfg, ok := config.AccountMap[account.Category]
-//	if !ok {
-//		return nil, fmt.Errorf("config not found for category: %s", account.Category)
-//	}
-//
-//	crawl := factory.CreateCrawl(&cfg)
-//	go startCrawl(crawl)
-//	return crawl, nil
-//}

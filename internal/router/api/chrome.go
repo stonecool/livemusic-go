@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/chrome"
 	"github.com/stonecool/livemusic-go/internal/router"
 	"net/http"
 )
@@ -22,7 +23,7 @@ type chromeInstanceForm struct {
 func CreateChromeInstance(ctx *gin.Context) {
 	context := router.Context{Context: ctx}
 
-	if ins, err := internal.CreateLocalChromeInstance(); err != nil {
+	if ins, err := chrome.CreateLocalChromeInstance(); err != nil {
 		context.Response(http.StatusBadRequest, router.Error, nil)
 	} else {
 		context.Response(http.StatusCreated, router.Success, ins)

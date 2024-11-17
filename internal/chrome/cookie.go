@@ -9,8 +9,7 @@ import (
 	"log"
 )
 
-// SetCookies
-func SetCookies(account account.ICrawlAccount) chromedp.ActionFunc {
+func SetCookies(account account.IAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookiesParams := network.SetCookiesParams{}
 		if err = cookiesParams.UnmarshalJSON(account.GetCookies()); err != nil {
@@ -22,8 +21,7 @@ func SetCookies(account account.ICrawlAccount) chromedp.ActionFunc {
 	}
 }
 
-// SaveCookies
-func SaveCookies(account account.ICrawlAccount) chromedp.ActionFunc {
+func SaveCookies(account account.IAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookies, err := network.GetCookies().Do(ctx)
 		if err != nil {

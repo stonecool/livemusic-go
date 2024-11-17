@@ -3,7 +3,7 @@ package chrome
 import (
 	"fmt"
 
-	"gorm.io/gorm"
+	"github.com/stonecool/livemusic-go/internal/database"
 )
 
 type Factory interface {
@@ -67,8 +67,8 @@ func (f *factoryImpl) GetChrome(id int) (*Chrome, error) {
 }
 
 // 便捷创建方法
-func CreateInstance1(db *gorm.DB, ip string, port int, debuggerURL string) (*Chrome, error) {
-	repo := NewRepositoryDB(db)
+func CreateInstance1(ip string, port int, debuggerURL string) (*Chrome, error) {
+	repo := NewRepositoryDB(database.DB)
 	factory := NewFactory(repo)
 	return factory.CreateChrome(ip, port, debuggerURL)
 }

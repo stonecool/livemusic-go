@@ -32,7 +32,7 @@ func QRCodeLogin() error {
 }
 
 // GetQRCode get qr code
-func GetQRCode(account account.ICrawlAccount) chromedp.ActionFunc {
+func GetQRCode(account account.IAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		if err := chromedp.Navigate(account.GetLoginURL()).Do(ctx); err != nil {
 			return err

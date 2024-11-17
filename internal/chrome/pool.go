@@ -18,7 +18,7 @@ var globalPool *InstancePool
 type InstancePool struct {
 	instances      map[int]*Chrome
 	addr2Instances map[string]*Chrome
-	categories     map[string]*Category
+	categories     map[string]*category
 	mu             sync.Mutex
 }
 
@@ -27,7 +27,7 @@ func init() {
 	globalPool = &InstancePool{
 		instances:      make(map[int]*Chrome),
 		addr2Instances: make(map[string]*Chrome),
-		categories:     make(map[string]*Category),
+		categories:     make(map[string]*category),
 	}
 }
 
