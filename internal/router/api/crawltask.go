@@ -35,17 +35,9 @@ func AddCrawlTask(ctx *gin.Context) {
 		return
 	}
 
-	task := task.Task{
-		DataType:        form.DataType,
-		DataId:          form.DataId,
-		AccountType:     form.AccountType,
-		TargetAccountId: form.TargetAccountId,
-		CronSpec:        form.CronSpec,
-	}
-
-	if err := task.Add(); err != nil {
+	if t, err := task.CreateTask(form.AccountType, form.DataType, form.DataId, form.CronSpec); err != nil {
 		context.Response(http.StatusBadRequest, router.ErrorNotExists, nil)
 	} else {
-		context.Response(http.StatusCreated, router.Success, task)
+		context.Response(http.StatusCreated, router.Success, t)
 	}
 }

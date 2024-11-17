@@ -39,7 +39,7 @@ func (s *Scheduler) AddTask(task *task.Task) error {
 	}
 
 	// 添加新任务
-	entryID, err := s.cron.AddFunc(task.cronSpec, func() {
+	entryID, err := s.cron.AddFunc(task.CronSpec, func() {
 		s.executeTask(task)
 	})
 	if err != nil {

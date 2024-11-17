@@ -19,7 +19,7 @@ type model struct {
 }
 
 func (*model) TableName() string {
-	return "crawl_tasks"
+	return "tasks"
 }
 
 func (m *model) ToEntity() *Task {
@@ -30,7 +30,7 @@ func (m *model) ToEntity() *Task {
 		MetaType:  m.MetaType,
 		MetaID:    m.MetaID,
 		Count:     m.Count,
-		cronSpec:  m.CronSpec,
+		CronSpec:  m.CronSpec,
 		FirstTime: m.FirstTime,
 		LastTime:  m.LastTime,
 		mark:      m.Mark,
@@ -44,7 +44,7 @@ func (m *model) FromEntity(task *Task) {
 	m.MetaType = task.MetaType
 	m.MetaID = task.MetaID
 	m.Count = task.Count
-	m.CronSpec = task.cronSpec
+	m.CronSpec = task.CronSpec
 	m.FirstTime = task.FirstTime
 	m.LastTime = task.LastTime
 	m.Mark = task.mark

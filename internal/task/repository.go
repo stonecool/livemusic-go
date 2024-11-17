@@ -11,7 +11,7 @@ type repositoryDBImpl struct {
 	db *gorm.DB
 }
 
-func NewRepositoryDB(db *gorm.DB) Repository {
+func newRepositoryDB(db *gorm.DB) Repository {
 	return &repositoryDBImpl{db: db}
 }
 

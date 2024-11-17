@@ -23,7 +23,7 @@ func (v *Validator) ValidateTask(task *Task) error {
 		return err
 	}
 
-	if err := v.ValidateCronSpec(task.cronSpec); err != nil {
+	if err := v.ValidateCronSpec(task.CronSpec); err != nil {
 		return err
 	}
 

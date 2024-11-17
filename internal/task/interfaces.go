@@ -24,8 +24,3 @@ type Repository interface {
 	FindByCategory(category string) ([]*Task, error)
 	ExistsByMeta(metaType string, metaID int, category string) (bool, error)
 }
-
-// Factory 工厂接口
-type Factory interface {
-	CreateTask(category string, data map[string]interface{}) (*Task, error)
-}
