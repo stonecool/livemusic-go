@@ -2,6 +2,7 @@ package account
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/cache"
 	"sync"
 
 	"github.com/chromedp/chromedp"
@@ -21,6 +22,22 @@ type Account struct {
 	mu          sync.RWMutex
 	msgChan     chan *client.AsyncMessage
 	done        chan struct{}
+}
+
+var accountCache *cache.Memo
+
+func init() {
+	accountCache = cache.New(func(id int) (interface{}, error) {
+		return getAccount(id)
+	})
+}
+
+func GetAccount(ID int) (IAccount, error) {
+	if acc, err := accountCache.Get(ID); err != nil {
+		return nil, err
+	} else {
+		return acc.(IAccount), nil
+	}
 }
 
 func (acc *Account) Init() {
@@ -127,10 +144,6 @@ func (acc *Account) GetId() int {
 
 func (acc *Account) GetName() string {
 	return acc.AccountName
-}
-
-func (acc *Account) GetCategory() string {
-	return acc.Category
 }
 
 func (acc *Account) GetState() internal.AccountState {

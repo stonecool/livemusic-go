@@ -7,7 +7,7 @@ import (
 )
 
 type WeChatAccount struct {
-	Account
+	*Account
 }
 
 func (account *WeChatAccount) GetQRCodeSelector() string {

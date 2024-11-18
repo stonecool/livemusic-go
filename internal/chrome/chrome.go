@@ -25,18 +25,16 @@ type Chrome struct {
 	opts         *InstanceOptions
 }
 
-var instanceCache *cache.Memo
+var chromeCache *cache.Memo
 
 func init() {
-	instanceCache = cache.New(getInstance)
-}
-
-func getInstance(id int) (interface{}, error) {
-	return GetChrome(id)
+	chromeCache = cache.New(func(id int) (interface{}, error) {
+		return getChrome(id)
+	})
 }
 
 func GetInstance(id int) (*Chrome, error) {
-	ins, err := instanceCache.Get(id)
+	ins, err := chromeCache.Get(id)
 	if err != nil {
 		return nil, err
 	} else {

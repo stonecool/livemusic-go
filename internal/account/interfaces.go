@@ -9,7 +9,6 @@ import (
 type IAccount interface {
 	GetId() int
 	GetName() string
-	GetCategory() string
 	GetState() internal.AccountState
 	SetState(state internal.AccountState)
 	CheckLogin() chromedp.ActionFunc

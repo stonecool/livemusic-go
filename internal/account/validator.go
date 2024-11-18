@@ -14,7 +14,7 @@ func NewValidator() *Validator {
 }
 
 func (v *Validator) ValidateAccount(account *Account) error {
-	if err := v.validateCategory(account.GetCategory()); err != nil {
+	if err := v.validateCategory(account.Category); err != nil {
 		return err
 	}
 

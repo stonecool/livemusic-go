@@ -11,7 +11,7 @@ func CreateChrome(ip string, port int, debuggerURL string) (*Chrome, error) {
 	return factory.CreateChrome(ip, port, debuggerURL)
 }
 
-func GetChrome(id int) (*Chrome, error) {
+func getChrome(id int) (*Chrome, error) {
 	repo := NewRepositoryDB(database.DB)
 	chrome, err := repo.Get(id)
 	if err != nil {

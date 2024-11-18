@@ -5,21 +5,10 @@ import "github.com/stonecool/livemusic-go/internal/database"
 func CreateAccount(category string) (IAccount, error) {
 	repo := NewRepositoryDB(database.DB)
 	factory := newFactory(repo)
-	account, err := factory.createAccount(category)
-
-	if err != nil {
-		return nil, err
-	}
-
-	switch account.GetCategory() {
-	case "wechat":
-		return &WeChatAccount{Account: *account}, nil
-	default:
-		return account, nil
-	}
+	return factory.createAccount(category)
 }
 
-func GetAccount(id int) (IAccount, error) {
+func getAccount(id int) (IAccount, error) {
 	repo := NewRepositoryDB(database.DB)
 	account, err := repo.Get(id)
 	if err != nil {
@@ -28,7 +17,10 @@ func GetAccount(id int) (IAccount, error) {
 
 	switch account.Category {
 	case "wechat":
-		return &WeChatAccount{Account: *account}, nil
+		wechatAccount := &WeChatAccount{Account: account}
+		wechatAccount.Init()
+
+		return wechatAccount, nil
 	default:
 		return account, nil
 	}

@@ -81,9 +81,9 @@ func (r *repositoryDBImpl) FindByCategory(category string) ([]*Account, error) {
 	return accounts, nil
 }
 
-func (r *repositoryDBImpl) FindByInstance(instanceID int) ([]*Account, error) {
+func (r *repositoryDBImpl) FindByInstance(id int) ([]*Account, error) {
 	var models []model
-	if err := r.db.Where("instance_id = ?", instanceID).Find(&models).Error; err != nil {
+	if err := r.db.Where("instance_id = ?", id).Find(&models).Error; err != nil {
 		return nil, fmt.Errorf("failed to find accounts by instance: %w", err)
 	}
 

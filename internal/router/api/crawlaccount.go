@@ -34,10 +34,10 @@ func AddCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	if a, err := account.CreateAccount(form.AccountType); err != nil {
+	if acc, err := account.CreateAccount(form.AccountType); err != nil {
 		context.Response(http.StatusBadRequest, ErrorNotExists, nil)
 	} else {
-		context.Response(http.StatusCreated, Success, a)
+		context.Response(http.StatusCreated, Success, acc)
 	}
 }
 
@@ -61,11 +61,10 @@ func GetCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	account := &account.Account{ID: form.ID}
-	if err := account.Get(); err != nil {
+	if acc, err := account.GetAccount(form.ID); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
-		context.Response(http.StatusOK, 0, account)
+		context.Response(http.StatusOK, 0, acc)
 	}
 }
 

@@ -35,6 +35,5 @@ func (f *factory) createAccount(category string) (*Account, error) {
 		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
 
-	account.Init()
 	return account, nil
 }

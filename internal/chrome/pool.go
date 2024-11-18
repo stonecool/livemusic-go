@@ -86,7 +86,7 @@ func (ip *Pool) Login(id int, cat string) {
 		}
 	}
 
-	crawlAccount, err := account.CreateAccount(cat)
+	acc, err := account.getAccount(id)
 	if err != nil {
 		return
 	}
@@ -100,9 +100,9 @@ func (ip *Pool) Login(id int, cat string) {
 	//ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
 
 	err = chromedp.Run(ctx,
-		GetQRCode(crawlAccount),
-		crawlAccount.WaitLogin(),
-		SaveCookies(crawlAccount),
+		GetQRCode(acc),
+		acc.WaitLogin(),
+		SaveCookies(acc),
 		chromedp.Stop(),
 	)
 
