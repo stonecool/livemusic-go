@@ -1,28 +1,40 @@
 package account
 
-import "github.com/stonecool/livemusic-go/internal/database"
+import (
+	"fmt"
+	"github.com/stonecool/livemusic-go/internal/cache"
+	"github.com/stonecool/livemusic-go/internal/database"
+)
 
-func CreateAccount(category string) (IAccount, error) {
+var accountFactory *factory
+var accountCache *cache.Memo
+
+func init() {
+	accountCache = cache.New(func(id int) (interface{}, error) {
+		return accountFactory.Get(id)
+	})
 	repo := NewRepositoryDB(database.DB)
-	factory := newFactory(repo)
-	return factory.createAccount(category)
+	accountFactory = newAccountFactory(repo)
 }
 
-func getAccount(id int) (IAccount, error) {
-	repo := NewRepositoryDB(database.DB)
-	account, err := repo.Get(id)
+func CreateAccount(category string) (IAccount, error) {
+	account, err := accountFactory.Create(category)
 	if err != nil {
 		return nil, err
 	}
 
-	switch account.Category {
-	case "wechat":
-		wechatAccount := &WeChatAccount{Account: account}
-		wechatAccount.Init()
+	if err := accountCache.Set(account.GetId(), account); err != nil {
+		return nil, fmt.Errorf("failed to cache account: %w", err)
+	}
 
-		return wechatAccount, nil
-	default:
-		return account, nil
+	return account, nil
+}
+
+func GetAccount(ID int) (IAccount, error) {
+	if acc, err := accountCache.Get(ID); err != nil {
+		return nil, err
+	} else {
+		return acc.(IAccount), nil
 	}
 }
 

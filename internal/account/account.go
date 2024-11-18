@@ -2,7 +2,6 @@ package account
 
 import (
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/cache"
 	"sync"
 
 	"github.com/chromedp/chromedp"
@@ -22,22 +21,6 @@ type Account struct {
 	mu          sync.RWMutex
 	msgChan     chan *client.AsyncMessage
 	done        chan struct{}
-}
-
-var accountCache *cache.Memo
-
-func init() {
-	accountCache = cache.New(func(id int) (interface{}, error) {
-		return getAccount(id)
-	})
-}
-
-func GetAccount(ID int) (IAccount, error) {
-	if acc, err := accountCache.Get(ID); err != nil {
-		return nil, err
-	} else {
-		return acc.(IAccount), nil
-	}
 }
 
 func (acc *Account) Init() {
@@ -72,25 +55,8 @@ func (acc *Account) handleLogin() interface{} {
 
 func (acc *Account) handleCrawl(payload interface{}) interface{} {
 	// 处理爬取任务的具体逻辑
-	return nil
+	return payload
 }
-
-//func (ca *Account) Add() error {
-//	_, ok := config.caountMap[ca.Category]
-//	if !ok {
-//		return fmt.Errorf("caount_type:%s not exists", ca.Category)
-//	}
-//
-//	data := map[string]interface{}{
-//		"caount_type": ca.Category,
-//	}
-//
-//	if _, err := database.Addcaount(data); err != nil {
-//		return err
-//	} else {
-//		return nil
-//	}
-//}
 
 func (acc *Account) Get() error {
 	//if crawlcaount, err := database.Getcaount(acc.ID); err != nil {
@@ -155,7 +121,7 @@ func (acc *Account) GetState() internal.AccountState {
 
 func (acc *Account) SetState(state internal.AccountState) {
 	acc.mu.Lock()
-	defer acc.mu.Lock()
+	defer acc.mu.Unlock()
 
 	acc.State = state
 }

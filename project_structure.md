@@ -7,72 +7,73 @@ livemusic-go/
 │   ├── cli/               # Command line tools
 │   ├── server/            # Server entry point
 │   └── test/              # Test programs
-├── conf/                   # Configuration files
-├── docs/                   # Documentation
+├── conf/                  # Configuration files
+├── docs/                  # Documentation
 │   └── swagger/           # API documentation
 └── internal/              # Private application code
+    ├── account/           # Account management
     ├── cache/             # Cache related
     ├── chrome/            # Chrome browser interaction
+    ├── client/            # Client implementations
     ├── config/            # Configuration handling
-    ├── crawl/             # Crawler implementation
-    ├── http/              # HTTP client
-    ├── instance/          # Instance management
-    ├── model/             # Data models
-    └── router/            # Router handlers
-        └── api/           # API routes
+    ├── database/          # Database operations
+    ├── router/            # Router handlers
+    │   └── api/           # API routes
+    ├── scheduler/         # Task scheduling
+    └── task/              # Task definitions and handlers
 
 ## Project Overview
-This appears to be a web crawler project that interacts with Chrome browser instances. The project is structured following Go best practices with clear separation of concerns.
+This is a web automation project built with Go, featuring Chrome browser control, task scheduling, and API services.
 
 ## Key Components
 
 ### cmd Layer
-- **cli**: Command line interface tools for manual operations
-- **server**: Main application server that handles HTTP requests
-- **test**: Testing utilities and integration tests
+- **cli**: Command line interface tools
+- **server**: Main application server
+- **test**: Testing utilities
 
 ### internal Layer
-- **cache**: Handles data caching mechanisms
-- **chrome**: Manages Chrome browser automation and control
-- **config**: Handles application configuration and environment settings
-- **crawl**: Contains core crawling logic and strategies
-- **http**: HTTP client for external communications
-- **instance**: Manages Chrome browser instances lifecycle
-- **model**: Data models and database interactions
-- **router**: HTTP routing and API endpoint definitions
-    - **api**: RESTful API route handlers
+- **account**: User account management
+- **cache**: Data caching mechanisms
+- **chrome**: Chrome browser automation
+- **client**: Client implementations for various services
+- **config**: Application configuration
+- **database**: Database operations and models
+- **router**: HTTP routing and API handlers
+- **scheduler**: Task scheduling system
+- **task**: Task definitions and execution logic
 
 ## Core Components Relationships
-1. **Chrome Instance Management Flow**:
-   - `model/chromeinstance.go` → Defines data structure
-   - `chrome/` → Implements browser control logic
-   - `instance/` → Manages instance lifecycle
+1. **Task Management Flow**:
+   - `scheduler/` → Manages task scheduling
+   - `task/` → Defines task types and execution logic
+   - `chrome/` → Handles browser automation
 
-2. **Crawling Flow**:
-   - `crawl/` → Implements crawling logic
-   - `chrome/` → Controls browser
-   - `cache/` → Caches crawled data
+2. **Data Flow**:
+   - `database/` → Manages data persistence
+   - `cache/` → Handles data caching
+   - `client/` → External service communication
 
 3. **API Flow**:
-   - `router/api/` → Defines endpoints
-   - `model/` → Handles data persistence
-   - `instance/` → Manages resources
+   - `router/api/` → API endpoints
+   - `account/` → User authentication
+   - `database/` → Data operations
 
 ## Design Patterns
 1. **Layered Architecture**:
-   - Models layer (`internal/model`)
-   - Business logic layer (`internal/chrome`, `internal/crawl`)
+   - Data layer (`internal/database`)
+   - Business logic layer (`internal/task`, `internal/scheduler`)
    - API layer (`internal/router`)
 
 2. **Resource Management**:
-   - Instance pooling
-   - Connection management
-   - Cache strategies
+   - Task scheduling
+   - Browser automation
+   - Cache management
 
 ## Common Development Workflows
 1. Adding new features:
-   - Add model definitions in `internal/model`
-   - Implement business logic in respective domains
+   - Add database models in `internal/database`
+   - Implement business logic in respective packages
    - Add API endpoints in `internal/router/api`
 
 2. Testing:
