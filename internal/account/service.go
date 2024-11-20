@@ -13,7 +13,7 @@ var (
 
 func init() {
 	accountCache = cache.New(func(id int) (interface{}, error) {
-		return getAccount(id)
+		return getInstance(id)
 	})
 	accountRepo = newRepositoryDB(database.DB)
 }
@@ -28,8 +28,8 @@ func createAccount(account *Account) IAccount {
 	}
 }
 
-func CreateAccount(category string) (IAccount, error) {
-	account, err := accountRepo.Create(category)
+func CreateInstance(category string) (IAccount, error) {
+	account, err := accountRepo.create(category)
 	if err != nil {
 		return nil, err
 	}
@@ -37,15 +37,15 @@ func CreateAccount(category string) (IAccount, error) {
 	instance := createAccount(account)
 	instance.Init()
 
-	if err := accountCache.Set(account.GetID(), account); err != nil {
+	if err := accountCache.Set(instance.GetID(), instance); err != nil {
 		return nil, fmt.Errorf("failed to cache account: %w", err)
 	}
 
 	return instance, nil
 }
 
-func getAccount(id int) (IAccount, error) {
-	account, err :=  accountRepo.Get(id)
+func getInstance(id int) (IAccount, error) {
+	account, err :=  accountRepo.get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +57,11 @@ func getAccount(id int) (IAccount, error) {
 }
 
 
-func GetAccount(ID int) (IAccount, error) {
-	if acc, err := accountCache.Get(ID); err != nil {
+func GetInstance(ID int) (IAccount, error) {
+	if instance, err := accountCache.Get(ID); err != nil {
 		return nil, err
 	} else {
-		return acc.(IAccount), nil
+		return instance.(IAccount), nil
 	}
 }
 

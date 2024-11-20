@@ -34,7 +34,7 @@ func AddCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	if acc, err := account.CreateAccount(form.AccountType); err != nil {
+	if acc, err := account.CreateInstance(form.AccountType); err != nil {
 		context.Response(http.StatusBadRequest, ErrorNotExists, nil)
 	} else {
 		context.Response(http.StatusCreated, Success, acc)
@@ -61,7 +61,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	if acc, err := account.GetAccount(form.ID); err != nil {
+	if acc, err := account.GetInstance(form.ID); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
 		context.Response(http.StatusOK, 0, acc)
@@ -105,11 +105,11 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 		return
 	}
 
-	if err := account.DeleteAccount(form.ID); err != nil {
-		context.Response(http.StatusBadRequest, 0, nil)
-	} else {
-		context.Response(http.StatusOK, 0, nil)
-	}
+	//if err := account.DeleteAccount(form.ID); err != nil {
+	//	context.Response(http.StatusBadRequest, 0, nil)
+	//} else {
+	//	context.Response(http.StatusOK, 0, nil)
+	//}
 }
 
 // CrawlAccountWebSocket
