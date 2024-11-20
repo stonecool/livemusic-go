@@ -6,29 +6,58 @@ import (
 	"github.com/stonecool/livemusic-go/internal/database"
 )
 
-var accountFactory *factory
 var accountCache *cache.Memo
+var repo database.Repository[*model]
 
 func init() {
 	accountCache = cache.New(func(id int) (interface{}, error) {
-		return accountFactory.Get(id)
+		return getAccount(id)
 	})
-	repo := NewRepositoryDB(database.DB)
-	accountFactory = newAccountFactory(repo)
+	repo = newRepositoryDB(database.DB)
 }
 
+func createAccount(account *Account) IAccount {
+	switch account.Category {
+	case "wechat":
+		wechatAccount := &WeChatAccount{Account: account}
+		return wechatAccount
+	default:
+		return account
+	}
+}
+
+
 func CreateAccount(category string) (IAccount, error) {
-	account, err := accountFactory.Create(category)
-	if err != nil {
+	m := &model{Category: category}
+	if err := m.Validate(); err != nil {
 		return nil, err
 	}
 
-	if err := accountCache.Set(account.GetId(), account); err != nil {
+	if err := repo.Create(m); err != nil {
+		return nil, fmt.Errorf("failed to create account: %w", err)
+	}
+
+	account := createAccount(m.toEntity())
+	account.Init()
+
+	if err := accountCache.Set(account.GetID(), account); err != nil {
 		return nil, fmt.Errorf("failed to cache account: %w", err)
 	}
 
 	return account, nil
 }
+
+func getAccount(id int) (IAccount, error) {
+	m, err := repo.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	account := createAccount(m.toEntity())
+	account.Init()
+	return account, nil
+}
+
 
 func GetAccount(ID int) (IAccount, error) {
 	if acc, err := accountCache.Get(ID); err != nil {
@@ -38,12 +67,3 @@ func GetAccount(ID int) (IAccount, error) {
 	}
 }
 
-func UpdateAccount(account *Account) error {
-	repo := NewRepositoryDB(database.DB)
-	return repo.Update(account)
-}
-
-func DeleteAccount(id int) error {
-	repo := NewRepositoryDB(database.DB)
-	return repo.Delete(id)
-}

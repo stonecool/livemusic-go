@@ -2,9 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/unknwon/com"
-	"net/http"
 )
 
 type crawlRoutineForm struct {
@@ -34,18 +32,18 @@ func AddCrawlRoutine(ctx *gin.Context) {
 		return
 	}
 
-	routine := internal.CrawlRoutine{
-		DataType:        form.DataType,
-		DataId:          form.DataId,
-		AccountType:     form.AccountType,
-		TargetAccountId: form.TargetAccountId,
-	}
-
-	if err := routine.Add(); err != nil {
-		context.Response(http.StatusBadRequest, Error, nil)
-	} else {
-		context.Response(http.StatusCreated, Success, routine)
-	}
+	//routine := internal.CrawlRoutine{
+	//	DataType:        form.DataType,
+	//	DataId:          form.DataId,
+	//	AccountType:     form.AccountType,
+	//	TargetAccountId: form.TargetAccountId,
+	//}
+	//
+	//if err := routine.Add(); err != nil {
+	//	context.Response(http.StatusBadRequest, Error, nil)
+	//} else {
+	//	context.Response(http.StatusCreated, Success, routine)
+	//}
 }
 
 // GetCrawlRoutine
@@ -68,12 +66,12 @@ func GetCrawlRoutine(ctx *gin.Context) {
 		return
 	}
 
-	routine := internal.CrawlRoutine{ID: form.ID}
-	if err := routine.Get(); err != nil {
-		context.Response(http.StatusBadRequest, 0, nil)
-	} else {
-		context.Response(http.StatusCreated, Success, routine)
-	}
+	//routine := internal.CrawlRoutine{ID: form.ID}
+	//if err := routine.Get(); err != nil {
+	//	context.Response(http.StatusBadRequest, 0, nil)
+	//} else {
+	//	context.Response(http.StatusCreated, Success, routine)
+	//}
 }
 
 // GetCrawlRoutines
@@ -83,14 +81,14 @@ func GetCrawlRoutine(ctx *gin.Context) {
 // @Failure	400	{object}	http.Response
 // @Router		/api/v1/crawl-routines [get]
 func GetCrawlRoutines(ctx *gin.Context) {
-	var context = Context{Context: ctx}
+	//var context = Context{Context: ctx}
 
-	msg := internal.CrawlRoutine{}
-	if msgs, err := msg.GetAll(); err != nil {
-		context.Response(http.StatusBadRequest, 0, nil)
-	} else {
-		context.Response(http.StatusCreated, Success, msgs)
-	}
+	//msg := internal.CrawlRoutine{}
+	//if msgs, err := msg.GetAll(); err != nil {
+	//	context.Response(http.StatusBadRequest, 0, nil)
+	//} else {
+	//	context.Response(http.StatusCreated, Success, msgs)
+	//}
 }
 
 // DeleteCrawlRoutine
@@ -113,12 +111,12 @@ func DeleteCrawlRoutine(ctx *gin.Context) {
 		return
 	}
 
-	routine := &internal.CrawlRoutine{ID: form.ID}
-	if err := routine.Delete(); err != nil {
-		context.Response(http.StatusBadRequest, 0, nil)
-	} else {
-		context.Response(http.StatusCreated, Success, nil)
-	}
+	//routine := &internal.CrawlRoutine{ID: form.ID}
+	//if err := routine.Delete(); err != nil {
+	//	context.Response(http.StatusBadRequest, 0, nil)
+	//} else {
+	//	context.Response(http.StatusCreated, Success, nil)
+	//}
 }
 
 // EditCrawlRoutine
@@ -150,18 +148,18 @@ func EditCrawlRoutine(ctx *gin.Context) {
 		return
 	}
 
-	msg := &internal.CrawlRoutine{
-		DataType:        msgForm.DataType,
-		DataId:          msgForm.DataId,
-		AccountType:     msgForm.AccountType,
-		TargetAccountId: msgForm.TargetAccountId,
-	}
-
-	if err := msg.Edit(); err != nil {
-		context.Response(http.StatusBadRequest, Error, nil)
-	} else {
-		context.Response(http.StatusCreated, Success, msg)
-	}
+	//msg := &internal.CrawlRoutine{
+	//	DataType:        msgForm.DataType,
+	//	DataId:          msgForm.DataId,
+	//	AccountType:     msgForm.AccountType,
+	//	TargetAccountId: msgForm.TargetAccountId,
+	//}
+	//
+	//if err := msg.Edit(); err != nil {
+	//	context.Response(http.StatusBadRequest, Error, nil)
+	//} else {
+	//	context.Response(http.StatusCreated, Success, msg)
+	//}
 }
 
 // StartCrawlRoutine

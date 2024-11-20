@@ -17,7 +17,7 @@ type Repository[T Entity] interface {
 	Get(id int) (T, error)
 	Update(entity T) error
 	Delete(id int) error
-	FindAll() ([]T, error)
+	GetAll() ([]T, error)
 	FindBy(query string, args ...interface{}) ([]T, error)
 }
 
@@ -73,7 +73,7 @@ func (r *BaseRepository[T]) Delete(id int) error {
 	return nil
 }
 
-func (r *BaseRepository[T]) FindAll() ([]T, error) {
+func (r *BaseRepository[T]) GetAll() ([]T, error) {
 	var entities []T
 	if err := r.db.Find(&entities).Error; err != nil {
 		return nil, fmt.Errorf("failed to find entities: %w", err)

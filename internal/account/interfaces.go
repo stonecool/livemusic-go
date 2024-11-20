@@ -7,7 +7,8 @@ import (
 )
 
 type IAccount interface {
-	GetId() int
+	Init()
+	GetID() int
 	GetName() string
 	GetState() internal.AccountState
 	SetState(state internal.AccountState)
@@ -22,14 +23,4 @@ type IAccount interface {
 	GetLastURL() string
 	SetLastURL(url string)
 	GetMsgChan() chan *client.AsyncMessage
-}
-
-type IRepository interface {
-	Create(account *Account) error
-	Get(id int) (*Account, error)
-	Update(account *Account) error
-	Delete(id int) error
-	GetAll() ([]*Account, error)
-	FindByCategory(category string) ([]*Account, error)
-	FindByInstance(instanceID int) ([]*Account, error)
 }

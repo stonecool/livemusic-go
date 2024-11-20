@@ -61,3 +61,7 @@ func (m *model) BeforeCreate(tx *gorm.DB) error {
 func (m *model) BeforeUpdate(tx *gorm.DB) error {
 	return m.Validate()
 }
+
+func (m *model) GetID() int {
+	return m.ID
+}

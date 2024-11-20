@@ -104,10 +104,6 @@ func (acc *Account) Get() error {
 //	return database.Deletecaount(crawlcaount)
 //}
 
-func (acc *Account) GetId() int {
-	return acc.ID
-}
-
 func (acc *Account) GetName() string {
 	return acc.AccountName
 }
