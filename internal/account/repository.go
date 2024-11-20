@@ -6,37 +6,36 @@ import (
 	"gorm.io/gorm"
 )
 
-var repo database.Repository[*accountModel]
-
-func init()  {
-	repo = newRepositoryDB(database.DB)
+type repository interface {
+	Get(id int) (*Account, error)
+	Create(category string) (*Account, error)
 }
 
 type repositoryDB struct {
-	*database.BaseRepository[*accountModel]
+	db database.Repository[*accountModel]
 }
 
-func newRepositoryDB(db *gorm.DB) *repositoryDB {
+func newRepositoryDB(db *gorm.DB) repository {
 	return &repositoryDB{
-		BaseRepository: database.NewBaseRepository[*accountModel](db),
+		db: database.NewBaseRepository[*accountModel](db),
 	}
 }
 
-func GetAccountByID(id int) (*Account, error) {
-	m, err := repo.Get(id)
+func (r *repositoryDB) Get(id int) (*Account, error) {
+	m, err := r.db.Get(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get account: %w", err)
 	}
 	return m.toEntity(), nil
 }
 
-func CreateAccountInDB(category string) (*Account, error) {
+func (r *repositoryDB) Create(category string) (*Account, error) {
 	m := &accountModel{Category: category}
 	if err := m.Validate(); err != nil {
 		return nil, err
 	}
 
-	if err := repo.Create(m); err != nil {
+	if err := r.db.Create(m); err != nil {
 		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
 

@@ -3,14 +3,19 @@ package account
 import (
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal/cache"
+	"github.com/stonecool/livemusic-go/internal/database"
 )
 
-var accountCache *cache.Memo
+var (
+	accountCache *cache.Memo
+	accountRepo  repository
+)
 
 func init() {
 	accountCache = cache.New(func(id int) (interface{}, error) {
 		return getAccount(id)
 	})
+	accountRepo = newRepositoryDB(database.DB)
 }
 
 func createAccount(account *Account) IAccount {
@@ -24,7 +29,7 @@ func createAccount(account *Account) IAccount {
 }
 
 func CreateAccount(category string) (IAccount, error) {
-	account, err := CreateAccountInDB(category)
+	account, err := accountRepo.Create(category)
 	if err != nil {
 		return nil, err
 	}
@@ -36,11 +41,11 @@ func CreateAccount(category string) (IAccount, error) {
 		return nil, fmt.Errorf("failed to cache account: %w", err)
 	}
 
-	return account, nil
+	return instance, nil
 }
 
 func getAccount(id int) (IAccount, error) {
-	account, err := GetAccountByID(id)
+	account, err :=  accountRepo.Get(id)
 	if err != nil {
 		return nil, err
 	}

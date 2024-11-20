@@ -2,9 +2,8 @@ package account
 
 import (
 	"fmt"
-	"regexp"
-
 	"github.com/stonecool/livemusic-go/internal/config"
+	"regexp"
 )
 
 type Validator struct{}

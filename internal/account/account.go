@@ -2,12 +2,10 @@ package account
 
 import (
 	"fmt"
-	"sync"
-
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/client"
-
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/client"
+	"sync"
 )
 
 type Account struct {
