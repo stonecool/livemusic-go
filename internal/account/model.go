@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type model struct {
+type accountModel struct {
 	database.BaseModel
 
 	Category    string `gorm:"type:varchar(50);not null"`
@@ -18,50 +18,50 @@ type model struct {
 	State       int    `gorm:"default:0"`
 }
 
-func (*model) TableName() string {
+func (*accountModel) TableName() string {
 	return "accounts"
 }
 
-func (m *model) toEntity() *Account {
+func (am *accountModel) toEntity() *Account {
 	return &Account{
-		ID:          m.ID,
-		Category:    m.Category,
-		AccountName: m.AccountName,
-		lastURL:     m.LastURL,
-		cookies:     m.Cookies,
-		InstanceID:  m.InstanceID,
-		State:       internal.AccountState(m.State),
+		ID:          am.ID,
+		Category:    am.Category,
+		AccountName: am.AccountName,
+		lastURL:     am.LastURL,
+		cookies:     am.Cookies,
+		InstanceID:  am.InstanceID,
+		State:       internal.AccountState(am.State),
 		msgChan:     make(chan *client.AsyncMessage),
 		done:        make(chan struct{}),
 	}
 }
 
-func (m *model) fromEntity(account *Account) {
-	m.ID = account.ID
-	m.Category = account.Category
-	m.AccountName = account.AccountName
-	m.LastURL = account.lastURL
-	m.Cookies = account.cookies
-	m.InstanceID = account.InstanceID
-	m.State = int(account.State)
+func (am *accountModel) fromEntity(account *Account) {
+	am.ID = account.ID
+	am.Category = account.Category
+	am.AccountName = account.AccountName
+	am.LastURL = account.lastURL
+	am.Cookies = account.cookies
+	am.InstanceID = account.InstanceID
+	am.State = int(account.State)
 }
 
-func (m *model) Validate() error {
+func (am *accountModel) Validate() error {
 	v := NewValidator()
 	return v.ValidateAccount(&Account{
-		Category:    m.Category,
-		AccountName: m.AccountName,
+		Category:    am.Category,
+		AccountName: am.AccountName,
 	})
 }
 
-func (m *model) BeforeCreate(tx *gorm.DB) error {
-	return m.Validate()
+func (am *accountModel) BeforeCreate(tx *gorm.DB) error {
+	return am.Validate()
 }
 
-func (m *model) BeforeUpdate(tx *gorm.DB) error {
-	return m.Validate()
+func (am *accountModel) BeforeUpdate(tx *gorm.DB) error {
+	return am.Validate()
 }
 
-func (m *model) GetID() int {
-	return m.ID
+func (am *accountModel) GetID() int {
+	return am.ID
 }
