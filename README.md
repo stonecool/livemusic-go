@@ -9,6 +9,7 @@ swag.exe init -g .\cmd\server\main.go -o .\docs\swagger\
 gofmt -w . 
 
 go test -v .\internal\account\
+go test  .\internal\account\account_test.go  .\internal\account\account.go
 
 ### TODO
 

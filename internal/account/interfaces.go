@@ -2,7 +2,6 @@ package account
 
 import (
 	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/message"
 )
 
@@ -10,8 +9,8 @@ type IAccount interface {
 	Init()
 	GetID() int
 	GetName() string
-	GetState() internal.AccountState
-	SetState(state internal.AccountState)
+	GetState() state
+	SetState(state)
 	CheckLogin() chromedp.ActionFunc
 	WaitLogin() chromedp.ActionFunc
 	GetLoginURL() string

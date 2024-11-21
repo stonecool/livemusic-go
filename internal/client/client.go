@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal/account"
-	msg2 "github.com/stonecool/livemusic-go/internal/message"
+	"github.com/stonecool/livemusic-go/internal/message"
 	"log"
 	"sync"
 	"time"
@@ -29,8 +29,8 @@ const (
 
 type Client struct {
 	conn        *websocket.Conn
-	account   	*account.Account
-	accountChan chan *msg2.AsyncMessage
+	account     *account.Account
+	accountChan chan *message.AsyncMessage
 	done        chan struct{}
 }
 
@@ -52,8 +52,8 @@ func newClient(id int, ctx *gin.Context) (*Client, error) {
 
 	client := &Client{
 		conn:        conn,
-		account:   nil,
-		accountChan: make(chan *msg2.AsyncMessage),
+		account:     nil,
+		accountChan: make(chan *message.AsyncMessage),
 		done:        make(chan struct{}),
 	}
 
@@ -74,7 +74,7 @@ func (c *Client) readPump() {
 	})
 
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, data, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
@@ -83,14 +83,14 @@ func (c *Client) readPump() {
 		}
 
 		// 解析消息并处理
-		msg := &msg2.Message{}
-		if err := json.Unmarshal(message, msg); err != nil {
-			log.Printf("error parsing message: %v", err)
+		msg := &message.Message{}
+		if err := json.Unmarshal(data, msg); err != nil {
+			log.Printf("error parsing data: %v", err)
 			continue
 		}
 
 		if err := c.handleWebSocketMessage(msg); err != nil {
-			log.Printf("error handling websocket message: %v", err)
+			log.Printf("error handling websocket data: %v", err)
 			continue
 		}
 	}
@@ -123,27 +123,27 @@ func (c *Client) writePump() {
 	}
 }
 
-func (c *Client) handleWebSocketMessage(msg *msg2.Message) error {
+func (c *Client) handleWebSocketMessage(msg *message.Message) error {
 	switch msg.Cmd {
-	case msg2.CrawlCmd_Login:
+	case message.CrawlCmd_Login:
 		// 创建任务消息
-		asyncMessage := msg2.NewAsyncMessage(msg, nil)
+		asyncMessage := message.NewAsyncMessage(msg, nil)
 
 		// 发送任务并等待结果
 		c.accountChan <- asyncMessage
 		result := <-asyncMessage.Result
 
 		// 发送结果回 WebSocket
-		msg := &msg2.Message{
-			Cmd:  msg2.CrawlCmd_Login,
+		msg := &message.Message{
+			Cmd:  message.CrawlCmd_Login,
 			Data: []byte(fmt.Sprintf("%v", result)),
 		}
-		c.accountChan <- msg2.NewAsyncMessage(msg, nil)
+		c.accountChan <- message.NewAsyncMessage(msg, nil)
 	}
 	return nil
 }
 
-func (c *Client) handleAccountMessage(msg *msg2.AsyncMessage) error {
+func (c *Client) handleAccountMessage(msg *message.AsyncMessage) error {
 	// 将消息写入 WebSocket
 	return c.conn.WriteMessage(websocket.TextMessage, msg.Data)
 }

@@ -1,7 +1,6 @@
 package account
 
 import (
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"github.com/stonecool/livemusic-go/internal/message"
 	"gorm.io/gorm"
@@ -22,46 +21,46 @@ func (*accountModel) TableName() string {
 	return "accounts"
 }
 
-func (am *accountModel) toEntity() *Account {
+func (m *accountModel) toEntity() *Account {
 	return &Account{
-		ID:          am.ID,
-		Category:    am.Category,
-		AccountName: am.AccountName,
-		lastURL:     am.LastURL,
-		cookies:     am.Cookies,
-		InstanceID:  am.InstanceID,
-		State:       internal.AccountState(am.State),
+		ID:          m.ID,
+		Category:    m.Category,
+		AccountName: m.AccountName,
+		lastURL:     m.LastURL,
+		cookies:     m.Cookies,
+		InstanceID:  m.InstanceID,
+		State:       state(m.State),
 		msgChan:     make(chan *message.AsyncMessage),
 		done:        make(chan struct{}),
 	}
 }
 
-func (am *accountModel) fromEntity(account *Account) {
-	am.ID = account.ID
-	am.Category = account.Category
-	am.AccountName = account.AccountName
-	am.LastURL = account.lastURL
-	am.Cookies = account.cookies
-	am.InstanceID = account.InstanceID
-	am.State = int(account.State)
+func (m *accountModel) fromEntity(account *Account) {
+	m.ID = account.ID
+	m.Category = account.Category
+	m.AccountName = account.AccountName
+	m.LastURL = account.lastURL
+	m.Cookies = account.cookies
+	m.InstanceID = account.InstanceID
+	m.State = int(account.State)
 }
 
-func (am *accountModel) Validate() error {
+func (m *accountModel) Validate() error {
 	v := NewValidator()
 	return v.ValidateAccount(&Account{
-		Category:    am.Category,
-		AccountName: am.AccountName,
+		Category:    m.Category,
+		AccountName: m.AccountName,
 	})
 }
 
-func (am *accountModel) BeforeCreate(tx *gorm.DB) error {
-	return am.Validate()
+func (m *accountModel) BeforeCreate(tx *gorm.DB) error {
+	return m.Validate()
 }
 
-func (am *accountModel) BeforeUpdate(tx *gorm.DB) error {
-	return am.Validate()
+func (m *accountModel) BeforeUpdate(tx *gorm.DB) error {
+	return m.Validate()
 }
 
-func (am *accountModel) GetID() int {
-	return am.ID
+func (m *accountModel) GetID() int {
+	return m.ID
 }

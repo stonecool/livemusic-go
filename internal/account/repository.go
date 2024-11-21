@@ -7,8 +7,8 @@ import (
 )
 
 type repository interface {
-	get(id int) (*Account, error)
-	create(category string) (*Account, error)
+	get(int) (*Account, error)
+	create(string, state) (*Account, error)
 }
 
 type repositoryDB struct {
@@ -29,8 +29,11 @@ func (r *repositoryDB) get(id int) (*Account, error) {
 	return m.toEntity(), nil
 }
 
-func (r *repositoryDB) create(category string) (*Account, error) {
-	m := &accountModel{Category: category}
+func (r *repositoryDB) create(category string, s state) (*Account, error) {
+	m := &accountModel{
+		Category: category,
+		State:    int(s),
+	}
 	if err := m.Validate(); err != nil {
 		return nil, err
 	}

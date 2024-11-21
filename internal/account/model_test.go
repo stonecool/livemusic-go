@@ -3,7 +3,6 @@ package account
 import (
 	"testing"
 
-	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +13,7 @@ func TestAccountModel_ToEntity(t *testing.T) {
 		LastURL:     "http://test.com",
 		Cookies:     []byte("test_cookies"),
 		InstanceID:  1,
-		State:       int(internal.AS_RUNNING),
+		State:       int(stateNew),
 	}
 
 	entity := model.toEntity()
@@ -24,7 +23,7 @@ func TestAccountModel_ToEntity(t *testing.T) {
 	assert.Equal(t, model.LastURL, entity.lastURL)
 	assert.Equal(t, model.Cookies, entity.cookies)
 	assert.Equal(t, model.InstanceID, entity.InstanceID)
-	assert.Equal(t, internal.AccountState(model.State), entity.State)
+	assert.Equal(t, state(model.State), entity.State)
 }
 
 func TestAccountModel_FromEntity(t *testing.T) {
@@ -34,7 +33,7 @@ func TestAccountModel_FromEntity(t *testing.T) {
 		lastURL:     "http://test.com",
 		cookies:     []byte("test_cookies"),
 		InstanceID:  1,
-		State:       internal.AS_RUNNING,
+		State:       stateNew,
 	}
 
 	model := &accountModel{}

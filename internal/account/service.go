@@ -28,7 +28,7 @@ func createAccount(account *Account) IAccount {
 }
 
 func CreateInstance(category string) (IAccount, error) {
-	account, err := accountRepo.create(category)
+	account, err := accountRepo.create(category, stateNew)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,6 @@ func getInstance(id int) (IAccount, error) {
 	return instance, nil
 }
 
-
 func GetInstance(ID int) (IAccount, error) {
 	if instance, err := accountCache.Get(ID); err != nil {
 		return nil, err
@@ -56,4 +55,3 @@ func GetInstance(ID int) (IAccount, error) {
 		return instance.(IAccount), nil
 	}
 }
-

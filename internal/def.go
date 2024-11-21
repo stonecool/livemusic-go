@@ -4,18 +4,6 @@ var DataType2StructMap = map[string]IDataTable{
 	"livehouse": &Livehouse{},
 }
 
-type AccountState int
-
-const (
-	AS_EXPIRED AccountState = iota // 已过期
-	AS_RUNNING                     // 正在运行
-)
-
-//StateIdle State = iota
-//StateRunning
-//StatePaused
-//StateStopped
-
 type InstanceStatus uint
 
 const (
