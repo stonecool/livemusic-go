@@ -13,17 +13,8 @@ type entry struct {
 	ready chan struct{}
 }
 
-type requestType int
-
-const (
-	getRequest requestType = iota
-	setRequest
-)
-
 type request struct {
 	id       int
-	op       requestType
-	value    interface{}
 	response chan<- result
 }
 
@@ -39,22 +30,10 @@ func New(f Func) *Memo {
 
 func (memo *Memo) Get(id int) (interface{}, error) {
 	response := make(chan result)
-	memo.requests <- request{id, getRequest, nil, response}
+	memo.requests <- request{id, response}
 	res := <-response
 
 	return res.value, res.err
-}
-
-func (memo *Memo) Set(id int, value interface{}) error {
-	response := make(chan result)
-	memo.requests <- request{
-		id:       id,
-		op:       setRequest,
-		value:    value,
-		response: response,
-	}
-	res := <-response
-	return res.err
 }
 
 func (memo *Memo) close() {
@@ -64,22 +43,13 @@ func (memo *Memo) close() {
 func (memo *Memo) server(f Func) {
 	cache := make(map[int]*entry)
 	for req := range memo.requests {
-		switch req.op {
-		case getRequest:
-			e := cache[req.id]
-			if e == nil {
-				e = &entry{ready: make(chan struct{})}
-				cache[req.id] = e
-				go e.call(f, req.id)
-			}
-			go e.deliver(req.response)
-		case setRequest:
-			e := &entry{ready: make(chan struct{})}
-			e.res.value = req.value
-			close(e.ready)
+		e := cache[req.id]
+		if e == nil {
+			e = &entry{ready: make(chan struct{})}
 			cache[req.id] = e
-			req.response <- e.res
+			go e.call(f, req.id)
 		}
+		go e.deliver(req.response)
 	}
 }
 
