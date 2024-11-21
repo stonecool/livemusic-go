@@ -125,7 +125,7 @@ func (c *Client) handleWebSocketMessage(msg *Message) error {
 	switch msg.Cmd {
 	case CrawlCmd_Login:
 		// 创建任务消息
-		asyncMessage := NewAsyncMessage(msg)
+		asyncMessage := NewAsyncMessage(msg, nil)
 
 		// 发送任务并等待结果
 		c.accountChan <- asyncMessage
@@ -137,7 +137,7 @@ func (c *Client) handleWebSocketMessage(msg *Message) error {
 			Cmd:  CrawlCmd_Login,
 			Data: []byte(fmt.Sprintf("%v", result)),
 		}
-		c.accountChan <- NewAsyncMessage(msg)
+		c.accountChan <- NewAsyncMessage(msg, nil)
 	}
 	return nil
 }

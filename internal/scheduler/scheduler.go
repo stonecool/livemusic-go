@@ -1,10 +1,14 @@
 package scheduler
 
 import (
+	"fmt"
 	"github.com/robfig/cron/v3"
+	"github.com/stonecool/livemusic-go/internal/chrome"
+	"github.com/stonecool/livemusic-go/internal/client"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"log"
 	"sync"
+	"time"
 )
 
 var (
@@ -71,9 +75,33 @@ func (s *Scheduler) Stop() {
 	s.cron.Stop()
 }
 
-func (s *Scheduler) executeTask(task *task.Task) {
-	if err := task.Execute(); err != nil {
-		log.Printf("Failed to execute task %d: %v", task.ID, err)
-		return
+func (s *Scheduler) executeTask(task *task.Task) error {
+	const (
+		maxRetries = 3 // 最大重试次数
+		retryDelay = 5 // 重试间隔(秒)
+	)
+
+	msg := client.NewAsyncMessage(&client.Message{
+		Cmd:  client.CrawlCmd_Crawl,
+	}, task)
+
+	var lastErr error
+	for retry := 0; retry < maxRetries; retry++ {
+		// 如果不是第一次尝试,等待一段时间
+		if retry > 0 {
+			time.Sleep(time.Duration(retryDelay) * time.Second)
+		}
+
+		// 尝试分发任务
+		if err := chrome.GetPool().DispatchTask(task.Category, msg); err == nil {
+			return nil
+		} else {
+			lastErr = err
+			log.Printf("Task %d dispatch failed (attempt %d/%d): %v",
+				task.ID, retry+1, maxRetries, err)
+		}
 	}
+
+	return fmt.Errorf("dispatch task failed after %d attempts: %v",
+		maxRetries, lastErr)
 }

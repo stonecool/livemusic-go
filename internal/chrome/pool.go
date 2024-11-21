@@ -3,7 +3,7 @@ package chrome
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/task"
+	"github.com/stonecool/livemusic-go/internal/client"
 	"log"
 	"sync"
 	"time"
@@ -86,7 +86,7 @@ func (ip *Pool) Login(id int, cat string) {
 		}
 	}
 
-	acc, err := account.getAccount(id)
+	acc, err := account.GetInstance(id)
 	if err != nil {
 		return
 	}
@@ -127,7 +127,7 @@ func (ip *Pool) GetChromesByCategory(cat string) []*Chrome {
 	}
 }
 
-func (ip *Pool) DispatchTask(category string, task *task.Task) error {
+func (ip *Pool) DispatchTask(category string, message *client.AsyncMessage) error {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 
@@ -139,7 +139,7 @@ func (ip *Pool) DispatchTask(category string, task *task.Task) error {
 
 	// 遍历实例找到可用的账号
 	for _, instance := range instances {
-		if err := instance.ExecuteTask(task); err == nil {
+		if err := instance.ExecuteTask(message.Task); err == nil {
 			return nil
 		}
 	}
