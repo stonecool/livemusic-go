@@ -185,13 +185,13 @@ func (account *WeChatAccount) CheckLogin() chromedp.ActionFunc {
 //				continue
 //			}
 //
-//			for _, msg := range publishInfo.AppMsgEx {
-//				fmt.Printf("Title: %s Link: %s\n", msg.Title, msg.Link)
+//			for _, message := range publishInfo.AppMsgEx {
+//				fmt.Printf("Title: %s Link: %s\n", message.Title, message.Link)
 //
 //				var ret = make(map[string]interface{})
 //
-//				ret["Title"] = msg.Title
-//				ret["Link"] = msg.Link
+//				ret["Title"] = message.Title
+//				ret["Link"] = message.Link
 //
 //				GoCrawl(&ShowStartCrawl{
 //					Crawl: crawl.Crawl,
@@ -201,7 +201,7 @@ func (account *WeChatAccount) CheckLogin() chromedp.ActionFunc {
 //
 //				callback(ret)
 //
-//				//err = chromedp.Navigate(msg.Link).Do(ctx)
+//				//err = chromedp.Navigate(message.Link).Do(ctx)
 //				//if err != nil {
 //				//	log.Fatal(err)
 //				//}

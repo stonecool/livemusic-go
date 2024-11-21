@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "./internal/client";
+option go_package = "./internal/message";
 
 enum CrawlState {
   Uninitialized = 0;

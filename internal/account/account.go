@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/client"
+	"github.com/stonecool/livemusic-go/internal/message"
 	"sync"
 )
 
@@ -17,7 +17,7 @@ type Account struct {
 	InstanceID  int
 	State       internal.AccountState
 	mu          sync.RWMutex
-	msgChan     chan *client.AsyncMessage
+	msgChan     chan *message.AsyncMessage
 	done        chan struct{}
 }
 
@@ -30,10 +30,10 @@ func (acc *Account) processTask() {
 		select {
 		case msg := <-acc.msgChan:
 			switch msg.Cmd {
-			case client.CrawlCmd_Login:
+			case message.CrawlCmd_Login:
 				result := acc.handleLogin()
 				msg.Data = []byte(fmt.Sprintf("%v", result))
-			case client.CrawlCmd_Crawl:
+			case message.CrawlCmd_Crawl:
 				result := acc.handleCrawl(msg.Data)
 				msg.Data = []byte(fmt.Sprintf("%v", result))
 			}
@@ -165,7 +165,7 @@ func (acc *Account) IsAvailable() bool {
 	return acc.State == internal.AS_RUNNING
 }
 
-func (acc *Account) GetMsgChan() chan *client.AsyncMessage {
+func (acc *Account) GetMsgChan() chan *message.AsyncMessage {
 	return acc.msgChan
 }
 

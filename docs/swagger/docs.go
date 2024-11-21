@@ -526,7 +526,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data": {},
-                "msg": {
+                "message": {
                     "type": "string"
                 }
             }

@@ -3,6 +3,8 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/account"
+	msg2 "github.com/stonecool/livemusic-go/internal/message"
 	"log"
 	"sync"
 	"time"
@@ -27,13 +29,13 @@ const (
 
 type Client struct {
 	conn        *websocket.Conn
-	accountId   int
-	accountChan chan *AsyncMessage
+	account   	*account.Account
+	accountChan chan *msg2.AsyncMessage
 	done        chan struct{}
 }
 
 var (
-	clients = make(map[int]*Client)
+	clients = make(map[*account.Account]*Client)
 	mu      sync.Mutex
 )
 
@@ -50,8 +52,8 @@ func newClient(id int, ctx *gin.Context) (*Client, error) {
 
 	client := &Client{
 		conn:        conn,
-		accountId:   id,
-		accountChan: make(chan *AsyncMessage),
+		account:   nil,
+		accountChan: make(chan *msg2.AsyncMessage),
 		done:        make(chan struct{}),
 	}
 
@@ -81,7 +83,7 @@ func (c *Client) readPump() {
 		}
 
 		// 解析消息并处理
-		msg := &Message{}
+		msg := &msg2.Message{}
 		if err := json.Unmarshal(message, msg); err != nil {
 			log.Printf("error parsing message: %v", err)
 			continue
@@ -121,28 +123,27 @@ func (c *Client) writePump() {
 	}
 }
 
-func (c *Client) handleWebSocketMessage(msg *Message) error {
+func (c *Client) handleWebSocketMessage(msg *msg2.Message) error {
 	switch msg.Cmd {
-	case CrawlCmd_Login:
+	case msg2.CrawlCmd_Login:
 		// 创建任务消息
-		asyncMessage := NewAsyncMessage(msg, nil)
+		asyncMessage := msg2.NewAsyncMessage(msg, nil)
 
 		// 发送任务并等待结果
 		c.accountChan <- asyncMessage
 		result := <-asyncMessage.Result
 
 		// 发送结果回 WebSocket
-
-		msg := &Message{
-			Cmd:  CrawlCmd_Login,
+		msg := &msg2.Message{
+			Cmd:  msg2.CrawlCmd_Login,
 			Data: []byte(fmt.Sprintf("%v", result)),
 		}
-		c.accountChan <- NewAsyncMessage(msg, nil)
+		c.accountChan <- msg2.NewAsyncMessage(msg, nil)
 	}
 	return nil
 }
 
-func (c *Client) handleAccountMessage(msg *AsyncMessage) error {
+func (c *Client) handleAccountMessage(msg *msg2.AsyncMessage) error {
 	// 将消息写入 WebSocket
 	return c.conn.WriteMessage(websocket.TextMessage, msg.Data)
 }
@@ -160,7 +161,7 @@ func (c *Client) Close() {
 
 	// 从全局 clients map 中移除
 	mu.Lock()
-	delete(clients, c.accountId)
+	delete(clients, c.account)
 	mu.Unlock()
 }
 

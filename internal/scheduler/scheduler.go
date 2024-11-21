@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/robfig/cron/v3"
 	"github.com/stonecool/livemusic-go/internal/chrome"
-	"github.com/stonecool/livemusic-go/internal/client"
+	"github.com/stonecool/livemusic-go/internal/message"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"log"
 	"sync"
@@ -81,8 +81,8 @@ func (s *Scheduler) executeTask(task *task.Task) error {
 		retryDelay = 5 // 重试间隔(秒)
 	)
 
-	msg := client.NewAsyncMessage(&client.Message{
-		Cmd:  client.CrawlCmd_Crawl,
+	msg := message.NewAsyncMessage(&message.Message{
+		Cmd: message.CrawlCmd_Crawl,
 	}, task)
 
 	var lastErr error

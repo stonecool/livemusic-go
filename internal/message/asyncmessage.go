@@ -1,4 +1,4 @@
-package client
+package message
 
 import "github.com/stonecool/livemusic-go/internal/task"
 

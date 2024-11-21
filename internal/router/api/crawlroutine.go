@@ -83,8 +83,8 @@ func GetCrawlRoutine(ctx *gin.Context) {
 func GetCrawlRoutines(ctx *gin.Context) {
 	//var context = Context{Context: ctx}
 
-	//msg := internal.CrawlRoutine{}
-	//if msgs, err := msg.GetAll(); err != nil {
+	//message := internal.CrawlRoutine{}
+	//if msgs, err := message.GetAll(); err != nil {
 	//	context.Response(http.StatusBadRequest, 0, nil)
 	//} else {
 	//	context.Response(http.StatusCreated, Success, msgs)
@@ -148,22 +148,22 @@ func EditCrawlRoutine(ctx *gin.Context) {
 		return
 	}
 
-	//msg := &internal.CrawlRoutine{
+	//message := &internal.CrawlRoutine{
 	//	DataType:        msgForm.DataType,
 	//	DataId:          msgForm.DataId,
 	//	AccountType:     msgForm.AccountType,
 	//	TargetAccountId: msgForm.TargetAccountId,
 	//}
 	//
-	//if err := msg.Edit(); err != nil {
+	//if err := message.Edit(); err != nil {
 	//	context.Response(http.StatusBadRequest, Error, nil)
 	//} else {
-	//	context.Response(http.StatusCreated, Success, msg)
+	//	context.Response(http.StatusCreated, Success, message)
 	//}
 }
 
 // StartCrawlRoutine
-// @Summary	Start a crawl msg
+// @Summary	Start a crawl message
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response

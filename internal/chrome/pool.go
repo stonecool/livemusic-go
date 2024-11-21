@@ -3,7 +3,7 @@ package chrome
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/client"
+	"github.com/stonecool/livemusic-go/internal/message"
 	"log"
 	"sync"
 	"time"
@@ -127,7 +127,7 @@ func (ip *Pool) GetChromesByCategory(cat string) []*Chrome {
 	}
 }
 
-func (ip *Pool) DispatchTask(category string, message *client.AsyncMessage) error {
+func (ip *Pool) DispatchTask(category string, message *message.AsyncMessage) error {
 	ip.mu.Lock()
 	defer ip.mu.Unlock()
 

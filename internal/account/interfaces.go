@@ -3,7 +3,7 @@ package account
 import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/client"
+	"github.com/stonecool/livemusic-go/internal/message"
 )
 
 type IAccount interface {
@@ -22,5 +22,5 @@ type IAccount interface {
 	GetCookies() []byte
 	GetLastURL() string
 	SetLastURL(url string)
-	GetMsgChan() chan *client.AsyncMessage
+	GetMsgChan() chan *message.AsyncMessage
 }
