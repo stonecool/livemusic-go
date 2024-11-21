@@ -1,7 +1,6 @@
 package account
 
 import (
-	"fmt"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/database"
 )
@@ -34,18 +33,11 @@ func CreateInstance(category string) (IAccount, error) {
 		return nil, err
 	}
 
-	instance := createAccount(account)
-	instance.Init()
-
-	if err := accountCache.Set(instance.GetID(), instance); err != nil {
-		return nil, fmt.Errorf("failed to cache account: %w", err)
-	}
-
-	return instance, nil
+	return getInstance(account.ID)
 }
 
 func getInstance(id int) (IAccount, error) {
-	account, err :=  accountRepo.get(id)
+	account, err := accountRepo.get(id)
 	if err != nil {
 		return nil, err
 	}
