@@ -21,6 +21,6 @@ type IAccount interface {
 	SaveCookies([]byte) error
 	GetCookies() []byte
 	GetLastURL() string
-	SetLastURL(url string)
+	SetLastURL(string)
 	GetMsgChan() chan *message.AsyncMessage
 }

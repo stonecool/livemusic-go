@@ -8,6 +8,8 @@ swag.exe init -g .\cmd\server\main.go -o .\docs\swagger\
 
 gofmt -w . 
 
+go test -v .\internal\account\
+
 ### TODO
 
 - 异常终止，资源释放，windows,linux
