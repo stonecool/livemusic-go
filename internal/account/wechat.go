@@ -7,7 +7,7 @@ import (
 )
 
 type WeChatAccount struct {
-	*Account
+	*account
 }
 
 func (account *WeChatAccount) GetQRCodeSelector() string {
@@ -100,7 +100,7 @@ func (account *WeChatAccount) CheckLogin() chromedp.ActionFunc {
 //
 //		fakeId := ""
 //		for _, item := range searchNameResp.List {
-//			if item.Nickname == crawl.Account.AccountName {
+//			if item.Nickname == crawl.account.AccountName {
 //				fakeId = item.FakeId
 //				break
 //			}

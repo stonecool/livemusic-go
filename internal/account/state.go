@@ -132,7 +132,7 @@ func (mgr *NoLoginStateManager) getNextState(currentState state, cmd message.Cra
 
 func selectStateManager(category string) stateManager {
 	switch category {
-	case "wx":
+	case "wechat":
 		return &DefaultStateManager{}
 	case "noLogin":
 		return &NoLoginStateManager{}

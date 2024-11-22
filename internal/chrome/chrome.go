@@ -16,7 +16,7 @@ type Chrome struct {
 	ID           int
 	IP           string
 	Port         int
-	accounts     map[string]*account.Account
+	accounts     map[string]account.IAccount
 	DebuggerURL  string
 	State        ChromeState
 	stateChan    chan stateEvent
@@ -115,7 +115,7 @@ func (i *Chrome) heartBeat() {
 	}
 }
 
-func (i *Chrome) getAccounts() map[string]*account.Account {
+func (i *Chrome) getAccounts() map[string]account.IAccount {
 	return i.accounts
 }
 

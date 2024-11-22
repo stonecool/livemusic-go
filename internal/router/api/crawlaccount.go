@@ -77,7 +77,7 @@ func GetCrawlAccount(ctx *gin.Context) {
 func GetCrawlAccounts(ctx *gin.Context) {
 	var context = Context{Context: ctx}
 
-	//account := &account.Account{}
+	//account := &account.account{}
 	//if accounts, err := account.GetAll(); err != nil {
 	context.Response(http.StatusBadRequest, 0, nil)
 	//} else {
@@ -113,7 +113,7 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 }
 
 // CrawlAccountWebSocket
-// @Summary	Crawl Account websocket
+// @Summary	Crawl account websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response
@@ -138,7 +138,7 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 }
 
 // CrawlAccountLogin
-// @Summary	Crawl Account websocket
+// @Summary	Crawl account websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
 // @Success	200	{object}	http.Response

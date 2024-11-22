@@ -26,7 +26,7 @@ func (m *model) toEntity() *Chrome {
 		Port:        m.Port,
 		DebuggerURL: m.DebuggerURL,
 		State:       ChromeState(m.State),
-		accounts:    make(map[string]*account.Account),
+		accounts:    make(map[string]account.IAccount),
 		stateChan:   make(chan stateEvent),
 		opts:        DefaultOptions(),
 	}

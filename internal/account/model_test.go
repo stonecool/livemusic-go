@@ -27,7 +27,7 @@ func TestAccountModel_ToEntity(t *testing.T) {
 }
 
 func TestAccountModel_FromEntity(t *testing.T) {
-	entity := &Account{
+	entity := &account{
 		Category:    "wechat",
 		AccountName: "test_account",
 		lastURL:     "http://test.com",

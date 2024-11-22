@@ -17,16 +17,6 @@ func init() {
 	accountRepo = newRepositoryDB(database.DB)
 }
 
-func createAccount(account *Account) IAccount {
-	switch account.Category {
-	case "wechat":
-		wechatAccount := &WeChatAccount{Account: account}
-		return wechatAccount
-	default:
-		return account
-	}
-}
-
 func CreateInstance(category string) (IAccount, error) {
 	account, err := accountRepo.create(category, stateNew)
 	if err != nil {
@@ -42,7 +32,16 @@ func getInstance(id int) (IAccount, error) {
 		return nil, err
 	}
 
-	instance := createAccount(account)
+	account.stateManager = selectStateManager(account.Category)
+
+	var instance IAccount
+	switch account.Category {
+	case "wechat":
+		instance = &WeChatAccount{account: account}
+	default:
+		instance = account
+	}
+
 	instance.Init()
 
 	return instance, nil

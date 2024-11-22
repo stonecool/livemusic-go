@@ -22,4 +22,5 @@ type IAccount interface {
 	GetLastURL() string
 	SetLastURL(string)
 	GetMsgChan() chan *message.AsyncMessage
+	IsAvailable() bool
 }

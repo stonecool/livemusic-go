@@ -7,8 +7,8 @@ import (
 )
 
 type repository interface {
-	get(int) (*Account, error)
-	create(string, state) (*Account, error)
+	get(int) (*account, error)
+	create(string, state) (*account, error)
 }
 
 type repositoryDB struct {
@@ -21,7 +21,7 @@ func newRepositoryDB(db *gorm.DB) repository {
 	}
 }
 
-func (r *repositoryDB) get(id int) (*Account, error) {
+func (r *repositoryDB) get(id int) (*account, error) {
 	m, err := r.db.Get(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get account: %w", err)
@@ -29,7 +29,7 @@ func (r *repositoryDB) get(id int) (*Account, error) {
 	return m.toEntity(), nil
 }
 
-func (r *repositoryDB) create(category string, s state) (*Account, error) {
+func (r *repositoryDB) create(category string, s state) (*account, error) {
 	m := &accountModel{
 		Category: category,
 		State:    int(s),

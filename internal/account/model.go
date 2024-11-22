@@ -21,33 +21,33 @@ func (*accountModel) TableName() string {
 	return "accounts"
 }
 
-func (m *accountModel) toEntity() *Account {
-	return &Account{
+func (m *accountModel) toEntity() *account {
+	return &account{
 		ID:          m.ID,
 		Category:    m.Category,
 		AccountName: m.AccountName,
 		lastURL:     m.LastURL,
 		cookies:     m.Cookies,
 		InstanceID:  m.InstanceID,
-		State:       state(m.State),
+		curState:    state(m.State),
 		msgChan:     make(chan *message.AsyncMessage),
 		done:        make(chan struct{}),
 	}
 }
 
-func (m *accountModel) fromEntity(account *Account) {
+func (m *accountModel) fromEntity(account *account) {
 	m.ID = account.ID
 	m.Category = account.Category
 	m.AccountName = account.AccountName
 	m.LastURL = account.lastURL
 	m.Cookies = account.cookies
 	m.InstanceID = account.InstanceID
-	m.State = int(account.State)
+	m.State = int(account.curState)
 }
 
 func (m *accountModel) Validate() error {
 	v := NewValidator()
-	return v.ValidateAccount(&Account{
+	return v.ValidateAccount(&account{
 		Category:    m.Category,
 		AccountName: m.AccountName,
 	})

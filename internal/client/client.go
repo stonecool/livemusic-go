@@ -29,13 +29,13 @@ const (
 
 type Client struct {
 	conn        *websocket.Conn
-	account     *account.Account
+	account     account.IAccount
 	accountChan chan *message.AsyncMessage
 	done        chan struct{}
 }
 
 var (
-	clients = make(map[*account.Account]*Client)
+	clients = make(map[account.IAccount]*Client)
 	mu      sync.Mutex
 )
 

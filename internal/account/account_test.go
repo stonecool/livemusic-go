@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccount_Init(t *testing.T) {
-	acc := &Account{
+	acc := &account{
 		ID:      1,
 		msgChan: make(chan *message.AsyncMessage),
 		done:    make(chan struct{}),
@@ -23,7 +23,7 @@ func TestAccount_Init(t *testing.T) {
 }
 
 func TestAccount_GetSetState(t *testing.T) {
-	acc := &Account{
+	acc := &account{
 		State: internal.AS_EXPIRED,
 	}
 

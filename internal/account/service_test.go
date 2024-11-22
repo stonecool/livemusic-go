@@ -11,21 +11,21 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) get(id int) (*Account, error) {
+func (m *MockRepository) get(id int) (*account, error) {
 	args := m.Called(id)
-	return args.Get(0).(*Account), args.Error(1)
+	return args.Get(0).(*account), args.Error(1)
 }
 
-func (m *MockRepository) create(category string) (*Account, error) {
+func (m *MockRepository) create(category string, newState state) (*account, error) {
 	args := m.Called(category)
-	return args.Get(0).(*Account), args.Error(1)
+	return args.Get(0).(*account), args.Error(1)
 }
 
 func TestCreateInstance(t *testing.T) {
 	mockRepo := new(MockRepository)
 	accountRepo = mockRepo
 
-	expectedAccount := &Account{
+	expectedAccount := &account{
 		ID:       1,
 		Category: "wechat",
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/stonecool/livemusic-go/internal/message"
 )
 
-type Account struct {
+type account struct {
 	ID           int    `json:"id"`
 	Category     string `json:"category"`
 	AccountName  string `json:"account_name"`
@@ -22,18 +22,11 @@ type Account struct {
 	stateManager stateManager
 }
 
-func NewAccount(category string) *Account {
-	acc := &Account{
-		stateManager: selectStateManager(category),
-	}
-	return acc
-}
-
-func (act *Account) Init() {
+func (act *account) Init() {
 	go act.processTask()
 }
 
-func (act *Account) processTask() {
+func (act *account) processTask() {
 	for {
 		select {
 		case msg := <-act.msgChan:
@@ -68,7 +61,7 @@ func (act *Account) processTask() {
 	}
 }
 
-func (act *Account) handleCommand(currentState state, msg *message.AsyncMessage) error {
+func (act *account) handleCommand(currentState state, msg *message.AsyncMessage) error {
 	// 将原来 switch 中的命令处理逻辑移到这里
 	switch currentState {
 	case stateNew:
@@ -78,21 +71,21 @@ func (act *Account) handleCommand(currentState state, msg *message.AsyncMessage)
 	return nil
 }
 
-func (act *Account) Close() {
+func (act *account) Close() {
 	close(act.done)
 }
 
-func (act *Account) handleLogin() interface{} {
+func (act *account) handleLogin() interface{} {
 	// 处理登录任务的具体逻辑
 	return nil
 }
 
-func (act *Account) handleCrawl(payload interface{}) interface{} {
+func (act *account) handleCrawl(payload interface{}) interface{} {
 	// 处理爬取任务的具体逻辑
 	return payload
 }
 
-func (act *Account) Get() error {
+func (act *account) Get() error {
 	//if crawlcaount, err := database.Getcaount(act.ID); err != nil {
 	//	return err
 	//} else {
@@ -100,7 +93,7 @@ func (act *Account) Get() error {
 	//}
 }
 
-//func (ca *Account) Edit() error {
+//func (ca *account) Edit() error {
 //	if ca.ID == 0 {
 //		return fmt.Errorf("invalid crawlcaount id")
 //	}
@@ -114,7 +107,7 @@ func (act *Account) Get() error {
 //	return database.Editcaount(ca.ID, data)
 //}
 //
-//func (ca *Account) Delete() error {
+//func (ca *account) Delete() error {
 //	crawlcaount, err := database.Getcaount(ca.ID)
 //	if err != nil {
 //		return err
@@ -123,73 +116,73 @@ func (act *Account) Get() error {
 //	return database.Deletecaount(crawlcaount)
 //}
 
-func (act *Account) GetName() string {
+func (act *account) GetName() string {
 	return act.AccountName
 }
 
-func (act *Account) getState() state {
+func (act *account) getState() state {
 	act.mu.RLock()
 	defer act.mu.RUnlock()
 
 	return act.curState
 }
 
-func (act *Account) SetState(s state) {
+func (act *account) SetState(s state) {
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
 	act.curState = s
 }
 
-func (act *Account) CheckLogin() chromedp.ActionFunc {
+func (act *account) CheckLogin() chromedp.ActionFunc {
 	return nil
 }
 
-func (act *Account) WaitLogin() chromedp.ActionFunc {
+func (act *account) WaitLogin() chromedp.ActionFunc {
 	return nil
 }
 
-func (act *Account) GetLoginURL() string {
+func (act *account) GetLoginURL() string {
 	return ""
 }
 
-func (act *Account) Login() error {
+func (act *account) Login() error {
 	return nil
 }
 
-func (act *Account) GetQRCode([]byte) {
+func (act *account) GetQRCode([]byte) {
 }
 
-func (act *Account) GetQRCodeSelector() string {
+func (act *account) GetQRCodeSelector() string {
 	return ""
 }
 
-func (act *Account) SaveCookies([]byte) error {
+func (act *account) SaveCookies([]byte) error {
 	return nil
 }
 
-func (act *Account) GetCookies() []byte {
+func (act *account) GetCookies() []byte {
 	return nil
 }
 
-func (act *Account) GetLastURL() string {
+func (act *account) GetLastURL() string {
 	return ""
 }
 
-func (act *Account) SetLastURL(url string) {
+func (act *account) SetLastURL(url string) {
 }
 
-func (act *Account) IsAvailable() bool {
+func (act *account) IsAvailable() bool {
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
 	return act.curState == stateInitialized
 }
 
-func (act *Account) GetMsgChan() chan *message.AsyncMessage {
+func (act *account) GetMsgChan() chan *message.AsyncMessage {
 	return act.msgChan
 }
 
-func (act *Account) GetID() int {
+func (act *account) GetID() int {
 	return act.ID
 }
