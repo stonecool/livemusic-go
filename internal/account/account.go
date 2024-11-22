@@ -9,130 +9,91 @@ import (
 )
 
 type Account struct {
-	ID          int    `json:"id"`
-	Category    string `json:"category"`
-	AccountName string `json:"account_name"`
-	lastURL     string
-	cookies     []byte
-	InstanceID  int
-	State       state
-	mu          sync.RWMutex
-	msgChan     chan *message.AsyncMessage
-	done        chan struct{}
+	ID           int    `json:"id"`
+	Category     string `json:"category"`
+	AccountName  string `json:"account_name"`
+	lastURL      string
+	cookies      []byte
+	InstanceID   int
+	mu           sync.RWMutex
+	msgChan      chan *message.AsyncMessage
+	done         chan struct{}
+	curState     state
+	stateManager stateManager
 }
 
-func (acc *Account) Init() {
-	go acc.processTask()
-	acc.State = stateInitialized
+func NewAccount(category string) *Account {
+	acc := &Account{
+		stateManager: selectStateManager(category),
+	}
+	return acc
 }
 
-func (acc *Account) processTask() {
+func (act *Account) Init() {
+	go act.processTask()
+}
+
+func (act *Account) processTask() {
 	for {
 		select {
-		case msg := <-acc.msgChan:
-			currentState := acc.GetState()
+		case msg := <-act.msgChan:
+			currentState := act.getState()
 			var err error
 
-			switch currentState {
-			case stateNew:
-				msg.Error = fmt.Errorf("invalid command for new state: %v", msg.Cmd)
-				continue
-				err = acc.handleInit()
+			// 处理命令
+			err = act.handleCommand(currentState, msg)
 
-			case stateInitialized:
-				// 初始化完成状态只接受登录命令
-				if msg.Cmd != message.CrawlCmd_Login {
-					msg.Error = fmt.Errorf("invalid command for initialized state: %v", msg.Cmd)
-					continue
-				}
-				err = acc.handleLogin()
-
-			case stateNotLoggedIn:
-				// 未登录状态只接受登录命令
-				if msg.Cmd != message.CrawlCmd_Login {
-					msg.Error = fmt.Errorf("invalid command for not logged in state: %v", msg.Cmd)
-					continue
-				}
-				err = acc.handleLogin()
-
-			case stateReady:
-				// 就绪状态可以接受爬取或重新登录命令
-				switch msg.Cmd {
-				case message.CrawlCmd_Crawl:
-					err = acc.handleCrawl(msg.Data)
-				case message.CrawlCmd_Login:
-					err = acc.handleLogin()
-				default:
-					msg.Error = fmt.Errorf("invalid command for ready state: %v", msg.Cmd)
-					continue
-				}
-
-			case stateRunning:
-				// 运行状态只能等待当前任务完成
-				msg.Error = fmt.Errorf("account is busy")
-				continue
-
-			case stateTerminated:
-				// 终止状态不接受任何命令
-				msg.Error = fmt.Errorf("account is terminated")
-				continue
-			}
-
-			// 根据操作结果更新状态
+			// 状态转换
 			if err != nil {
-				msg.Error = err
-				// 错误处理可能导致状态变化
-				switch currentState {
-				case stateInitialized:
-					acc.SetState(stateNew)
-				case stateNotLoggedIn, stateReady:
-					acc.SetState(stateNotLoggedIn)
-				case stateRunning:
-					acc.SetState(stateReady)
+				newState := act.stateManager.getErrorState(currentState)
+				if act.stateManager.isValidTransition(currentState, newState) {
+					act.SetState(newState)
 				}
 			} else {
-				// 成功处理后的状态转换
-				switch currentState {
-				case stateNew:
-					acc.SetState(stateInitialized)
-				case stateInitialized, stateNotLoggedIn:
-					acc.SetState(stateReady)
-				case stateReady:
-					if msg.Cmd == message.CrawlCmd_Crawl {
-						acc.SetState(stateRunning)
-					}
-				case stateRunning:
-					acc.SetState(stateReady)
+				newState := act.stateManager.getNextState(currentState, msg.Cmd)
+				if act.stateManager.isValidTransition(currentState, newState) {
+					act.SetState(newState)
 				}
 			}
 
-			// 设置响应结果
-			if msg.Error == nil {
-				msg.Data = []byte("success")
+			// 通过 Result channel 返回结果
+			if msg.Result != nil {
+				msg.Result <- err
+				close(msg.Result)
 			}
 
-		case <-acc.done:
+		case <-act.done:
 			return
 		}
 	}
 }
 
-func (acc *Account) Close() {
-	close(acc.done)
+func (act *Account) handleCommand(currentState state, msg *message.AsyncMessage) error {
+	// 将原来 switch 中的命令处理逻辑移到这里
+	switch currentState {
+	case stateNew:
+		return fmt.Errorf("invalid command for new state: %v", msg.Cmd)
+		// ... 其他状态的命令处理
+	}
+	return nil
 }
 
-func (acc *Account) handleLogin() interface{} {
+func (act *Account) Close() {
+	close(act.done)
+}
+
+func (act *Account) handleLogin() interface{} {
 	// 处理登录任务的具体逻辑
 	return nil
 }
 
-func (acc *Account) handleCrawl(payload interface{}) interface{} {
+func (act *Account) handleCrawl(payload interface{}) interface{} {
 	// 处理爬取任务的具体逻辑
 	return payload
 }
 
-func (acc *Account) Get() error {
-	//if crawlcaount, err := database.Getcaount(acc.ID); err != nil {
+func (act *Account) Get() error {
+	//if crawlcaount, err := database.Getcaount(act.ID); err != nil {
 	//	return err
 	//} else {
 	return nil
@@ -162,73 +123,73 @@ func (acc *Account) Get() error {
 //	return database.Deletecaount(crawlcaount)
 //}
 
-func (acc *Account) GetName() string {
-	return acc.AccountName
+func (act *Account) GetName() string {
+	return act.AccountName
 }
 
-func (acc *Account) GetState() state {
-	acc.mu.RLock()
-	defer acc.mu.RUnlock()
+func (act *Account) getState() state {
+	act.mu.RLock()
+	defer act.mu.RUnlock()
 
-	return acc.State
+	return act.curState
 }
 
-func (acc *Account) SetState(s state) {
-	acc.mu.Lock()
-	defer acc.mu.Unlock()
+func (act *Account) SetState(s state) {
+	act.mu.Lock()
+	defer act.mu.Unlock()
 
-	acc.State = s
+	act.curState = s
 }
 
-func (acc *Account) CheckLogin() chromedp.ActionFunc {
+func (act *Account) CheckLogin() chromedp.ActionFunc {
 	return nil
 }
 
-func (acc *Account) WaitLogin() chromedp.ActionFunc {
+func (act *Account) WaitLogin() chromedp.ActionFunc {
 	return nil
 }
 
-func (acc *Account) GetLoginURL() string {
+func (act *Account) GetLoginURL() string {
 	return ""
 }
 
-func (acc *Account) Login() error {
+func (act *Account) Login() error {
 	return nil
 }
 
-func (acc *Account) GetQRCode([]byte) {
+func (act *Account) GetQRCode([]byte) {
 }
 
-func (acc *Account) GetQRCodeSelector() string {
+func (act *Account) GetQRCodeSelector() string {
 	return ""
 }
 
-func (acc *Account) SaveCookies([]byte) error {
+func (act *Account) SaveCookies([]byte) error {
 	return nil
 }
 
-func (acc *Account) GetCookies() []byte {
+func (act *Account) GetCookies() []byte {
 	return nil
 }
 
-func (acc *Account) GetLastURL() string {
+func (act *Account) GetLastURL() string {
 	return ""
 }
 
-func (acc *Account) SetLastURL(url string) {
+func (act *Account) SetLastURL(url string) {
 }
 
-func (acc *Account) IsAvailable() bool {
-	acc.mu.Lock()
-	defer acc.mu.Unlock()
+func (act *Account) IsAvailable() bool {
+	act.mu.Lock()
+	defer act.mu.Unlock()
 
-	return acc.State == stateInitialized
+	return act.curState == stateInitialized
 }
 
-func (acc *Account) GetMsgChan() chan *message.AsyncMessage {
-	return acc.msgChan
+func (act *Account) GetMsgChan() chan *message.AsyncMessage {
+	return act.msgChan
 }
 
-func (acc *Account) GetID() int {
-	return acc.ID
+func (act *Account) GetID() int {
+	return act.ID
 }

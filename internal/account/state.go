@@ -1,5 +1,9 @@
 package account
 
+import (
+	"github.com/stonecool/livemusic-go/internal/message"
+)
+
 type state int
 
 const (
@@ -30,21 +34,109 @@ func (s state) String() string {
 	}
 }
 
-func (s state) isValidTransition(target state) bool {
-	switch s {
+type stateManager interface {
+	getNextState(currentState state, cmd message.CrawlCmd) state
+	getErrorState(currentState state) state
+	isValidTransition(from, to state) bool
+}
+
+// BaseStateManager 提供基础的状态管理实现
+type BaseStateManager struct{}
+
+// 基础的状态转换逻辑
+func (b *BaseStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
+	switch currentState {
 	case stateNew:
-		return target == stateInitialized
-	case stateInitialized:
-		return target == stateNotLoggedIn
-	case stateNotLoggedIn:
-		return target == stateReady || target == stateTerminated
+		if cmd == message.CrawlCmd_Initial {
+			return stateInitialized
+		}
 	case stateReady:
-		return target == stateRunning || target == stateNotLoggedIn || target == stateTerminated
+		if cmd == message.CrawlCmd_Crawl {
+			return stateRunning
+		}
+		//case stateRunning:
+		//	if cmd == message.CrawlCmd_Stop {
+		//		return stateReady
+		//	}
+	}
+	return currentState
+}
+
+// 基础的错误状态处理
+func (b *BaseStateManager) getErrorState(currentState state) state {
+	switch currentState {
+	case stateNew:
+		return stateNew // 新建状态出错保持原状态
+	case stateInitialized:
+		return stateNew // 初始化失败回到新建状态
 	case stateRunning:
-		return target == stateReady || target == stateTerminated
+		return stateReady // 运行出错回到就绪状态
 	case stateTerminated:
-		return false // 终止状态不能转换到其他状态
+		return stateTerminated // 终止状态不变
+	default:
+		return currentState
+	}
+}
+
+// 基础的状态转换验证
+func (b *BaseStateManager) isValidTransition(from, to state) bool {
+	switch from {
+	case stateNew:
+		return to == stateInitialized
+	case stateInitialized:
+		return to == stateReady || to == stateNew
+	case stateReady:
+		return to == stateRunning || to == stateTerminated
+	case stateRunning:
+		return to == stateReady || to == stateTerminated
+	case stateTerminated:
+		return false
 	default:
 		return false
+	}
+}
+
+// DefaultStateManager 需要登录的账号状态管理器
+type DefaultStateManager struct {
+	BaseStateManager
+}
+
+// 重写需要特殊处理的方法
+func (mgr *DefaultStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
+	switch currentState {
+	case stateInitialized:
+		return stateNotLoggedIn
+	case stateNotLoggedIn:
+		if cmd == message.CrawlCmd_Login {
+			return stateReady
+		}
+	}
+	// 其他情况使用基类的默认实现
+	return mgr.BaseStateManager.getNextState(currentState, cmd)
+}
+
+// NoLoginStateManager 无需登录的账号状态管理器
+type NoLoginStateManager struct {
+	BaseStateManager
+}
+
+// 重写特定的状态转换逻辑
+func (mgr *NoLoginStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
+	switch currentState {
+	case stateInitialized:
+		return stateReady // 直接进入就绪状态
+	}
+	// 其他情况使用基类的默认实现
+	return mgr.BaseStateManager.getNextState(currentState, cmd)
+}
+
+func selectStateManager(category string) stateManager {
+	switch category {
+	case "wx":
+		return &DefaultStateManager{}
+	case "noLogin":
+		return &NoLoginStateManager{}
+	default:
+		return &DefaultStateManager{}
 	}
 }

@@ -9,7 +9,7 @@ type IAccount interface {
 	Init()
 	GetID() int
 	GetName() string
-	GetState() state
+	getState() state
 	SetState(state)
 	CheckLogin() chromedp.ActionFunc
 	WaitLogin() chromedp.ActionFunc
