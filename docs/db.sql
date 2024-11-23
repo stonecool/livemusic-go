@@ -1,7 +1,7 @@
 -- 爬虫账号
 CREATE TABLE `accounts` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `category`          VARCHAR(20) NOT NULL COMMENT 'category',
+    `category`          VARCHAR(50) NOT NULL COMMENT 'category',
     `name`              VARCHAR(255) NOT NULL COMMENT 'name',
     `last_url`          VARCHAR(255) NOT NULL COMMENT 'last url',
     `cookies`           BLOB COMMENT 'cookies',

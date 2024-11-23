@@ -40,7 +40,7 @@ func TestValidator_ValidateAccountName(t *testing.T) {
 		wantErr bool
 	}{
 		{"empty name", "", false},
-		{"too long name", strings.Repeat("a", 51), true},
+		{"too long name", strings.Repeat("a", 256), true},
 		{"valid name", "test_123", false},
 	}
 

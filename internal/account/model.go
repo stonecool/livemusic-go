@@ -9,7 +9,7 @@ import (
 type accountModel struct {
 	database.BaseModel
 
-	Category   string `gorm:"type:varchar(20);not null"`
+	Category   string `gorm:"type:varchar(50);not null"`
 	Name       string `gorm:"type:varchar(255);not null"`
 	LastURL    string `gorm:"type:varchar(255)"`
 	Cookies    []byte `gorm:"type:bytes"`
