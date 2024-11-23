@@ -33,7 +33,7 @@ func TestCreateInstance(t *testing.T) {
 	mockRepo.On("create", "wechat").Return(expectedAccount, nil)
 	mockRepo.On("get", 1).Return(expectedAccount, nil)
 
-	instance, err := CreateInstance("wechat")
+	instance, err := CreateAccount("wechat")
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedAccount.ID, instance.GetID())

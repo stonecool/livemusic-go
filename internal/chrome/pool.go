@@ -19,7 +19,7 @@ type Pool struct {
 	chromes      map[int]*Chrome
 	addr2Chromes map[string]*Chrome
 	categories   map[string]*category
-	mu             sync.Mutex
+	mu           sync.Mutex
 }
 
 // init 在包初始化时创建实例池
@@ -86,7 +86,7 @@ func (ip *Pool) Login(id int, cat string) {
 		}
 	}
 
-	acc, err := account.GetInstance(id)
+	acc, err := account.GetAccount(id)
 	if err != nil {
 		return
 	}

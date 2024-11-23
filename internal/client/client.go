@@ -28,10 +28,9 @@ const (
 )
 
 type Client struct {
-	conn        *websocket.Conn
-	account     account.IAccount
-	accountChan chan *message.AsyncMessage
-	done        chan struct{}
+	conn    *websocket.Conn
+	account account.IAccount
+	done    chan struct{}
 }
 
 var (
@@ -39,7 +38,7 @@ var (
 	mu      sync.Mutex
 )
 
-func newClient(id int, ctx *gin.Context) (*Client, error) {
+func newClient(account account.IAccount, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -51,10 +50,9 @@ func newClient(id int, ctx *gin.Context) (*Client, error) {
 	}
 
 	client := &Client{
-		conn:        conn,
-		account:     nil,
-		accountChan: make(chan *message.AsyncMessage),
-		done:        make(chan struct{}),
+		conn:    conn,
+		account: account,
+		done:    make(chan struct{}),
 	}
 
 	return client, nil
@@ -82,7 +80,6 @@ func (c *Client) readPump() {
 			return
 		}
 
-		// 解析消息并处理
 		msg := &message.Message{}
 		if err := json.Unmarshal(data, msg); err != nil {
 			log.Printf("error parsing data: %v", err)
@@ -105,7 +102,7 @@ func (c *Client) writePump() {
 
 	for {
 		select {
-		case msg := <-c.accountChan:
+		case msg := <-c.account.GetMsgChan():
 			if err := c.handleAccountMessage(msg); err != nil {
 				log.Printf("handle account message error: %v", err)
 				return
@@ -126,67 +123,56 @@ func (c *Client) writePump() {
 func (c *Client) handleWebSocketMessage(msg *message.Message) error {
 	switch msg.Cmd {
 	case message.CrawlCmd_Login:
-		// 创建任务消息
 		asyncMessage := message.NewAsyncMessage(msg, nil)
 
-		// 发送任务并等待结果
-		c.accountChan <- asyncMessage
+		c.account.GetMsgChan() <- asyncMessage
 		result := <-asyncMessage.Result
 
-		// 发送结果回 WebSocket
 		msg := &message.Message{
 			Cmd:  message.CrawlCmd_Login,
 			Data: []byte(fmt.Sprintf("%v", result)),
 		}
-		c.accountChan <- message.NewAsyncMessage(msg, nil)
+		c.account.GetMsgChan() <- message.NewAsyncMessage(msg, nil)
 	}
 	return nil
 }
 
 func (c *Client) handleAccountMessage(msg *message.AsyncMessage) error {
-	// 将消息写入 WebSocket
 	return c.conn.WriteMessage(websocket.TextMessage, msg.Data)
 }
 
 func (c *Client) Close() {
-	// 关闭 done channel 来通知所有 goroutine 退出
 	close(c.done)
 
-	// 关闭 WebSocket 连接
 	c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 	c.conn.Close()
 
-	// 关闭 accountChan
-	close(c.accountChan)
-
-	// 从全局 clients map 中移除
 	mu.Lock()
+	defer mu.Unlock()
 	delete(clients, c.account)
-	mu.Unlock()
 }
 
 func HandleWebsocket(accountId int, ctx *gin.Context) error {
-	//account, err := GetCrawl(accountId)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//mu.Lock()
-	//client, err := newClient(account, ctx)
-	//if err != nil {
-	//	mu.Unlock()
-	//	return err
-	//}
-	//
-	//if oldClient, ok := clients[account]; ok {
-	//	oldClient.Close()
-	//}
-	//
-	//clients[account] = client
-	//mu.Unlock()
-	//
-	//go client.readPump()
-	//go client.writePump()
+	acc, err := account.GetAccount(accountId)
+	if err != nil {
+		return err
+	}
+
+	client, err := newClient(acc, ctx)
+	if err != nil {
+		return err
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if oldClient, ok := clients[acc]; ok {
+		oldClient.Close()
+	}
+
+	clients[acc] = client
+
+	go client.readPump()
+	go client.writePump()
 
 	return nil
 }

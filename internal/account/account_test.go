@@ -8,26 +8,26 @@ import (
 )
 
 func TestAccount_Init(t *testing.T) {
-	account := &account{
+	acc := &account{
 		ID:      1,
 		msgChan: make(chan *message.AsyncMessage),
 		done:    make(chan struct{}),
 	}
 
-	account.Init()
-	defer account.Close()
+	acc.Init()
+	defer acc.Close()
 
-	assert.NotNil(t, account.msgChan)
-	assert.NotNil(t, account.done)
+	assert.NotNil(t, acc.msgChan)
+	assert.NotNil(t, acc.done)
 }
 
 func TestAccount_GetSetState(t *testing.T) {
-	account := &account{
+	acc := &account{
 		State: stateNew,
 	}
 
-	assert.Equal(t, stateNew, account.getState())
+	assert.Equal(t, stateNew, acc.getState())
 
-	account.SetState(stateInitialized)
-	assert.Equal(t, stateInitialized, account.getState())
+	acc.SetState(stateInitialized)
+	assert.Equal(t, stateInitialized, acc.getState())
 }
