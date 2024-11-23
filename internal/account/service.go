@@ -3,6 +3,7 @@ package account
 import (
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/database"
+	"github.com/stonecool/livemusic-go/internal/message"
 )
 
 var (
@@ -42,15 +43,20 @@ func getAccount(id int) (IAccount, error) {
 		instance = acc
 	}
 
-	instance.Init()
+	msg := message.NewAsyncMessage(
+		&message.Message{
+			Cmd: message.CrawlCmd_Initial,
+		}, nil)
+
+	instance.GetMsgChan() <- msg
 
 	return instance, nil
 }
 
 func GetAccount(id int) (IAccount, error) {
-	if acc, err := accountCache.Get(id); err != nil {
+	if instance, err := accountCache.Get(id); err != nil {
 		return nil, err
 	} else {
-		return acc.(IAccount), nil
+		return instance.(IAccount), nil
 	}
 }

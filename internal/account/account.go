@@ -22,10 +22,6 @@ type account struct {
 	stateManager stateManager
 }
 
-func (acc *account) Init() {
-	go acc.processTask()
-}
-
 func (acc *account) processTask() {
 	for {
 		select {
@@ -48,7 +44,6 @@ func (acc *account) processTask() {
 				}
 			}
 
-			// 通过 Result channel 返回结果
 			if msg.Result != nil {
 				msg.Result <- err
 				close(msg.Result)
@@ -63,7 +58,11 @@ func (acc *account) processTask() {
 func (acc *account) handleCommand(currentState state, msg *message.AsyncMessage) interface{} {
 	switch currentState {
 	case stateNew:
-		return fmt.Errorf("invalid command:%v for new state", msg.Cmd)
+		if msg.Cmd != message.CrawlCmd_Initial {
+			return fmt.Errorf("invalid command:%v for new state", msg.Cmd)
+		}
+		go acc.processTask()
+		return nil
 
 	case stateInitialized:
 		if msg.Cmd != message.CrawlCmd_Login {

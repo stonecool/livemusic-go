@@ -99,6 +99,8 @@ type DefaultStateManager struct {
 
 func (mgr *DefaultStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
 	switch currentState {
+	case stateNew:
+		return stateInitialized
 	case stateInitialized:
 		return stateNotLoggedIn
 	case stateNotLoggedIn:

@@ -29,10 +29,10 @@ func (r *repositoryDB) get(id int) (*account, error) {
 	return m.toEntity(), nil
 }
 
-func (r *repositoryDB) create(category string, s state) (*account, error) {
+func (r *repositoryDB) create(category string, state state) (*account, error) {
 	m := &accountModel{
 		Category: category,
-		State:    int(s),
+		State:    int(state),
 	}
 	if err := m.Validate(); err != nil {
 		return nil, err

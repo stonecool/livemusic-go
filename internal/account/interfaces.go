@@ -6,7 +6,6 @@ import (
 )
 
 type IAccount interface {
-	Init()
 	GetID() int
 	GetName() string
 	getState() state

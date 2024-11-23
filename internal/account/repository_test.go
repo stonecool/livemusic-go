@@ -64,7 +64,7 @@ func TestRepositoryDB_Create(t *testing.T) {
 
 	mockDB.On("Create", mock.AnythingOfType("*account.accountModel")).Return(nil)
 
-	account, err := repo.create("wechat", stateNew)
+	account, err := repo.create("wechat")
 
 	assert.NoError(t, err)
 	assert.Equal(t, "wechat", account.Category)
