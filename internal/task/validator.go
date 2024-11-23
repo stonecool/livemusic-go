@@ -15,11 +15,6 @@ func NewValidator() *Validator {
 }
 
 func (v *Validator) ValidateTask(model *model) error {
-	exist, err := repo.existsByMeta(model.Category, model.MetaType, model.MetaID)
-	if !exist || err != nil {
-		return fmt.Errorf("exists")
-	}
-
 	if err := v.ValidateCategory(model.Category); err != nil {
 		return err
 	}

@@ -21,14 +21,6 @@ func (t *Task) GetCategory() string {
 	return t.Category
 }
 
-func (t *Task) Execute() error {
-	return nil
-}
-
-func (t *Task) Cancel() error {
-	return nil
-}
-
 func (t *Task) GetCronSpec() string {
 	return t.CronSpec
 }

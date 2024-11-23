@@ -32,21 +32,27 @@ func (r *repositoryDB) get(id int) (*Task, error) {
 }
 
 func (r *repositoryDB) create(category string, metaType string, metaID int, cronSpec string) (*Task, error) {
-	m := &model{
+	exist, err := repo.existsByMeta(category, metaType, metaID)
+	if !exist || err != nil {
+		return nil, fmt.Errorf("exists")
+	}
+
+	model := &model{
 		Category: category,
 		MetaType: metaType,
 		MetaID:   metaID,
 		CronSpec: cronSpec,
 	}
-	if err := m.Validate(); err != nil {
+
+	if err := model.Validate(); err != nil {
 		return nil, err
 	}
 
-	if err := r.db.Create(m); err != nil {
+	if err := r.db.Create(model); err != nil {
 		return nil, fmt.Errorf("failed to create task: %w", err)
 	}
 
-	return m.toEntity(), nil
+	return model.toEntity(), nil
 }
 
 func (r *repositoryDB) getAll() ([]*Task, error) {
