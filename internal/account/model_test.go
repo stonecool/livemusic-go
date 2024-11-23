@@ -7,7 +7,7 @@ import (
 )
 
 func TestAccountModel_ToEntity(t *testing.T) {
-	model := &accountModel{
+	model := &model{
 		Category:   "wechat",
 		Name:       "test_account",
 		LastURL:    "http://test.com",
@@ -36,7 +36,7 @@ func TestAccountModel_FromEntity(t *testing.T) {
 		State:      stateNew,
 	}
 
-	model := &accountModel{}
+	model := &model{}
 	model.fromEntity(entity)
 
 	assert.Equal(t, entity.Category, model.Category)

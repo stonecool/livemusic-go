@@ -12,12 +12,12 @@ type repository interface {
 }
 
 type repositoryDB struct {
-	db database.Repository[*accountModel]
+	db database.Repository[*model]
 }
 
 func newRepositoryDB(db *gorm.DB) repository {
 	return &repositoryDB{
-		db: database.NewBaseRepository[*accountModel](db),
+		db: database.NewBaseRepository[*model](db),
 	}
 }
 
@@ -30,7 +30,7 @@ func (r *repositoryDB) get(id int) (*account, error) {
 }
 
 func (r *repositoryDB) create(category string, state state) (*account, error) {
-	m := &accountModel{
+	m := &model{
 		Category: category,
 		State:    int(state),
 	}

@@ -10,17 +10,17 @@ type MockDB struct {
 	mock.Mock
 }
 
-func (m *MockDB) Get(id int) (*accountModel, error) {
+func (m *MockDB) Get(id int) (*model, error) {
 	args := m.Called(id)
-	return args.Get(0).(*accountModel), args.Error(1)
+	return args.Get(0).(*model), args.Error(1)
 }
 
-func (m *MockDB) Create(model *accountModel) error {
+func (m *MockDB) Create(model *model) error {
 	args := m.Called(model)
 	return args.Error(0)
 }
 
-func (m *MockDB) Update(model *accountModel) error {
+func (m *MockDB) Update(model *model) error {
 	args := m.Called(model)
 	return args.Error(0)
 }
@@ -30,21 +30,21 @@ func (m *MockDB) Delete(id int) error {
 	return args.Error(0)
 }
 
-func (m *MockDB) GetAll() ([]*accountModel, error) {
+func (m *MockDB) GetAll() ([]*model, error) {
 	args := m.Called()
-	return args.Get(0).([]*accountModel), args.Error(1)
+	return args.Get(0).([]*model), args.Error(1)
 }
 
-func (m *MockDB) FindBy(query string, args ...interface{}) ([]*accountModel, error) {
+func (m *MockDB) FindBy(query string, args ...interface{}) ([]*model, error) {
 	callArgs := m.Called(query, args)
-	return callArgs.Get(0).([]*accountModel), callArgs.Error(1)
+	return callArgs.Get(0).([]*model), callArgs.Error(1)
 }
 
 func TestRepositoryDB_Get(t *testing.T) {
 	mockDB := new(MockDB)
 	repo := &repositoryDB{db: mockDB}
 
-	expectedModel := &accountModel{
+	expectedModel := &model{
 		Category: "wechat",
 		Name:     "test",
 	}
@@ -62,7 +62,7 @@ func TestRepositoryDB_Create(t *testing.T) {
 	mockDB := new(MockDB)
 	repo := &repositoryDB{db: mockDB}
 
-	mockDB.On("Create", mock.AnythingOfType("*account.accountModel")).Return(nil)
+	mockDB.On("Create", mock.AnythingOfType("*account.model")).Return(nil)
 
 	acc, err := repo.create("wechat", stateNew)
 

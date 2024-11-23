@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type accountModel struct {
+type model struct {
 	database.BaseModel
 
 	Category   string `gorm:"type:varchar(50);not null"`
@@ -17,11 +17,11 @@ type accountModel struct {
 	State      int    `gorm:"default:0"`
 }
 
-func (*accountModel) TableName() string {
+func (*model) TableName() string {
 	return "accounts"
 }
 
-func (m *accountModel) toEntity() *account {
+func (m *model) toEntity() *account {
 	return &account{
 		ID:         m.ID,
 		Category:   m.Category,
@@ -35,7 +35,7 @@ func (m *accountModel) toEntity() *account {
 	}
 }
 
-func (m *accountModel) fromEntity(account *account) {
+func (m *model) fromEntity(account *account) {
 	m.ID = account.ID
 	m.Category = account.Category
 	m.Name = account.Name
@@ -45,7 +45,7 @@ func (m *accountModel) fromEntity(account *account) {
 	m.State = int(account.State)
 }
 
-func (m *accountModel) Validate() error {
+func (m *model) Validate() error {
 	v := NewValidator()
 	return v.ValidateAccount(&account{
 		Category: m.Category,
@@ -53,14 +53,14 @@ func (m *accountModel) Validate() error {
 	})
 }
 
-func (m *accountModel) BeforeCreate(tx *gorm.DB) error {
+func (m *model) BeforeCreate(tx *gorm.DB) error {
 	return m.Validate()
 }
 
-func (m *accountModel) BeforeUpdate(tx *gorm.DB) error {
+func (m *model) BeforeUpdate(tx *gorm.DB) error {
 	return m.Validate()
 }
 
-func (m *accountModel) GetID() int {
+func (m *model) GetID() int {
 	return m.ID
 }
