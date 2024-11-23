@@ -4,6 +4,7 @@ import (
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"github.com/stonecool/livemusic-go/internal/message"
+	"time"
 )
 
 var (
@@ -38,7 +39,7 @@ func getAccount(id int) (IAccount, error) {
 	var instance IAccount
 	switch acc.Category {
 	case "wechat":
-		instance = &WeChatAccount{account: acc}
+		instance = &WeChatAccount{acc}
 	default:
 		instance = acc
 	}
@@ -48,7 +49,14 @@ func getAccount(id int) (IAccount, error) {
 			Cmd: message.CrawlCmd_Initial,
 		}, nil)
 
-	instance.GetMsgChan() <- msg
+	go func() {
+		select {
+		case instance.GetMsgChan() <- msg:
+			// 消息发送成功
+		case <-time.After(5 * time.Second):
+			// 处理发送超时
+		}
+	}()
 
 	return instance, nil
 }

@@ -16,12 +16,12 @@ func (m *MockRepository) get(id int) (*account, error) {
 	return args.Get(0).(*account), args.Error(1)
 }
 
-func (m *MockRepository) create(category string, newState state) (*account, error) {
-	args := m.Called(category)
+func (m *MockRepository) create(category string, state state) (*account, error) {
+	args := m.Called(category, state)
 	return args.Get(0).(*account), args.Error(1)
 }
 
-func TestCreateInstance(t *testing.T) {
+func TestCreateAccount(t *testing.T) {
 	mockRepo := new(MockRepository)
 	accountRepo = mockRepo
 
@@ -30,7 +30,7 @@ func TestCreateInstance(t *testing.T) {
 		Category: "wechat",
 	}
 
-	mockRepo.On("create", "wechat").Return(expectedAccount, nil)
+	mockRepo.On("create", "wechat", stateNew).Return(expectedAccount, nil)
 	mockRepo.On("get", 1).Return(expectedAccount, nil)
 
 	instance, err := CreateAccount("wechat")

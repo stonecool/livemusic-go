@@ -51,11 +51,11 @@ func TestRepositoryDB_Get(t *testing.T) {
 
 	mockDB.On("Get", 1).Return(expectedModel, nil)
 
-	account, err := repo.get(1)
+	acc, err := repo.get(1)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expectedModel.Category, account.Category)
-	assert.Equal(t, expectedModel.Name, account.Name)
+	assert.Equal(t, expectedModel.Category, acc.Category)
+	assert.Equal(t, expectedModel.Name, acc.Name)
 }
 
 func TestRepositoryDB_Create(t *testing.T) {
@@ -64,9 +64,9 @@ func TestRepositoryDB_Create(t *testing.T) {
 
 	mockDB.On("Create", mock.AnythingOfType("*account.accountModel")).Return(nil)
 
-	account, err := repo.create("wechat")
+	acc, err := repo.create("wechat", stateNew)
 
 	assert.NoError(t, err)
-	assert.Equal(t, "wechat", account.Category)
-	assert.Equal(t, stateNew, account.State)
+	assert.Equal(t, "wechat", acc.Category)
+	assert.Equal(t, stateNew, acc.State)
 }
