@@ -33,10 +33,9 @@ func (a *account) processTask() {
 			currentState := a.getState()
 			var err error
 
-			// 处理命令
-			err = a.handleCommand(currentState, msg)
+			ret := a.handleCommand(currentState, msg)
+			err = ret.(error)
 
-			// 状态转换
 			if err != nil {
 				newState := a.stateManager.getErrorState(currentState)
 				if a.stateManager.isValidTransition(currentState, newState) {
@@ -61,14 +60,42 @@ func (a *account) processTask() {
 	}
 }
 
-func (a *account) handleCommand(currentState state, msg *message.AsyncMessage) error {
-	// 将原来 switch 中的命令处理逻辑移到这里
+func (a *account) handleCommand(currentState state, msg *message.AsyncMessage) interface{} {
 	switch currentState {
 	case stateNew:
-		return fmt.Errorf("invalid command for new State: %v", msg.Cmd)
-		// ... 其他状态的命令处理
+		return fmt.Errorf("invalid command:%v for new state", msg.Cmd)
+
+	case stateInitialized:
+		if msg.Cmd != message.CrawlCmd_Login {
+			return fmt.Errorf("invalid command:%v for initialized state", msg.Cmd)
+		}
+		return a.handleLogin()
+
+	case stateNotLoggedIn:
+		if msg.Cmd != message.CrawlCmd_Login {
+			return fmt.Errorf("invalid command:%v for not logged in state", msg.Cmd)
+		}
+		return a.handleLogin()
+
+	case stateReady:
+		switch msg.Cmd {
+		case message.CrawlCmd_Crawl:
+			return a.handleCrawl(msg.Data)
+		case message.CrawlCmd_Login:
+			return a.handleLogin()
+		default:
+			return fmt.Errorf("invalid command:%v for ready state", msg.Cmd)
+		}
+
+	case stateRunning:
+		return fmt.Errorf("account is busy")
+
+	case stateTerminated:
+		return fmt.Errorf("account is terminated")
+
+	default:
+		return nil
 	}
-	return nil
 }
 
 func (a *account) Close() {

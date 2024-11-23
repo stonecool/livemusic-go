@@ -40,12 +40,10 @@ type stateManager interface {
 	isValidTransition(from, to state) bool
 }
 
-// BaseStateManager 提供基础的状态管理实现
 type BaseStateManager struct{}
 
-// 基础的状态转换逻辑
-func (b *BaseStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
-	switch currentState {
+func (b *BaseStateManager) getNextState(state state, cmd message.CrawlCmd) state {
+	switch state {
 	case stateNew:
 		if cmd == message.CrawlCmd_Initial {
 			return stateInitialized
@@ -59,12 +57,11 @@ func (b *BaseStateManager) getNextState(currentState state, cmd message.CrawlCmd
 		//		return stateReady
 		//	}
 	}
-	return currentState
+	return state
 }
 
-// 基础的错误状态处理
-func (b *BaseStateManager) getErrorState(currentState state) state {
-	switch currentState {
+func (b *BaseStateManager) getErrorState(state state) state {
+	switch state {
 	case stateNew:
 		return stateNew // 新建状态出错保持原状态
 	case stateInitialized:
@@ -74,11 +71,10 @@ func (b *BaseStateManager) getErrorState(currentState state) state {
 	case stateTerminated:
 		return stateTerminated // 终止状态不变
 	default:
-		return currentState
+		return state
 	}
 }
 
-// 基础的状态转换验证
 func (b *BaseStateManager) isValidTransition(from, to state) bool {
 	switch from {
 	case stateNew:
@@ -101,7 +97,6 @@ type DefaultStateManager struct {
 	BaseStateManager
 }
 
-// 重写需要特殊处理的方法
 func (mgr *DefaultStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
 	switch currentState {
 	case stateInitialized:
@@ -115,12 +110,10 @@ func (mgr *DefaultStateManager) getNextState(currentState state, cmd message.Cra
 	return mgr.BaseStateManager.getNextState(currentState, cmd)
 }
 
-// NoLoginStateManager 无需登录的账号状态管理器
 type NoLoginStateManager struct {
 	BaseStateManager
 }
 
-// 重写特定的状态转换逻辑
 func (mgr *NoLoginStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
 	switch currentState {
 	case stateInitialized:
