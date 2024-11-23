@@ -1,9 +1,9 @@
 -- 爬虫账号
 CREATE TABLE `accounts` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `category`          VARCHAR(100) NOT NULL COMMENT 'category',
-    `name`              VARCHAR(100) NOT NULL COMMENT 'name',
-    `last_url`          VARCHAR(100) NOT NULL COMMENT 'last url',
+    `category`          VARCHAR(20) NOT NULL COMMENT 'category',
+    `name`              VARCHAR(255) NOT NULL COMMENT 'name',
+    `last_url`          VARCHAR(255) NOT NULL COMMENT 'last url',
     `cookies`           BLOB COMMENT 'cookies',
     `instance_id`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'instance id',
     `state`             TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',

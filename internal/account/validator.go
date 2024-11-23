@@ -3,7 +3,6 @@ package account
 import (
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal/config"
-	"regexp"
 )
 
 type Validator struct{}
@@ -38,19 +37,9 @@ func (v *Validator) validateCategory(category string) error {
 }
 
 func (v *Validator) validateAccountName(name string) error {
-	if name == "" {
-		return fmt.Errorf("account name cannot be empty")
-	}
-
 	// 账号名称长度限制
 	if len(name) > 50 {
 		return fmt.Errorf("account name too long (max 50 characters)")
-	}
-
-	// 账号名称格式验证(只允许字母数字下划线)
-	matched, _ := regexp.MatchString(`^[a-zA-Z0-9_]+$`, name)
-	if !matched {
-		return fmt.Errorf("invalid account name format")
 	}
 
 	return nil

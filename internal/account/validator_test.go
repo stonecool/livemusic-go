@@ -1,10 +1,9 @@
 package account
 
 import (
+	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidator_ValidateCategory(t *testing.T) {
@@ -40,9 +39,8 @@ func TestValidator_ValidateAccountName(t *testing.T) {
 		accName string
 		wantErr bool
 	}{
-		{"empty name", "", true},
+		{"empty name", "", false},
 		{"too long name", strings.Repeat("a", 51), true},
-		{"invalid chars", "test@123", true},
 		{"valid name", "test_123", false},
 	}
 

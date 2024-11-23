@@ -2,9 +2,10 @@ package config
 
 import (
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"log"
 	"os"
+
+	"github.com/BurntSushi/toml"
 )
 
 var config conf
@@ -49,23 +50,42 @@ type redis struct {
 }
 
 type Account struct {
-	Name         string
-	Type         uint8
-	LoginURL     string
-	LastLoginURL string
+	Name     string `toml:"name"`
+	Type     uint8  `toml:"type"`
+	LoginURL string `toml:"login_url"`
+	LastURL  string `toml:"last_url"`
 }
 
 func init() {
+	// 读取配置文件路径
+	configFilePath := os.Getenv("CONFIG_PATH")
+	if configFilePath == "" {
+		configFilePath = "../../conf/conf.toml" // 默认路径
+	}
+
 	_, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
-	_, err = toml.DecodeFile("conf/conf.toml", &config)
+	_, err = toml.DecodeFile(configFilePath, &config)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
-	log.Println(config)
+	// 验证配置
+	if err := validateConfig(); err != nil {
+		log.Fatal(err)
+	}
+
 	AccountMap = config.AccountMap
+}
+
+func validateConfig() error {
+	// 检查必需的配置项
+	if config.Database.User == "" {
+		return fmt.Errorf("database user cannot be empty")
+	}
+	// 其他验证逻辑...
+	return nil
 }
