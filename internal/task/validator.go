@@ -14,16 +14,21 @@ func NewValidator() *Validator {
 	return &Validator{}
 }
 
-func (v *Validator) ValidateTask(task *Task) error {
-	if err := v.ValidateCategory(task.Category); err != nil {
+func (v *Validator) ValidateTask(model *model) error {
+	exist, err := repo.existsByMeta(model.Category, model.MetaType, model.MetaID)
+	if !exist || err != nil {
+		return fmt.Errorf("exists")
+	}
+
+	if err := v.ValidateCategory(model.Category); err != nil {
 		return err
 	}
 
-	if err := v.ValidateMetaType(task.MetaType); err != nil {
+	if err := v.ValidateMetaType(model.MetaType); err != nil {
 		return err
 	}
 
-	if err := v.ValidateCronSpec(task.CronSpec); err != nil {
+	if err := v.ValidateCronSpec(model.CronSpec); err != nil {
 		return err
 	}
 

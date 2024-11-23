@@ -46,11 +46,7 @@ func (m *model) fromEntity(account *account) {
 }
 
 func (m *model) Validate() error {
-	v := NewValidator()
-	return v.ValidateAccount(&account{
-		Category: m.Category,
-		Name:     m.Name,
-	})
+	return NewValidator().validateModel(m)
 }
 
 func (m *model) BeforeCreate(tx *gorm.DB) error {

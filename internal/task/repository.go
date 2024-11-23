@@ -8,8 +8,9 @@ import (
 
 type repository interface {
 	get(int) (*Task, error)
-	create(category string, metaType string, metaId int, cronSpec string) (*Task, error)
+	create(category string, metaType string, metaID int, cronSpec string) (*Task, error)
 	getAll() ([]*Task, error)
+	existsByMeta(category string, metaType string, metaID int) (bool, error)
 }
 
 type repositoryDB struct {
@@ -30,11 +31,11 @@ func (r *repositoryDB) get(id int) (*Task, error) {
 	return m.toEntity(), nil
 }
 
-func (r *repositoryDB) create(category string, metaType string, metaId int, cronSpec string) (*Task, error) {
+func (r *repositoryDB) create(category string, metaType string, metaID int, cronSpec string) (*Task, error) {
 	m := &model{
 		Category: category,
 		MetaType: metaType,
-		MetaId:   metaId,
+		MetaID:   metaID,
 		CronSpec: cronSpec,
 	}
 	if err := m.Validate(); err != nil {
@@ -49,5 +50,19 @@ func (r *repositoryDB) create(category string, metaType string, metaId int, cron
 }
 
 func (r *repositoryDB) getAll() ([]*Task, error) {
-	return nil, nil
+	models, err := r.db.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task: %w", err)
+	}
+
+	var tasks []*Task
+	for _, m := range models {
+		tasks = append(tasks, m.toEntity())
+	}
+
+	return tasks, nil
+}
+
+func (r *repositoryDB) existsByMeta(category string, metaType string, metaID int) (bool, error) {
+	return r.db.ExistsBy("category = '?' AND metaType = '?' AND metaID = ?", category, metaType, metaID)
 }

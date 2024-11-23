@@ -6,6 +6,7 @@ type ITask interface {
 	GetCategory() string
 	Execute() error
 	Cancel() error
+	GetCronSpec() string
 }
 
 // CronTask 定时任务接口

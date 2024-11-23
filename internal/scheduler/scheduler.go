@@ -33,22 +33,22 @@ func GetScheduler() *Scheduler {
 	return scheduler
 }
 
-func (s *Scheduler) AddTask(task *task.Task) error {
+func (s *Scheduler) AddTask(task task.ITask) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if oldEntryID, exists := s.jobMap[task.ID]; exists {
+	if oldEntryID, exists := s.jobMap[task.GetID()]; exists {
 		s.cron.Remove(oldEntryID)
 	}
 
-	entryID, err := s.cron.AddFunc(task.CronSpec, func() {
+	entryID, err := s.cron.AddFunc(task.GetCronSpec(), func() {
 		s.executeTask(task)
 	})
 	if err != nil {
 		return err
 	}
 
-	s.jobMap[task.ID] = entryID
+	s.jobMap[task.GetID()] = entryID
 	return nil
 }
 
@@ -62,7 +62,7 @@ func (s *Scheduler) Start() {
 
 	for _, task := range tasks {
 		if err := s.AddTask(task); err != nil {
-			log.Printf("Failed to add task %d: %v", task.GetId(), err)
+			log.Printf("Failed to add task %d: %v", task.GetID(), err)
 		}
 	}
 
@@ -73,7 +73,7 @@ func (s *Scheduler) Stop() {
 	s.cron.Stop()
 }
 
-func (s *Scheduler) executeTask(task *task.Task) error {
+func (s *Scheduler) executeTask(task task.ITask) error {
 	const (
 		maxRetries = 3 // 最大重试次数
 		retryDelay = 5 // 重试间隔(秒)
@@ -88,12 +88,12 @@ func (s *Scheduler) executeTask(task *task.Task) error {
 		}
 
 		// 尝试分发任务
-		if err := chrome.GetPool().DispatchTask(task.Category, msg); err == nil {
+		if err := chrome.GetPool().DispatchTask(task.GetCategory(), msg); err == nil {
 			return nil
 		} else {
 			lastErr = err
 			log.Printf("Task %d dispatch failed (attempt %d/%d): %v",
-				task.ID, retry+1, maxRetries, err)
+				task.GetID(), retry+1, maxRetries, err)
 		}
 	}
 

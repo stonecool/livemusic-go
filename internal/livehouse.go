@@ -68,16 +68,16 @@ func (h *Livehouse) Delete() error {
 	}
 
 	if !exist {
-		return fmt.Errorf("not exist")
+		return fmt.Errorf("not Exist")
 	}
 
 	return database.DeleteLiveHouse(h.ID)
 }
 
-func (h *Livehouse) setId(id int) {
+func (h *Livehouse) SetId(id int) {
 	h.ID = id
 }
 
-func (h *Livehouse) exist() (bool, error) {
+func (h *Livehouse) Exist() (bool, error) {
 	return database.ExistLivehouse(h.ID)
 }

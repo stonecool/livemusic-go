@@ -244,7 +244,7 @@ func (i *Chrome) cleanupTabs() {
 		//		if t.Type == "page" && t.URL != "about:blank" {
 		//			// 如果 tab 超过30分钟没有活动，关闭它
 		//			if now.Sub(t.LastActivityTime) > 30*time.Minute {
-		//				chromedp.CloseTarget(i.allocatorCtx, t.TargetId)
+		//				chromedp.CloseTarget(i.allocatorCtx, t.TargetID)
 		//			}
 		//		}
 		//	}
@@ -255,10 +255,10 @@ func (i *Chrome) cleanupTabs() {
 	}
 }
 
-func (i *Chrome) ExecuteTask(task *task.Task) error {
-	account, exists := i.accounts[task.Category]
+func (i *Chrome) ExecuteTask(task task.ITask) error {
+	account, exists := i.accounts[task.GetCategory()]
 	if !exists {
-		return fmt.Errorf("no account found for category: %s", task.Category)
+		return fmt.Errorf("no account found for category: %s", task.GetCategory())
 	}
 
 	if !account.IsAvailable() {

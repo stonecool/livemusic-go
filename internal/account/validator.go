@@ -11,12 +11,12 @@ func NewValidator() *Validator {
 	return &Validator{}
 }
 
-func (v *Validator) ValidateAccount(account *account) error {
-	if err := v.validateCategory(account.Category); err != nil {
+func (v *Validator) validateModel(model *model) error {
+	if err := v.validateCategory(model.Category); err != nil {
 		return err
 	}
 
-	if err := v.validateAccountName(account.GetName()); err != nil {
+	if err := v.validateAccountName(model.Name); err != nil {
 		return err
 	}
 

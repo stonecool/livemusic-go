@@ -19,6 +19,7 @@ type Repository[T Entity] interface {
 	Delete(id int) error
 	GetAll() ([]T, error)
 	FindBy(query string, args ...interface{}) ([]T, error)
+	ExistsBy(query string, args ...interface{}) (bool, error)
 }
 
 type BaseRepository[T Entity] struct {
@@ -87,4 +88,14 @@ func (r *BaseRepository[T]) FindBy(query string, args ...interface{}) ([]T, erro
 		return nil, fmt.Errorf("failed to find entities: %w", err)
 	}
 	return entities, nil
+}
+
+func (r *BaseRepository[T]) ExistsBy(query string, args ...interface{}) (bool, error) {
+	var count int64
+	var entity T
+	err := r.db.Model(&entity).Where(query, args...).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
