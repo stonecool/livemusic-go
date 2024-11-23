@@ -1,18 +1,19 @@
 package task
 
-import (
-	"github.com/stonecool/livemusic-go/internal/database"
-)
+import "github.com/stonecool/livemusic-go/internal/database"
+
+var repo repository
+
+func init() {
+	repo = newRepositoryDB(database.DB)
+}
 
 func CreateTask(category string, metaType string, metaId int, cronSpec string) (*Task, error) {
-	repo := newRepositoryDB(database.DB)
-	factory := newFactory(repo)
-	return factory.createTask(category, metaType, metaId, cronSpec)
+	return repo.create(category, metaType, metaId, cronSpec)
 }
 
 func GetAllCrawlTasks() ([]*Task, error) {
-	repo := newRepositoryDB(database.DB)
-	return repo.GetAll()
+	return repo.getAll()
 }
 
 // FIXME

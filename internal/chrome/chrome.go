@@ -244,7 +244,7 @@ func (i *Chrome) cleanupTabs() {
 		//		if t.Type == "page" && t.URL != "about:blank" {
 		//			// 如果 tab 超过30分钟没有活动，关闭它
 		//			if now.Sub(t.LastActivityTime) > 30*time.Minute {
-		//				chromedp.CloseTarget(i.allocatorCtx, t.TargetID)
+		//				chromedp.CloseTarget(i.allocatorCtx, t.TargetId)
 		//			}
 		//		}
 		//	}

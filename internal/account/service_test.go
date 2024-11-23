@@ -23,7 +23,7 @@ func (m *MockRepository) create(category string, state state) (*account, error) 
 
 func TestCreateAccount(t *testing.T) {
 	mockRepo := new(MockRepository)
-	accountRepo = mockRepo
+	repo = mockRepo
 
 	expectedAccount := &account{
 		ID:       1,

@@ -14,6 +14,26 @@ CREATE TABLE `accounts` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl accounts';
 
+-- 爬虫任务
+CREATE TABLE tasks (
+    `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `category`          VARCHAR(50) NOT NULL COMMENT 'category',
+    `target_id`         VARCHAR(100) NOT NULL COMMENT 'target id',
+    `meta_type`         VARCHAR(50) NOT NULL COMMENT 'meta type',
+    `meta_id`           INT(10) UNSIGNED NOT NULL COMMENT 'meta id',
+    `mark`              VARCHAR(100) NOT NULL COMMENT 'mark',
+    `cron_spec`         VARCHAR(20) NOT NULL COMMENT 'cron spec',
+    `first_time`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'first time',
+    `last_time`         INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'last time',
+    `count`             INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'count',
+    `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
+    `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
+    `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY idx_category__meta (`category`, `meta_type`, `meta_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl tasks';
+
 -- 爬虫账号
 CREATE TABLE `chrome` (
      `id`               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -30,26 +50,6 @@ CREATE TABLE `chrome` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='chrome';
 
 
-
--- 爬虫任务
-CREATE TABLE crawl_task (
-    `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `category`          VARCHAR(100) NOT NULL COMMENT 'category',
-    `target_id`         VARCHAR(100) NOT NULL COMMENT 'target id',
-    `meta_type`         VARCHAR(100) NOT NULL COMMENT 'meta type',
-    `meta_id`           INT(10) UNSIGNED NOT NULL COMMENT 'meta id',
-    `mark`              VARCHAR(100) NOT NULL COMMENT 'mark',
-    `count`             INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'count',
-    `cron_spec`         VARCHAR(20) NOT NULL COMMENT 'cron spec',
-    `first_time`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'first time',
-    `last_time`         INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'last time',
-    `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
-    `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
-    `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
-
-    PRIMARY KEY (`id`),
-    UNIQUE KEY idx_category__meta (`category`, `meta_type`, `meta_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl task';
 
 CREATE TABLE `crawl_data_wechat` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,

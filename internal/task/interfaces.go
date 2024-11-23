@@ -10,7 +10,6 @@ type ITask interface {
 
 // CronTask 定时任务接口
 type CronTask interface {
-	Task
 	GetCronSpec() string
 	SetCronSpec(spec string) error
 }

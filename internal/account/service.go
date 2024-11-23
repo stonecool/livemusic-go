@@ -10,18 +10,18 @@ import (
 
 var (
 	accountCache *cache.Memo
-	accountRepo  repository
+	repo         repository
 )
 
 func init() {
 	accountCache = cache.New(func(id int) (interface{}, error) {
 		return getAccount(id)
 	})
-	accountRepo = newRepositoryDB(database.DB)
+	repo = newRepositoryDB(database.DB)
 }
 
 func CreateAccount(category string) (IAccount, error) {
-	acc, err := accountRepo.create(category, stateNew)
+	acc, err := repo.create(category, stateNew)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func CreateAccount(category string) (IAccount, error) {
 }
 
 func getAccount(id int) (IAccount, error) {
-	acc, err := accountRepo.get(id)
+	acc, err := repo.get(id)
 	if err != nil {
 		return nil, err
 	}

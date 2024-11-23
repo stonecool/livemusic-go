@@ -37,12 +37,10 @@ func (s *Scheduler) AddTask(task *task.Task) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// 如果任务已存在,先移除
 	if oldEntryID, exists := s.jobMap[task.ID]; exists {
 		s.cron.Remove(oldEntryID)
 	}
 
-	// 添加新任务
 	entryID, err := s.cron.AddFunc(task.CronSpec, func() {
 		s.executeTask(task)
 	})
@@ -64,7 +62,7 @@ func (s *Scheduler) Start() {
 
 	for _, task := range tasks {
 		if err := s.AddTask(task); err != nil {
-			log.Printf("Failed to add task %d: %v", task.ID, err)
+			log.Printf("Failed to add task %d: %v", task.GetId(), err)
 		}
 	}
 
@@ -81,10 +79,7 @@ func (s *Scheduler) executeTask(task *task.Task) error {
 		retryDelay = 5 // 重试间隔(秒)
 	)
 
-	msg := message.NewAsyncMessageWithMsg(&message.Message{
-		Cmd: message.CrawlCmd_Crawl,
-	}, task)
-
+	msg := message.NewAsyncMessageWithCmd(message.CrawlCmd_Crawl, task)
 	var lastErr error
 	for retry := 0; retry < maxRetries; retry++ {
 		// 如果不是第一次尝试,等待一段时间

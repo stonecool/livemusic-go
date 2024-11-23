@@ -2,95 +2,52 @@ package task
 
 import (
 	"fmt"
-	"time"
-
+	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )
 
-type repositoryDBImpl struct {
-	db *gorm.DB
+type repository interface {
+	get(int) (*Task, error)
+	create(category string, metaType string, metaId int, cronSpec string) (*Task, error)
+	getAll() ([]*Task, error)
 }
 
-func newRepositoryDB(db *gorm.DB) Repository {
-	return &repositoryDBImpl{db: db}
+type repositoryDB struct {
+	db database.Repository[*model]
 }
 
-func (r *repositoryDBImpl) Create(task *Task) error {
-	model := &model{}
-	model.FromEntity(task)
-
-	if err := r.db.Create(model).Error; err != nil {
-		return fmt.Errorf("failed to create task: %w", err)
+func newRepositoryDB(db *gorm.DB) repository {
+	return &repositoryDB{
+		db: database.NewBaseRepository[*model](db),
 	}
-
-	task.ID = model.ID
-	return nil
 }
 
-func (r *repositoryDBImpl) Get(id int) (*Task, error) {
-	var model model
-	if err := r.db.First(&model, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("task not found: %d", id)
-		}
+func (r *repositoryDB) get(id int) (*Task, error) {
+	m, err := r.db.Get(id)
+	if err != nil {
 		return nil, fmt.Errorf("failed to get task: %w", err)
 	}
-
-	return model.ToEntity(), nil
+	return m.toEntity(), nil
 }
 
-func (r *repositoryDBImpl) Update(task *Task) error {
-	model := &model{}
-	model.FromEntity(task)
-
-	if err := r.db.Save(model).Error; err != nil {
-		return fmt.Errorf("failed to update task: %w", err)
+func (r *repositoryDB) create(category string, metaType string, metaId int, cronSpec string) (*Task, error) {
+	m := &model{
+		Category: category,
+		MetaType: metaType,
+		MetaId:   metaId,
+		CronSpec: cronSpec,
 	}
-	return nil
+	if err := m.Validate(); err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Create(m); err != nil {
+		return nil, fmt.Errorf("failed to create task: %w", err)
+	}
+
+	return m.toEntity(), nil
 }
 
-func (r *repositoryDBImpl) Delete(id int) error {
-	if err := r.db.Model(&model{}).Where("id = ?", id).
-		Update("deleted_at", time.Now()).Error; err != nil {
-		return fmt.Errorf("failed to delete task: %w", err)
-	}
-	return nil
-}
-
-func (r *repositoryDBImpl) GetAll() ([]*Task, error) {
-	var models []model
-	if err := r.db.Find(&models).Error; err != nil {
-		return nil, fmt.Errorf("failed to get all tasks: %w", err)
-	}
-
-	tasks := make([]*Task, len(models))
-	for i, model := range models {
-		tasks[i] = model.ToEntity()
-	}
-	return tasks, nil
-}
-
-func (r *repositoryDBImpl) FindByCategory(category string) ([]*Task, error) {
-	var models []model
-	if err := r.db.Where("category = ?", category).Find(&models).Error; err != nil {
-		return nil, fmt.Errorf("failed to find tasks by category: %w", err)
-	}
-
-	tasks := make([]*Task, len(models))
-	for i, model := range models {
-		tasks[i] = model.ToEntity()
-	}
-	return tasks, nil
-}
-
-func (r *repositoryDBImpl) ExistsByMeta(metaType string, metaID int, category string) (bool, error) {
-	var count int64
-	err := r.db.Model(&model{}).
-		Where("meta_type = ? AND meta_id = ? AND category = ? AND deleted_at IS NULL",
-			metaType, metaID, category).
-		Count(&count).Error
-	if err != nil {
-		return false, fmt.Errorf("failed to check task existence: %w", err)
-	}
-	return count > 0, nil
+func (r *repositoryDB) getAll() ([]*Task, error) {
+	return nil, nil
 }
