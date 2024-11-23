@@ -1,4 +1,20 @@
 -- 爬虫账号
+CREATE TABLE `accounts` (
+    `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `category`          VARCHAR(100) NOT NULL COMMENT 'category',
+    `name`              VARCHAR(100) NOT NULL COMMENT 'name',
+    `last_url`          VARCHAR(100) NOT NULL COMMENT 'last url',
+    `cookies`           BLOB COMMENT 'cookies',
+    `instance_id`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'instance id',
+    `state`             TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
+    `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
+    `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
+    `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
+
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl accounts';
+
+-- 爬虫账号
 CREATE TABLE `chrome` (
      `id`               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
      `ip`               VARCHAR(20) NOT NULL COMMENT 'ip',
@@ -13,21 +29,7 @@ CREATE TABLE `chrome` (
      UNIQUE KEY unique_addr (ip, port)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='chrome';
 
--- 爬虫账号
-CREATE TABLE `crawl_account` (
-    `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `category`          VARCHAR(100) NOT NULL COMMENT 'category',
-    `account_name`      VARCHAR(100) NOT NULL COMMENT 'account name',
-    `last_login_url`    VARCHAR(100) NOT NULL COMMENT 'last login url',
-    `cookies`           BLOB COMMENT 'cookies',
-    `instance_id`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'instance id',
-    `status`            TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'status',
-    `created_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
-    `updated_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
-    `deleted_at`        INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
 
-    PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl account';
 
 -- 爬虫任务
 CREATE TABLE crawl_task (

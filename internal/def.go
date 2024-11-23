@@ -12,12 +12,6 @@ const (
 	STATUS_DISCONNECTED                       // 已断开
 )
 
-type AccountStatus uint8
-
-const (
-	ACC_OK AccountStatus = iota
-)
-
 type InstanceState uint8
 
 const (

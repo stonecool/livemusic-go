@@ -1,21 +1,21 @@
 package account
 
 import (
-    "github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockDB struct {
-    mock.Mock
+	mock.Mock
 }
 
 func (m *MockDB) Get(id int) (*accountModel, error) {
-    args := m.Called(id)
-    return args.Get(0).(*accountModel), args.Error(1)
+	args := m.Called(id)
+	return args.Get(0).(*accountModel), args.Error(1)
 }
 
 func (m *MockDB) Create(model *accountModel) error {
-    args := m.Called(model)
-    return args.Error(0)
+	args := m.Called(model)
+	return args.Error(0)
 }
 
 //func TestRepositoryDB_Get(t *testing.T) {
@@ -24,7 +24,7 @@ func (m *MockDB) Create(model *accountModel) error {
 //
 //    expectedModel := &accountModel{
 //        Category: "wechat",
-//        AccountName: "test",
+//        Name: "test",
 //    }
 //
 //    mockDB.On("Get", 1).Return(expectedModel, nil)
@@ -33,7 +33,7 @@ func (m *MockDB) Create(model *accountModel) error {
 //
 //    assert.NoError(t, err)
 //    assert.Equal(t, expectedModel.Category, account.Category)
-//    assert.Equal(t, expectedModel.AccountName, account.AccountName)
+//    assert.Equal(t, expectedModel.Name, account.Name)
 //}
 //
 //func TestRepositoryDB_Create(t *testing.T) {

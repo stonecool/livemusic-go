@@ -11,14 +11,14 @@ import (
 type account struct {
 	ID           int    `json:"id"`
 	Category     string `json:"category"`
-	AccountName  string `json:"account_name"`
+	Name         string `json:"name"`
 	lastURL      string
 	cookies      []byte
-	InstanceID   int
+	instanceID   int
+	State        state
 	mu           sync.RWMutex
 	msgChan      chan *message.AsyncMessage
 	done         chan struct{}
-	curState     state
 	stateManager stateManager
 }
 
@@ -65,7 +65,7 @@ func (act *account) handleCommand(currentState state, msg *message.AsyncMessage)
 	// 将原来 switch 中的命令处理逻辑移到这里
 	switch currentState {
 	case stateNew:
-		return fmt.Errorf("invalid command for new state: %v", msg.Cmd)
+		return fmt.Errorf("invalid command for new State: %v", msg.Cmd)
 		// ... 其他状态的命令处理
 	}
 	return nil
@@ -117,21 +117,21 @@ func (act *account) Get() error {
 //}
 
 func (act *account) GetName() string {
-	return act.AccountName
+	return act.Name
 }
 
 func (act *account) getState() state {
 	act.mu.RLock()
 	defer act.mu.RUnlock()
 
-	return act.curState
+	return act.State
 }
 
 func (act *account) SetState(s state) {
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
-	act.curState = s
+	act.State = s
 }
 
 func (act *account) CheckLogin() chromedp.ActionFunc {
@@ -176,7 +176,7 @@ func (act *account) IsAvailable() bool {
 	act.mu.Lock()
 	defer act.mu.Unlock()
 
-	return act.curState == stateInitialized
+	return act.State == stateInitialized
 }
 
 func (act *account) GetMsgChan() chan *message.AsyncMessage {

@@ -100,7 +100,7 @@ func (account *WeChatAccount) CheckLogin() chromedp.ActionFunc {
 //
 //		fakeId := ""
 //		for _, item := range searchNameResp.List {
-//			if item.Nickname == crawl.account.AccountName {
+//			if item.Nickname == crawl.account.Name {
 //				fakeId = item.FakeId
 //				break
 //			}

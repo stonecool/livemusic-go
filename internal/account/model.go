@@ -9,12 +9,12 @@ import (
 type accountModel struct {
 	database.BaseModel
 
-	Category    string `gorm:"type:varchar(50);not null"`
-	AccountName string `gorm:"type:varchar(50);not null"`
-	LastURL     string `gorm:"type:varchar(255)"`
-	Cookies     []byte `gorm:"type:bytes"`
-	InstanceID  int    `gorm:"default:0"`
-	State       int    `gorm:"default:0"`
+	Category   string `gorm:"type:varchar(50);not null"`
+	Name       string `gorm:"type:varchar(50);not null"`
+	LastURL    string `gorm:"type:varchar(255)"`
+	Cookies    []byte `gorm:"type:bytes"`
+	InstanceID int    `gorm:"default:0"`
+	State      int    `gorm:"default:0"`
 }
 
 func (*accountModel) TableName() string {
@@ -23,33 +23,33 @@ func (*accountModel) TableName() string {
 
 func (m *accountModel) toEntity() *account {
 	return &account{
-		ID:          m.ID,
-		Category:    m.Category,
-		AccountName: m.AccountName,
-		lastURL:     m.LastURL,
-		cookies:     m.Cookies,
-		InstanceID:  m.InstanceID,
-		curState:    state(m.State),
-		msgChan:     make(chan *message.AsyncMessage),
-		done:        make(chan struct{}),
+		ID:         m.ID,
+		Category:   m.Category,
+		Name:       m.Name,
+		lastURL:    m.LastURL,
+		cookies:    m.Cookies,
+		instanceID: m.InstanceID,
+		State:      state(m.State),
+		msgChan:    make(chan *message.AsyncMessage),
+		done:       make(chan struct{}),
 	}
 }
 
 func (m *accountModel) fromEntity(account *account) {
 	m.ID = account.ID
 	m.Category = account.Category
-	m.AccountName = account.AccountName
+	m.Name = account.Name
 	m.LastURL = account.lastURL
 	m.Cookies = account.cookies
-	m.InstanceID = account.InstanceID
-	m.State = int(account.curState)
+	m.InstanceID = account.instanceID
+	m.State = int(account.State)
 }
 
 func (m *accountModel) Validate() error {
 	v := NewValidator()
 	return v.ValidateAccount(&account{
-		Category:    m.Category,
-		AccountName: m.AccountName,
+		Category: m.Category,
+		Name:     m.Name,
 	})
 }
 
