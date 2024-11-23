@@ -1,6 +1,7 @@
 package account
 
 import (
+	"fmt"
 	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"github.com/stonecool/livemusic-go/internal/message"
@@ -44,17 +45,11 @@ func getAccount(id int) (IAccount, error) {
 		instance = acc
 	}
 
-	msg := message.NewAsyncMessage(
-		&message.Message{
-			Cmd: message.CrawlCmd_Initial,
-		}, nil)
-
 	go func() {
 		select {
-		case instance.GetMsgChan() <- msg:
-			// 消息发送成功
+		case instance.GetMsgChan() <- message.NewAsyncMessageWithCmd(message.CrawlCmd_Initial, nil):
 		case <-time.After(5 * time.Second):
-			// 处理发送超时
+			fmt.Println("time out")
 		}
 	}()
 

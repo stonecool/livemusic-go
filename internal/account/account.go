@@ -26,20 +26,20 @@ func (acc *account) processTask() {
 	for {
 		select {
 		case msg := <-acc.msgChan:
-			currentState := acc.getState()
+			state := acc.getState()
 			var err error
 
-			ret := acc.handleCommand(currentState, msg)
+			ret := acc.handleCommand(state, msg)
 			err = ret.(error)
 
 			if err != nil {
-				newState := acc.stateManager.getErrorState(currentState)
-				if acc.stateManager.isValidTransition(currentState, newState) {
+				newState := acc.stateManager.getErrorState(state)
+				if acc.stateManager.isValidTransition(state, newState) {
 					acc.SetState(newState)
 				}
 			} else {
-				newState := acc.stateManager.getNextState(currentState, msg.Cmd)
-				if acc.stateManager.isValidTransition(currentState, newState) {
+				newState := acc.stateManager.getNextState(state, msg.Cmd)
+				if acc.stateManager.isValidTransition(state, newState) {
 					acc.SetState(newState)
 				}
 			}

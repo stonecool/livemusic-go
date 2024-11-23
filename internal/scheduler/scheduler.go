@@ -81,7 +81,7 @@ func (s *Scheduler) executeTask(task *task.Task) error {
 		retryDelay = 5 // 重试间隔(秒)
 	)
 
-	msg := message.NewAsyncMessage(&message.Message{
+	msg := message.NewAsyncMessageWithMsg(&message.Message{
 		Cmd: message.CrawlCmd_Crawl,
 	}, task)
 
