@@ -10,17 +10,16 @@ func NewValidator() *Validator {
 	return &Validator{}
 }
 
-func (v *Validator) ValidateChrome(chrome *Chrome) error {
-	// 验证基本属性
-	if chrome.IP == "" {
+func (v *Validator) ValidateChrome(model *model) error {
+	if model.IP == "" {
 		return fmt.Errorf("IP cannot be empty")
 	}
 
-	if chrome.Port <= 0 {
+	if model.Port <= 0 {
 		return fmt.Errorf("invalid port number")
 	}
 
-	if chrome.DebuggerURL == "" {
+	if model.DebuggerURL == "" {
 		return fmt.Errorf("debugger URL cannot be empty")
 	}
 

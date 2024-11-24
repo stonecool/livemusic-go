@@ -41,10 +41,7 @@ func (m *model) fromEntity(chrome *Chrome) {
 }
 
 func (m *model) Validate() error {
-	return NewValidator().ValidateChrome(&Chrome{
-		IP:   m.IP,
-		Port: m.Port,
-	})
+	return NewValidator().ValidateChrome(m)
 }
 
 func (m *model) BeforeCreate(tx *gorm.DB) error {

@@ -37,48 +37,48 @@ func GetPool() *Pool {
 }
 
 // AddChrome 添加新的实例到池
-func (ip *Pool) AddChrome(id int) (*Chrome, error) {
-	ip.mu.Lock()
-	defer ip.mu.Unlock()
+func (p *Pool) AddChrome(id int) (*Chrome, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	ins, err := GetInstance(id)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, exists := ip.chromes[ins.ID]; exists {
+	if _, exists := p.chromes[ins.ID]; exists {
 		fmt.Printf("instance on:%s exists", ins.GetAddr())
 		return nil, nil
 	}
 
-	if _, exists := ip.addr2Chromes[ins.GetAddr()]; exists {
+	if _, exists := p.addr2Chromes[ins.GetAddr()]; exists {
 		fmt.Printf("instance on:%s exists", ins.GetAddr())
 		return nil, nil
 	}
 
-	ip.chromes[ins.ID] = ins
-	ip.addr2Chromes[ins.GetAddr()] = ins
+	p.chromes[ins.ID] = ins
+	p.addr2Chromes[ins.GetAddr()] = ins
 	for cat := range ins.getAccounts() {
-		if _, exists := ip.categories[cat]; !exists {
-			ip.categories[cat] = newCategory(cat)
+		if _, exists := p.categories[cat]; !exists {
+			p.categories[cat] = newCategory(cat)
 		}
-		ip.categories[cat].AddChrome(ins)
+		p.categories[cat].AddChrome(ins)
 	}
 
 	return ins, nil
 }
 
-func (ip *Pool) Login(id int, cat string) {
-	ip.mu.Lock()
-	defer ip.mu.Unlock()
+func (p *Pool) Login(id int, cat string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
-	instance, exists := ip.chromes[id]
+	instance, exists := p.chromes[id]
 	if !exists {
 		fmt.Printf("instance:%d not exists in pool", id)
 		return
 	}
 
-	category, ok := ip.categories[cat]
+	category, ok := p.categories[cat]
 	if ok {
 		if category.ContainChrome(id) {
 			fmt.Printf("instance:%d already in cat:%s", id, cat)
@@ -116,23 +116,23 @@ func (ip *Pool) Login(id int, cat string) {
 	return
 }
 
-func (ip *Pool) GetChromesByCategory(cat string) []*Chrome {
-	ip.mu.Lock()
-	defer ip.mu.Unlock()
+func (p *Pool) GetChromesByCategory(cat string) []*Chrome {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
-	if cat, exists := ip.categories[cat]; exists {
+	if cat, exists := p.categories[cat]; exists {
 		return cat.GetChromes()
 	} else {
 		return nil
 	}
 }
 
-func (ip *Pool) DispatchTask(category string, message *message.AsyncMessage) error {
-	ip.mu.Lock()
-	defer ip.mu.Unlock()
+func (p *Pool) DispatchTask(category string, message *message.AsyncMessage) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	// 获取该分类下的所有实例
-	instances := ip.GetChromesByCategory(category)
+	instances := p.GetChromesByCategory(category)
 	if len(instances) == 0 {
 		return fmt.Errorf("no instance available for category: %s", category)
 	}

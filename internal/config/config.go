@@ -60,7 +60,7 @@ func init() {
 	// 读取配置文件路径
 	configFilePath := os.Getenv("CONFIG_PATH")
 	if configFilePath == "" {
-		configFilePath = "../../conf/conf.toml" // 默认路径
+		configFilePath = "conf/conf.toml" // 默认路径
 	}
 
 	_, err := os.Getwd()

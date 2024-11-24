@@ -49,8 +49,6 @@ CREATE TABLE `chromes` (
      UNIQUE KEY unique_addr (ip, port)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='chromes';
 
-
-
 CREATE TABLE `crawl_data_wechat` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
     `rid`               INT(10) UNSIGNED NOT NULL,
