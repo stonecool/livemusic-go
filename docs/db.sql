@@ -35,7 +35,7 @@ CREATE TABLE tasks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl tasks';
 
 -- 爬虫账号
-CREATE TABLE `chrome` (
+CREATE TABLE `chromes` (
      `id`               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
      `ip`               VARCHAR(20) NOT NULL COMMENT 'ip',
      `port`             INT(10) UNSIGNED NOT NULL COMMENT 'port',
@@ -47,7 +47,7 @@ CREATE TABLE `chrome` (
 
      PRIMARY KEY (`id`),
      UNIQUE KEY unique_addr (ip, port)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='chrome';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='chromes';
 
 
 

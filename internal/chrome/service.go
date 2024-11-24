@@ -2,18 +2,37 @@ package chrome
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/cache"
 	"github.com/stonecool/livemusic-go/internal/database"
 )
 
+var (
+	chromeCache *cache.Memo
+	repo        repository
+)
+
+func init() {
+	chromeCache = cache.New(func(id int) (interface{}, error) {
+		return getChrome(id)
+	})
+	repo = newRepositoryDB(database.DB)
+}
+
+func GetInstance(id int) (*Chrome, error) {
+	ins, err := chromeCache.Get(id)
+	if err != nil {
+		return nil, err
+	} else {
+		return ins.(*Chrome), nil
+	}
+}
+
 func CreateChrome(ip string, port int, debuggerURL string) (*Chrome, error) {
-	repo := NewRepositoryDB(database.DB)
-	factory := NewFactory(repo)
-	return factory.CreateChrome(ip, port, debuggerURL)
+	return repo.create(ip, port, debuggerURL, STATE_UNINITIALIZED)
 }
 
 func getChrome(id int) (*Chrome, error) {
-	repo := NewRepositoryDB(database.DB)
-	chrome, err := repo.Get(id)
+	chrome, err := repo.get(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get chrome instance: %w", err)
 	}
@@ -28,11 +47,9 @@ func getChrome(id int) (*Chrome, error) {
 }
 
 func GetAllChrome() ([]*Chrome, error) {
-	repo := NewRepositoryDB(database.DB)
-	return repo.GetAll()
+	return repo.getAll()
 }
 
 func ExistsByIPAndPort(ip string, port int) (bool, error) {
-	repo := NewRepositoryDB(database.DB)
-	return repo.ExistsByIPAndPort(ip, port)
+	return repo.existsByIPAndPort(ip, port)
 }

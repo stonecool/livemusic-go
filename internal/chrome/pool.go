@@ -139,7 +139,7 @@ func (ip *Pool) DispatchTask(category string, message *message.AsyncMessage) err
 
 	// 遍历实例找到可用的账号
 	for _, instance := range instances {
-		if err := instance.ExecuteTask(message.Task); err == nil {
+		if err := instance.ExecuteTask(message.ITask); err == nil {
 			return nil
 		}
 	}

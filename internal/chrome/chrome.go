@@ -9,7 +9,6 @@ import (
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/account"
-	"github.com/stonecool/livemusic-go/internal/cache"
 )
 
 type Chrome struct {
@@ -18,28 +17,11 @@ type Chrome struct {
 	Port         int
 	accounts     map[string]account.IAccount
 	DebuggerURL  string
-	State        ChromeState
+	State        State
 	stateChan    chan stateEvent
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc
 	opts         *InstanceOptions
-}
-
-var chromeCache *cache.Memo
-
-func init() {
-	chromeCache = cache.New(func(id int) (interface{}, error) {
-		return getChrome(id)
-	})
-}
-
-func GetInstance(id int) (*Chrome, error) {
-	ins, err := chromeCache.Get(id)
-	if err != nil {
-		return nil, err
-	} else {
-		return ins.(*Chrome), nil
-	}
 }
 
 func (i *Chrome) initialize() error {
@@ -209,14 +191,14 @@ func (i *Chrome) handleEvent(event InstanceEvent) error {
 }
 
 // GetState 获取当前状态
-func (i *Chrome) GetState() ChromeState {
+func (i *Chrome) GetState() State {
 	response := make(chan interface{}, 1)
 	i.stateChan <- stateEvent{
 		event:    EVENT_GET_STATE,
 		response: response,
 	}
 	result := <-response
-	return result.(ChromeState)
+	return result.(State)
 }
 
 // NeedsReInitialize 判断是否需要重新初始化

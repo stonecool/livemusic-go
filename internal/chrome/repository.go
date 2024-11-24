@@ -2,91 +2,88 @@ package chrome
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/database"
 
 	"gorm.io/gorm"
 )
 
 type repository interface {
-	Create(chrome *Chrome) error
-	Get(id int) (*Chrome, error)
-	Update(chrome *Chrome) error
-	Delete(id int) error
-	GetAll() ([]*Chrome, error)
-	ExistsByIPAndPort(ip string, port int) (bool, error)
+	create(ip string, port int, debuggerURL string, state State) (*Chrome, error)
+	get(id int) (*Chrome, error)
+	update(chrome *Chrome) error
+	delete(id int) error
+	getAll() ([]*Chrome, error)
+	existsByIPAndPort(ip string, port int) (bool, error)
 }
 
-type repositoryDBImpl struct {
-	db *gorm.DB
+type repositoryDB struct {
+	db database.Repository[*model]
 }
 
-func NewRepositoryDB(db *gorm.DB) repository {
-	return &repositoryDBImpl{db: db}
+func newRepositoryDB(db *gorm.DB) repository {
+	return &repositoryDB{
+		db: database.NewBaseRepository[*model](db),
+	}
 }
 
-func (r *repositoryDBImpl) Create(chrome *Chrome) error {
-	m := &model{}
-	m.fromEntity(chrome)
-
-	if err := r.db.Create(m).Error; err != nil {
-		return fmt.Errorf("failed to create instance: %w", err)
+func (r *repositoryDB) create(ip string, port int, debuggerURL string, state State) (*Chrome, error) {
+	m := &model{
+		IP:          ip,
+		Port:        port,
+		DebuggerURL: debuggerURL,
+		State:       int(state),
+	}
+	if err := m.Validate(); err != nil {
+		return nil, err
 	}
 
-	chrome.ID = m.ID
-	return nil
-}
-
-func (r *repositoryDBImpl) Get(id int) (*Chrome, error) {
-	var m model
-	if err := r.db.First(&m, id).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, fmt.Errorf("instance not found: %d", id)
-		}
-		return nil, fmt.Errorf("failed to get instance: %w", err)
+	if err := r.db.Create(m); err != nil {
+		return nil, fmt.Errorf("failed to create account: %w", err)
 	}
 
 	return m.toEntity(), nil
 }
 
-func (r *repositoryDBImpl) Update(chrome *Chrome) error {
+func (r *repositoryDB) get(id int) (*Chrome, error) {
+	m, err := r.db.Get(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get account: %w", err)
+	}
+	return m.toEntity(), nil
+}
+
+func (r *repositoryDB) update(chrome *Chrome) error {
 	m := &model{}
 	m.fromEntity(chrome)
 
-	if err := r.db.Save(m).Error; err != nil {
+	if err := r.db.Update(m).Error; err != nil {
 		return fmt.Errorf("failed to update instance: %w", err)
 	}
 	return nil
 }
 
-func (r *repositoryDBImpl) Delete(id int) error {
-	if err := r.db.Delete(&model{}, id).Error; err != nil {
+func (r *repositoryDB) delete(id int) error {
+	if err := r.db.Delete(id).Error; err != nil {
 		return fmt.Errorf("failed to delete instance: %w", err)
 	}
 	return nil
 }
 
-func (r *repositoryDBImpl) GetAll() ([]*Chrome, error) {
-	var models []*model
-	if err := r.db.Find(&models).Error; err != nil {
-		return nil, fmt.Errorf("failed to get all chromes: %w", err)
+func (r *repositoryDB) getAll() ([]*Chrome, error) {
+	models, err := r.db.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task: %w", err)
 	}
 
-	chromes := make([]*Chrome, len(models))
-	for i, m := range models {
-		chromes[i] = m.toEntity()
+	var chromes []*Chrome
+	for _, m := range models {
+		chromes = append(chromes, m.toEntity())
 	}
 
 	return chromes, nil
 }
 
-func (r *repositoryDBImpl) ExistsByIPAndPort(ip string, port int) (bool, error) {
-	var count int64
-	err := r.db.Model(&model{}).
-		Where("ip = ? AND port = ?", ip, port).
-		Count(&count).Error
+func (r *repositoryDB) existsByIPAndPort(ip string, port int) (bool, error) {
+	return r.db.ExistsBy("ip = '?' AND port = '?'", ip, port)
 
-	if err != nil {
-		return false, fmt.Errorf("failed to check ip and port existence: %w", err)
-	}
-
-	return count > 0, nil
 }

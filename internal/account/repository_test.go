@@ -40,6 +40,11 @@ func (m *MockDB) FindBy(query string, args ...interface{}) ([]*model, error) {
 	return callArgs.Get(0).([]*model), callArgs.Error(1)
 }
 
+func (m *MockDB) ExistsBy(query string, args ...interface{}) (bool, error) {
+	callArgs := m.Called(query, args)
+	return callArgs.Get(0).(bool), callArgs.Error(1)
+}
+
 func TestRepositoryDB_Get(t *testing.T) {
 	mockDB := new(MockDB)
 	repo := &repositoryDB{db: mockDB}
