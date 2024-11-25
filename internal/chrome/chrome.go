@@ -102,12 +102,12 @@ func (c *Chrome) getAccounts() map[string]account.IAccount {
 }
 
 func (c *Chrome) isAvailable(cat string) bool {
-	account, exists := c.accounts[cat]
+	acc, exists := c.accounts[cat]
 	if !exists {
 		return false
 	}
 
-	return account.IsAvailable()
+	return acc.IsAvailable()
 }
 
 func (c *Chrome) GetAddr() string {
@@ -169,7 +169,6 @@ func (c *Chrome) stateManager() {
 			}
 
 			evt.response <- err
-
 		case <-c.allocatorCtx.Done():
 			return
 		}
@@ -238,17 +237,17 @@ func (c *Chrome) cleanupTabs() {
 }
 
 func (c *Chrome) ExecuteTask(task task.ITask) error {
-	account, exists := c.accounts[task.GetCategory()]
+	acc, exists := c.accounts[task.GetCategory()]
 	if !exists {
-		return fmt.Errorf("no account found for category: %s", task.GetCategory())
+		return fmt.Errorf("no acc found for category: %s", task.GetCategory())
 	}
 
-	if !account.IsAvailable() {
-		return fmt.Errorf("account not available")
+	if !acc.IsAvailable() {
+		return fmt.Errorf("acc not available")
 	}
 
 	//select {
-	//case account.TaskChan <- task:
+	//case acc.TaskChan <- task:
 	//	return nil
 	//case <-time.After(5 * time.Second):
 	//	return fmt.Errorf("send task timeout")

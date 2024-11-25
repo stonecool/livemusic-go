@@ -34,7 +34,7 @@ CREATE TABLE tasks (
     UNIQUE KEY idx_category__meta (`category`, `meta_type`, `meta_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl tasks';
 
--- 爬虫账号
+-- chrome
 CREATE TABLE `chromes` (
      `id`               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
      `ip`               VARCHAR(20) NOT NULL COMMENT 'ip',
