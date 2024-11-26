@@ -2,6 +2,7 @@ package chrome
 
 import (
 	"fmt"
+
 	"github.com/stonecool/livemusic-go/internal/database"
 
 	"gorm.io/gorm"
@@ -38,7 +39,7 @@ func (r *repositoryDB) create(ip string, port int, debuggerURL string, state Sta
 	}
 
 	if err := r.db.Create(m); err != nil {
-		return nil, fmt.Errorf("failed to create account: %w", err)
+		return nil, fmt.Errorf("failed to create instance: %w", err)
 	}
 
 	return m.toEntity(), nil
@@ -47,7 +48,7 @@ func (r *repositoryDB) create(ip string, port int, debuggerURL string, state Sta
 func (r *repositoryDB) get(id int) (*Chrome, error) {
 	m, err := r.db.Get(id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get account: %w", err)
+		return nil, fmt.Errorf("failed to get instance: %w", err)
 	}
 	return m.toEntity(), nil
 }

@@ -2,18 +2,21 @@ package chrome
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
-	"log"
+	"go.uber.org/zap"
 )
 
 func SetCookies(account account.IAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookiesParams := network.SetCookiesParams{}
 		if err = cookiesParams.UnmarshalJSON(account.GetCookies()); err != nil {
-			log.Printf("%s", err)
+			internal.Logger.Error("failed to unmarshal cookies",
+				zap.Error(err),
+				zap.Int("accountID", account.GetID()))
 			return
 		}
 
@@ -25,26 +28,34 @@ func SaveCookies(account account.IAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookies, err := network.GetCookies().Do(ctx)
 		if err != nil {
-			fmt.Printf("%v", err)
+			internal.Logger.Error("failed to get cookies",
+				zap.Error(err),
+				zap.Int("accountID", account.GetID()))
 			return
 		}
 
 		data, err := network.GetCookiesReturns{Cookies: cookies}.MarshalJSON()
 		if err != nil {
-			fmt.Printf("%v", err)
-
+			internal.Logger.Error("failed to marshal cookies",
+				zap.Error(err),
+				zap.Int("accountID", account.GetID()))
 			return
 		}
 
 		var url string
 		err = chromedp.Evaluate(`window.location.href`, &url).Do(ctx)
 		if err != nil {
+			internal.Logger.Error("failed to get current URL",
+				zap.Error(err),
+				zap.Int("accountID", account.GetID()))
 			return
 		}
 
 		account.SetLastURL(url)
 		if err := account.SaveCookies(data); err != nil {
-			fmt.Printf("%v", err)
+			internal.Logger.Error("failed to save cookies",
+				zap.Error(err),
+				zap.Int("accountID", account.GetID()))
 		}
 
 		return

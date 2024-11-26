@@ -2,6 +2,9 @@ package chrome
 
 import (
 	"sync"
+
+	"github.com/stonecool/livemusic-go/internal"
+	"go.uber.org/zap"
 )
 
 type category struct {
@@ -22,7 +25,9 @@ func (c *category) AddChrome(chrome *Chrome) {
 	defer c.mu.Unlock()
 
 	if _, ok := c.chromes[chrome.ID]; ok {
-		// TODO log
+		internal.Logger.Warn("chrome already exists in category",
+			zap.String("category", c.name),
+			zap.Int("chromeID", chrome.ID))
 		return
 	}
 
@@ -33,15 +38,18 @@ func (c *category) GetChromes() []*Chrome {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	result := make([]*Chrome, len(c.chromes))
-	for _, ins := range c.chromes {
-		result = append(result, ins)
+	result := make([]*Chrome, 0, len(c.chromes))
+	for _, chrome := range c.chromes {
+		result = append(result, chrome)
 	}
 
 	return result
 }
 
 func (c *category) ContainChrome(id int) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	_, ok := c.chromes[id]
 	return ok
 }

@@ -3,10 +3,13 @@ package chrome
 import (
 	"context"
 	"fmt"
-	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/account"
 	"log"
 	"os"
+
+	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/account"
+	"go.uber.org/zap"
 )
 
 // QRCodeLogin
@@ -35,21 +38,32 @@ func QRCodeLogin() error {
 func GetQRCode(account account.IAccount) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		if err := chromedp.Navigate(account.GetLoginURL()).Do(ctx); err != nil {
+			internal.Logger.Error("failed to navigate to login URL",
+				zap.Error(err),
+				zap.Int("account", account.GetID()))
 			return err
 		}
 
 		if err = chromedp.WaitVisible(account.GetQRCodeSelector(), chromedp.ByID).Do(ctx); err != nil {
+			internal.Logger.Error("failed to wait for QR code",
+				zap.Error(err),
+				zap.Int("account", account.GetID()))
 			return err
 		}
 
 		var code []byte
 		if err = chromedp.Screenshot(account.GetQRCodeSelector(), &code, chromedp.ByID).Do(ctx); err != nil {
+			internal.Logger.Error("failed to take screenshot of QR code",
+				zap.Error(err),
+				zap.Int("account", account.GetID()))
 			return err
 		}
 
 		if err = os.WriteFile("code.png", code, 0755); err != nil {
-			log.Printf("%s", err)
-			return
+			internal.Logger.Error("failed to write QR code file",
+				zap.Error(err),
+				zap.Int("account", account.GetID()))
+			return err
 		}
 
 		account.GetQRCode(code)

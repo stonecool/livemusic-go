@@ -1,6 +1,8 @@
 package chrome
 
 import (
+	"sync"
+
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
@@ -27,6 +29,7 @@ func (m *model) toEntity() *Chrome {
 		DebuggerURL: m.DebuggerURL,
 		State:       State(m.State),
 		accounts:    make(map[string]account.IAccount),
+		accountsMu:  sync.RWMutex{},
 		stateChan:   make(chan stateEvent),
 		opts:        DefaultOptions(),
 	}

@@ -3,12 +3,15 @@ package chrome
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
+	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/task"
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/account"
+	"go.uber.org/zap"
 )
 
 type Chrome struct {
@@ -16,6 +19,7 @@ type Chrome struct {
 	IP           string
 	Port         int
 	accounts     map[string]account.IAccount
+	accountsMu   sync.RWMutex
 	DebuggerURL  string
 	State        State
 	stateChan    chan stateEvent
@@ -43,15 +47,22 @@ func (c *Chrome) initialize() error {
 	if ok, _ := RetryCheckChromeHealth(c.GetAddr(), 1, 0); !ok {
 		c.cancelFunc()
 		c.handleEvent(EVENT_INIT_FAIL)
+		internal.Logger.Error("instance initialization failed: health check failed",
+			zap.String("addr", c.GetAddr()),
+			zap.Int("id", c.ID))
 		return fmt.Errorf("instance initialization failed: health check failed")
 	}
 
 	if err := c.handleEvent(EVENT_INIT_SUCCESS); err != nil {
 		c.cancelFunc()
+		internal.Logger.Error("failed to update state",
+			zap.Error(err),
+			zap.Int("id", c.ID))
 		return fmt.Errorf("failed to update state: %w", err)
 	}
 
 	go c.heartBeat()
+	go c.cleanupTabs()
 
 	return nil
 }
@@ -67,7 +78,12 @@ func (c *Chrome) RetryInitialize(maxAttempts int) error {
 			return nil
 		} else {
 			lastErr = err
-			time.Sleep(time.Second * time.Duration(attempt)) // 指数退避
+			internal.Logger.Warn("initialization attempt failed",
+				zap.Int("attempt", attempt),
+				zap.Int("maxAttempts", maxAttempts),
+				zap.Error(err),
+				zap.Int("id", c.ID))
+			time.Sleep(time.Second * time.Duration(attempt))
 		}
 	}
 	return fmt.Errorf("failed after %d attempts: %w", maxAttempts, lastErr)
@@ -98,11 +114,21 @@ func (c *Chrome) heartBeat() {
 }
 
 func (c *Chrome) getAccounts() map[string]account.IAccount {
-	return c.accounts
+	c.accountsMu.RLock()
+	defer c.accountsMu.RUnlock()
+
+	accounts := make(map[string]account.IAccount, len(c.accounts))
+	for k, v := range c.accounts {
+		accounts[k] = v
+	}
+	return accounts
 }
 
 func (c *Chrome) isAvailable(cat string) bool {
+	c.accountsMu.RLock()
+	defer c.accountsMu.RUnlock()
 	acc, exists := c.accounts[cat]
+
 	if !exists {
 		return false
 	}
@@ -116,7 +142,28 @@ func (c *Chrome) GetAddr() string {
 
 func (c *Chrome) Close() error {
 	if c.cancelFunc != nil {
-		c.cancelFunc() // 取消 context，会导致 stateManager 和 heartBeat 退出
+		// 先取消上下文，让所有goroutine优雅退出
+		c.cancelFunc()
+
+		// 等待一段时间让goroutine完成清理工作
+		time.Sleep(time.Second)
+
+		// 关闭所有打开的标签页
+		//targets, err := chromedp.Targets(context.Background())
+		//if err == nil {
+		//	for _, t := range targets {
+		//		if t.Type == "page" {
+		//			chromedp.CloseTarget(context.Background(), t.TargetID)
+		//		}
+		//	}
+		//}
+
+		// 更新实例状态
+		if err := c.handleEvent(EVENT_INIT_FAIL); err != nil {
+			internal.Logger.Error("failed to update state on close",
+				zap.Error(err),
+				zap.Int("chromeID", c.ID))
+		}
 	}
 	return nil
 }
@@ -207,28 +254,34 @@ func (c *Chrome) NeedsReInitialize() bool {
 }
 
 func (c *Chrome) cleanupTabs() {
-	ticker := time.NewTicker(5 * time.Minute) // 每5分钟检查一次
+	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
 	for {
 		select {
-		//case <-ticker.C:
-		//	// 获取所有 targets (tabs)
-		//	targets, err := chromedp.Targets(c.allocatorCtx)
-		//	if err != nil {
-		//		continue
-		//	}
-		//
-		//	now := time.Now()
-		//	for _, t := range targets {
-		//		// 跳过主页面
-		//		if t.Type == "page" && t.URL != "about:blank" {
-		//			// 如果 tab 超过30分钟没有活动，关闭它
-		//			if now.Sub(t.LastActivityTime) > 30*time.Minute {
-		//				chromedp.CloseTarget(c.allocatorCtx, t.TargetID)
-		//			}
-		//		}
-		//	}
+		case <-ticker.C:
+			//targets, err := chromedp.Targets(c.allocatorCtx)
+			//if err != nil {
+			//	internal.Logger.Error("failed to get targets",
+			//		zap.Error(err),
+			//		zap.Int("chromeID", c.ID))
+			//	continue
+			//}
+
+			//now := time.Now()
+			//for _, t := range targets {
+			//	// 跳过主页面和空白页
+			//	if t.Type == "page" && t.URL != "about:blank" {
+			//		if now.Sub(t.LastActivityTime) > 30*time.Minute {
+			//			if err := chromedp.CloseTarget(c.allocatorCtx, t.TargetID); err != nil {
+			//				internal.Logger.Error("failed to close target",
+			//					zap.Error(err),
+			//					zap.String("targetID", string(t.TargetID)),
+			//					zap.Int("chromeID", c.ID))
+			//			}
+			//		}
+			//	}
+			//}
 
 		case <-c.allocatorCtx.Done():
 			return
@@ -237,15 +290,25 @@ func (c *Chrome) cleanupTabs() {
 }
 
 func (c *Chrome) ExecuteTask(task task.ITask) error {
+	c.accountsMu.RLock()
+	defer c.accountsMu.RUnlock()
 	acc, exists := c.accounts[task.GetCategory()]
+
 	if !exists {
-		return fmt.Errorf("no acc found for category: %s", task.GetCategory())
+		internal.Logger.Error("no account found for category",
+			zap.String("category", task.GetCategory()),
+			zap.Int("chromeID", c.ID))
+		return fmt.Errorf("no account found for category: %s", task.GetCategory())
 	}
 
 	if !acc.IsAvailable() {
-		return fmt.Errorf("acc not available")
+		internal.Logger.Error("account not available",
+			zap.String("category", task.GetCategory()),
+			zap.Int("chromeID", c.ID))
+		return fmt.Errorf("account not available")
 	}
 
+	// TODO
 	//select {
 	//case acc.TaskChan <- task:
 	//	return nil
@@ -253,4 +316,36 @@ func (c *Chrome) ExecuteTask(task task.ITask) error {
 	//	return fmt.Errorf("send task timeout")
 	//}
 	return nil
+}
+
+func (c *Chrome) SetAccount(category string, acc account.IAccount) {
+	c.accountsMu.Lock()
+	defer c.accountsMu.Unlock()
+
+	c.accounts[category] = acc
+}
+
+func (c *Chrome) checkZombieProcess() {
+	ticker := time.NewTicker(10 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if !c.IsAvailable() {
+				internal.Logger.Warn("chrome instance appears to be zombie",
+					zap.Int("chromeID", c.ID),
+					zap.String("addr", c.GetAddr()))
+
+				// 尝试重新初始化
+				if err := c.RetryInitialize(3); err != nil {
+					internal.Logger.Error("failed to reinitialize zombie chrome",
+						zap.Error(err),
+						zap.Int("chromeID", c.ID))
+				}
+			}
+		case <-c.allocatorCtx.Done():
+			return
+		}
+	}
 }
