@@ -29,7 +29,7 @@ func (m *model) toEntity() *account {
 		lastURL:    m.LastURL,
 		cookies:    m.Cookies,
 		instanceID: m.InstanceID,
-		State:      state(m.State),
+		State:      accountState(m.State),
 		msgChan:    make(chan *message.AsyncMessage),
 		done:       make(chan struct{}),
 	}

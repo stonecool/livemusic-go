@@ -21,7 +21,7 @@ type Chrome struct {
 	accounts     map[string]account.IAccount
 	accountsMu   sync.RWMutex
 	DebuggerURL  string
-	State        State
+	State        chromeState
 	stateChan    chan stateEvent
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc
@@ -237,14 +237,14 @@ func (c *Chrome) handleEvent(event InstanceEvent) error {
 }
 
 // GetState 获取当前状态
-func (c *Chrome) GetState() State {
+func (c *Chrome) GetState() chromeState {
 	response := make(chan interface{}, 1)
 	c.stateChan <- stateEvent{
 		event:    EVENT_GET_STATE,
 		response: response,
 	}
 	result := <-response
-	return result.(State)
+	return result.(chromeState)
 }
 
 // NeedsReInitialize 判断是否需要重新初始化

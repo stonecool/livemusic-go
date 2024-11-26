@@ -15,7 +15,7 @@ type account struct {
 	lastURL      string
 	cookies      []byte
 	instanceID   int
-	State        state
+	State        accountState
 	mu           sync.RWMutex
 	msgChan      chan *message.AsyncMessage
 	done         chan struct{}
@@ -55,24 +55,24 @@ func (acc *account) processTask() {
 	}
 }
 
-func (acc *account) handleCommand(currentState state, msg *message.AsyncMessage) interface{} {
+func (acc *account) handleCommand(currentState accountState, msg *message.AsyncMessage) interface{} {
 	switch currentState {
 	case stateNew:
 		if msg.Cmd != message.CrawlCmd_Initial {
-			return fmt.Errorf("invalid command:%v for new state", msg.Cmd)
+			return fmt.Errorf("invalid command:%v for new accountState", msg.Cmd)
 		}
 		go acc.processTask()
 		return nil
 
 	case stateInitialized:
 		if msg.Cmd != message.CrawlCmd_Login {
-			return fmt.Errorf("invalid command:%v for initialized state", msg.Cmd)
+			return fmt.Errorf("invalid command:%v for initialized accountState", msg.Cmd)
 		}
 		return acc.handleLogin()
 
 	case stateNotLoggedIn:
 		if msg.Cmd != message.CrawlCmd_Login {
-			return fmt.Errorf("invalid command:%v for not logged in state", msg.Cmd)
+			return fmt.Errorf("invalid command:%v for not logged in accountState", msg.Cmd)
 		}
 		return acc.handleLogin()
 
@@ -83,7 +83,7 @@ func (acc *account) handleCommand(currentState state, msg *message.AsyncMessage)
 		case message.CrawlCmd_Login:
 			return acc.handleLogin()
 		default:
-			return fmt.Errorf("invalid command:%v for ready state", msg.Cmd)
+			return fmt.Errorf("invalid command:%v for ready accountState", msg.Cmd)
 		}
 
 	case stateRunning:
@@ -146,14 +146,14 @@ func (acc *account) GetName() string {
 	return acc.Name
 }
 
-func (acc *account) getState() state {
+func (acc *account) getState() accountState {
 	acc.mu.RLock()
 	defer acc.mu.RUnlock()
 
 	return acc.State
 }
 
-func (acc *account) SetState(s state) {
+func (acc *account) SetState(s accountState) {
 	acc.mu.Lock()
 	defer acc.mu.Unlock()
 

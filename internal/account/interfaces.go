@@ -8,8 +8,8 @@ import (
 type IAccount interface {
 	GetID() int
 	GetName() string
-	getState() state
-	SetState(state)
+	getState() accountState
+	SetState(accountState)
 	CheckLogin() chromedp.ActionFunc
 	WaitLogin() chromedp.ActionFunc
 	GetLoginURL() string

@@ -4,10 +4,10 @@ import (
 	"github.com/stonecool/livemusic-go/internal/message"
 )
 
-type state int
+type accountState int
 
 const (
-	stateNew state = iota
+	stateNew accountState = iota
 	stateInitialized
 	stateNotLoggedIn
 	stateReady
@@ -15,7 +15,7 @@ const (
 	stateTerminated
 )
 
-func (s state) String() string {
+func (s accountState) String() string {
 	switch s {
 	case stateNew:
 		return "new"
@@ -35,14 +35,14 @@ func (s state) String() string {
 }
 
 type stateManager interface {
-	getNextState(currentState state, cmd message.CrawlCmd) state
-	getErrorState(currentState state) state
-	isValidTransition(from, to state) bool
+	getNextState(currentState accountState, cmd message.CrawlCmd) accountState
+	getErrorState(currentState accountState) accountState
+	isValidTransition(from, to accountState) bool
 }
 
 type BaseStateManager struct{}
 
-func (b *BaseStateManager) getNextState(state state, cmd message.CrawlCmd) state {
+func (b *BaseStateManager) getNextState(state accountState, cmd message.CrawlCmd) accountState {
 	switch state {
 	case stateNew:
 		if cmd == message.CrawlCmd_Initial {
@@ -60,7 +60,7 @@ func (b *BaseStateManager) getNextState(state state, cmd message.CrawlCmd) state
 	return state
 }
 
-func (b *BaseStateManager) getErrorState(state state) state {
+func (b *BaseStateManager) getErrorState(state accountState) accountState {
 	switch state {
 	case stateNew:
 		return stateNew // 新建状态出错保持原状态
@@ -75,7 +75,7 @@ func (b *BaseStateManager) getErrorState(state state) state {
 	}
 }
 
-func (b *BaseStateManager) isValidTransition(from, to state) bool {
+func (b *BaseStateManager) isValidTransition(from, to accountState) bool {
 	switch from {
 	case stateNew:
 		return to == stateInitialized
@@ -97,7 +97,7 @@ type DefaultStateManager struct {
 	BaseStateManager
 }
 
-func (mgr *DefaultStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
+func (mgr *DefaultStateManager) getNextState(currentState accountState, cmd message.CrawlCmd) accountState {
 	switch currentState {
 	case stateNew:
 		return stateInitialized
@@ -116,7 +116,7 @@ type NoLoginStateManager struct {
 	BaseStateManager
 }
 
-func (mgr *NoLoginStateManager) getNextState(currentState state, cmd message.CrawlCmd) state {
+func (mgr *NoLoginStateManager) getNextState(currentState accountState, cmd message.CrawlCmd) accountState {
 	switch currentState {
 	case stateInitialized:
 		return stateReady // 直接进入就绪状态

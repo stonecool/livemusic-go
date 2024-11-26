@@ -27,7 +27,7 @@ func (m *model) toEntity() *Chrome {
 		IP:          m.IP,
 		Port:        m.Port,
 		DebuggerURL: m.DebuggerURL,
-		State:       State(m.State),
+		State:       chromeState(m.State),
 		accounts:    make(map[string]account.IAccount),
 		accountsMu:  sync.RWMutex{},
 		stateChan:   make(chan stateEvent),

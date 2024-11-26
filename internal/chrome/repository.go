@@ -9,7 +9,7 @@ import (
 )
 
 type repository interface {
-	create(ip string, port int, debuggerURL string, state State) (*Chrome, error)
+	create(ip string, port int, debuggerURL string, state chromeState) (*Chrome, error)
 	get(id int) (*Chrome, error)
 	update(chrome *Chrome) error
 	delete(id int) error
@@ -27,7 +27,7 @@ func newRepositoryDB(db *gorm.DB) repository {
 	}
 }
 
-func (r *repositoryDB) create(ip string, port int, debuggerURL string, state State) (*Chrome, error) {
+func (r *repositoryDB) create(ip string, port int, debuggerURL string, state chromeState) (*Chrome, error) {
 	m := &model{
 		IP:          ip,
 		Port:        port,

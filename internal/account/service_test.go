@@ -16,7 +16,7 @@ func (m *MockRepository) get(id int) (*account, error) {
 	return args.Get(0).(*account), args.Error(1)
 }
 
-func (m *MockRepository) create(category string, state state) (*account, error) {
+func (m *MockRepository) create(category string, state accountState) (*account, error) {
 	args := m.Called(category, state)
 	return args.Get(0).(*account), args.Error(1)
 }

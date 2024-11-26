@@ -23,7 +23,7 @@ func TestAccountModel_ToEntity(t *testing.T) {
 	assert.Equal(t, model.LastURL, entity.lastURL)
 	assert.Equal(t, model.Cookies, entity.cookies)
 	assert.Equal(t, model.InstanceID, entity.instanceID)
-	assert.Equal(t, state(model.State), entity.State)
+	assert.Equal(t, accountState(model.State), entity.State)
 }
 
 func TestAccountModel_FromEntity(t *testing.T) {
