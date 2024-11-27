@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -68,7 +69,7 @@ func FindAvailablePort(startPort int) (int, error) {
 	}
 }
 
-func CreateInstance(port int) error {
+func startChromeOnPort(port int) error {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "darwin":
@@ -87,7 +88,6 @@ func CreateInstance(port int) error {
 		return err
 	}
 
-	// 等待几秒钟确保chrome实例启动
 	time.Sleep(5)
 	fmt.Println("Google Chrome started successfully")
 
@@ -136,64 +136,42 @@ func RetryCheckChromeHealth(addr string, retryCount int, retryDelay time.Duratio
 	return false, ""
 }
 
-// CreateLocalChromeInstance Create a local chrome instance
-func CreateLocalChromeInstance() (*Chrome, error) {
-	ip := "127.0.0.1"
-	port, err := FindAvailablePort(9222)
-	if err != nil {
-		fmt.Printf("Failed to find an available port: %v\n", err)
-		return nil, err
+// ConvertIPv4ToInt converts an IPv4 address to a 32-bit unsigned integer
+func ConvertIPv4ToInt(ip string) (uint32, error) {
+	parts := strings.Split(ip, ".")
+	if len(parts) != 4 {
+		return 0, fmt.Errorf("invalid IPv4 address")
 	}
 
-	exists, err := ExistsByIPAndPort(ip, port)
-	if err != nil {
-		fmt.Printf("%v\n", err)
-		return nil, err
+	var result uint32
+	for i := 0; i < 4; i++ {
+		part, err := strconv.Atoi(parts[i])
+		if err != nil {
+			return 0, err
+		}
+		result = result<<8 + uint32(part)
 	}
-
-	if exists {
-		return nil, fmt.Errorf("port:%d occupied", port)
-	}
-
-	fmt.Printf("Using ip:%s port: %d\n", ip, port)
-	err = CreateInstance(port)
-	if err != nil {
-		fmt.Printf("Create instance on port:%d error: %v\n", port, err)
-		return nil, err
-	}
-
-	ok, url := RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
-	if !ok {
-		fmt.Printf("Chrome health check error: %v\n", err)
-		return nil, err
-	}
-
-	m, err := CreateChrome(ip, port, url)
-	if err != nil {
-		return nil, err
-	}
-
-	return globalPool.AddChrome(m.ID)
+	return result, nil
 }
 
-// BindChromeInstance
-func BindChromeInstance(ip string, port int) (*Chrome, error) {
-	exists, err := ExistsByIPAndPort(ip, port)
+// CombineIPAndPort combines an IP address and port into a unique 64-bit unsigned integer
+func CombineIPAndPort(ip string, port uint16) (uint64, error) {
+	ipInt, err := ConvertIPv4ToInt(ip)
 	if err != nil {
-		fmt.Printf("%v\n", err)
-		return nil, err
+		return 0, err
 	}
+	return (uint64(ipInt) << 16) | uint64(port), nil
+}
 
-	if exists {
-		return nil, fmt.Errorf("port:%d occupied", port)
+func IsValidIPv4(ip string) bool {
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil && parsedIP.To4() != nil
+}
+
+func IsValidPort(port string) bool {
+	portNum, err := strconv.Atoi(port)
+	if err != nil {
+		return false
 	}
-
-	ok, _ := RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
-	if !ok {
-		fmt.Printf("Chrome health check error: %v\n", err)
-		return nil, err
-	}
-
-	// TODO
-	return globalPool.AddChrome(0)
+	return portNum >= 0 && portNum <= 65535
 }

@@ -11,23 +11,23 @@ type chromeInstanceForm struct {
 	Port int    `json:"port" valid:"Required;Min(9222);Max(65535)"`
 }
 
-// CreateChromeInstance
+// CreateChrome
 // @Summary	Create a local chrome instance
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
 // @Router		/api/v1/create-instance [post]
-func CreateChromeInstance(ctx *gin.Context) {
+func CreateChrome(ctx *gin.Context) {
 	context := Context{Context: ctx}
 
-	if ins, err := chrome.CreateLocalChromeInstance(); err != nil {
+	if ins, err := chrome.CreateTempChrome(); err != nil {
 		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
 		context.Response(http.StatusCreated, Success, ins)
 	}
 }
 
-// BindChromeInstance
+// BindChrome
 // @Summary	Bind a chrome instance
 // @Accept		json
 // @Param		form	body	api.chromeInstanceForm	true
@@ -35,7 +35,7 @@ func CreateChromeInstance(ctx *gin.Context) {
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
 // @Router		/api/v1/bind-instance [post]
-func BindChromeInstance(ctx *gin.Context) {
+func BindChrome(ctx *gin.Context) {
 	var (
 		context = Context{Context: ctx}
 		form    chromeInstanceForm
@@ -47,20 +47,20 @@ func BindChromeInstance(ctx *gin.Context) {
 		return
 	}
 
-	if ins, err := chrome.BindChromeInstance(form.Ip, form.Port); err != nil {
+	if ins, err := chrome.BindChrome(form.Ip, form.Port); err != nil {
 		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
 		context.Response(http.StatusCreated, Success, ins)
 	}
 }
 
-// GetChromeInstances
+// GetChrome
 // @Summary	Get multiple chrome instances
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	500	{object}	http.Response
 // @Router		/api/v1/instances [get]
-func GetChromeInstances(ctx *gin.Context) {
+func GetChrome(ctx *gin.Context) {
 	var context = Context{Context: ctx}
 
 	if chromes, err := chrome.GetAllChrome(); err != nil {
@@ -70,6 +70,6 @@ func GetChromeInstances(ctx *gin.Context) {
 	}
 }
 
-func DeleteChromeInstance(ctx *gin.Context) {
+func DeleteChrome(ctx *gin.Context) {
 
 }

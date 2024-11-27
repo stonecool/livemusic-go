@@ -28,8 +28,17 @@ type Chrome struct {
 	opts         *InstanceOptions
 }
 
+func newChrome(ip string, port int, url string, state chromeState) *Chrome {
+	return &Chrome{
+		IP:          ip,
+		Port:        port,
+		DebuggerURL: url,
+		State:       state,
+	}
+}
+
 func (c *Chrome) initialize() error {
-	if c.State != STATE_UNINITIALIZED {
+	if c.State != chromeStateUninitialized {
 		return fmt.Errorf("instance in invalid state: %v", c.State)
 	}
 
@@ -42,18 +51,18 @@ func (c *Chrome) initialize() error {
 		cancel()
 	}
 
-	go c.stateManager()
+	go stateManager(c)
 
-	if ok, _ := RetryCheckChromeHealth(c.GetAddr(), 1, 0); !ok {
+	if ok, _ := RetryCheckChromeHealth(c.getAddr(), 1, 0); !ok {
 		c.cancelFunc()
-		c.handleEvent(EVENT_INIT_FAIL)
+		handleEvent(c, EventInitFail)
 		internal.Logger.Error("instance initialization failed: health check failed",
-			zap.String("addr", c.GetAddr()),
+			zap.String("addr", c.getAddr()),
 			zap.Int("id", c.ID))
 		return fmt.Errorf("instance initialization failed: health check failed")
 	}
 
-	if err := c.handleEvent(EVENT_INIT_SUCCESS); err != nil {
+	if err := handleEvent(c, EventInitSuccess); err != nil {
 		c.cancelFunc()
 		internal.Logger.Error("failed to update state",
 			zap.Error(err),
@@ -97,14 +106,14 @@ func (c *Chrome) heartBeat() {
 	for {
 		select {
 		case <-ticker.C:
-			state := c.GetState()
-			if state != STATE_CONNECTED {
+			state := c.getState()
+			if state != chromeStateConnected {
 				continue
 			}
 
-			ok, _ := RetryCheckChromeHealth(c.GetAddr(), 1, 0)
+			ok, _ := RetryCheckChromeHealth(c.getAddr(), 1, 0)
 			if !ok {
-				c.handleEvent(EVENT_HEALTH_CHECK_FAIL)
+				handleEvent(c, EventHealthCheckFail)
 			}
 
 		case <-c.allocatorCtx.Done():
@@ -136,7 +145,7 @@ func (c *Chrome) isAvailable(cat string) bool {
 	return acc.IsAvailable()
 }
 
-func (c *Chrome) GetAddr() string {
+func (c *Chrome) getAddr() string {
 	return fmt.Sprintf("%s:%d", c.IP, c.Port)
 }
 
@@ -159,7 +168,7 @@ func (c *Chrome) Close() error {
 		//}
 
 		// 更新实例状态
-		if err := c.handleEvent(EVENT_INIT_FAIL); err != nil {
+		if err := handleEvent(c, EventInitFail); err != nil {
 			internal.Logger.Error("failed to update state on close",
 				zap.Error(err),
 				zap.Int("chromeID", c.ID))
@@ -170,78 +179,15 @@ func (c *Chrome) Close() error {
 
 // 判断实例是否可用
 func (c *Chrome) IsAvailable() bool {
-	return c.GetState() == STATE_CONNECTED
+	return c.getState() == chromeStateConnected
 }
 
-// 状态管理器
-func (c *Chrome) stateManager() {
-	for {
-		select {
-		case evt := <-c.stateChan:
-			var err error
-			oldState := c.State
-
-			switch evt.event {
-			case EVENT_GET_STATE:
-				evt.response <- c.State
-				continue
-
-			case EVENT_INIT_SUCCESS:
-				if c.State == STATE_UNINITIALIZED {
-					c.State = STATE_CONNECTED
-				} else {
-					err = fmt.Errorf("cannot initialize from state: %v", c.State)
-				}
-
-			case EVENT_INIT_FAIL:
-				if c.State == STATE_UNINITIALIZED {
-					c.State = STATE_INIT_FAILED
-				} else {
-					err = fmt.Errorf("cannot fail initialization from state: %v", c.State)
-				}
-
-			case EVENT_HEALTH_CHECK_SUCCESS:
-				if c.State == STATE_DISCONNECTED {
-					c.State = STATE_CONNECTED
-				}
-
-			case EVENT_HEALTH_CHECK_FAIL:
-				if c.State == STATE_CONNECTED {
-					c.State = STATE_DISCONNECTED
-				}
-			}
-
-			if err == nil && oldState != c.State {
-				// TODO: 更新实例状态
-			}
-
-			evt.response <- err
-		case <-c.allocatorCtx.Done():
-			return
-		}
-	}
-}
-
-// 处理状态事件
-func (c *Chrome) handleEvent(event InstanceEvent) error {
+// getState 获取当前状态
+func (c *Chrome) getState() chromeState {
 	response := make(chan interface{}, 1)
 	c.stateChan <- stateEvent{
-		event:    event,
-		response: response,
-	}
-	result := <-response
-	if err, ok := result.(error); ok {
-		return err
-	}
-	return nil
-}
-
-// GetState 获取当前状态
-func (c *Chrome) GetState() chromeState {
-	response := make(chan interface{}, 1)
-	c.stateChan <- stateEvent{
-		event:    EVENT_GET_STATE,
-		response: response,
+		Type:     EventGetState,
+		Response: response,
 	}
 	result := <-response
 	return result.(chromeState)
@@ -249,8 +195,8 @@ func (c *Chrome) GetState() chromeState {
 
 // NeedsReInitialize 判断是否需要重新初始化
 func (c *Chrome) NeedsReInitialize() bool {
-	state := c.GetState()
-	return state == STATE_INIT_FAILED || state == STATE_DISCONNECTED
+	state := c.getState()
+	return state == chromeStateInitFailed || state == chromeStateDisconnected
 }
 
 func (c *Chrome) cleanupTabs() {
@@ -335,7 +281,7 @@ func (c *Chrome) checkZombieProcess() {
 			if !c.IsAvailable() {
 				internal.Logger.Warn("chrome instance appears to be zombie",
 					zap.Int("chromeID", c.ID),
-					zap.String("addr", c.GetAddr()))
+					zap.String("addr", c.getAddr()))
 
 				// 尝试重新初始化
 				if err := c.RetryInitialize(3); err != nil {

@@ -16,18 +16,16 @@ import (
 var globalPool *Pool
 
 type Pool struct {
-	chromes      map[int]*Chrome
-	addr2Chromes map[string]*Chrome
-	categories   map[string]*category
-	mu           sync.Mutex
+	chromes    map[string]*Chrome
+	categories map[string]*category
+	mu         sync.Mutex
 }
 
 // init 在包初始化时创建实例池
 func init() {
 	globalPool = &Pool{
-		chromes:      make(map[int]*Chrome),
-		addr2Chromes: make(map[string]*Chrome),
-		categories:   make(map[string]*category),
+		chromes:    make(map[string]*Chrome),
+		categories: make(map[string]*category),
 	}
 }
 
@@ -37,42 +35,35 @@ func GetPool() *Pool {
 }
 
 // AddChrome 添加新的实例到池
-func (p *Pool) AddChrome(id int) (*Chrome, error) {
+func (p *Pool) AddChrome(chrome *Chrome) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	ins, err := GetInstance(id)
-	if err != nil {
-		return nil, err
+	if _, exists := p.chromes[chrome.getAddr()]; exists {
+		return fmt.Errorf("instance on:%s exists", chrome.getAddr())
 	}
 
-	if _, exists := p.chromes[ins.ID]; exists {
-		fmt.Printf("instance on:%s exists", ins.GetAddr())
-		return nil, nil
-	}
-
-	if _, exists := p.addr2Chromes[ins.GetAddr()]; exists {
-		fmt.Printf("instance on:%s exists", ins.GetAddr())
-		return nil, nil
-	}
-
-	p.chromes[ins.ID] = ins
-	p.addr2Chromes[ins.GetAddr()] = ins
-	for cat := range ins.getAccounts() {
+	p.chromes[chrome.getAddr()] = chrome
+	for cat := range chrome.getAccounts() {
 		if _, exists := p.categories[cat]; !exists {
 			p.categories[cat] = newCategory(cat)
 		}
-		p.categories[cat].AddChrome(ins)
+		p.categories[cat].AddChrome(chrome)
 	}
 
-	return ins, nil
+	return nil
 }
 
 func (p *Pool) Login(id int, cat string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	instance, exists := p.chromes[id]
+	chrome, err := getChrome(id)
+	if err != nil {
+		return
+	}
+
+	instance, exists := p.chromes[chrome.getAddr()]
 	if !exists {
 		fmt.Printf("instance:%d not exists in pool", id)
 		return
@@ -80,7 +71,7 @@ func (p *Pool) Login(id int, cat string) {
 
 	category, ok := p.categories[cat]
 	if ok {
-		if category.ContainChrome(id) {
+		if category.ContainChrome(chrome.getAddr()) {
 			fmt.Printf("instance:%d already in cat:%s", id, cat)
 			return
 		}

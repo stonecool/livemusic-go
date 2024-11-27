@@ -9,14 +9,14 @@ import (
 
 type category struct {
 	name    string
-	chromes map[int]*Chrome
+	chromes map[string]*Chrome
 	mu      sync.RWMutex
 }
 
 func newCategory(name string) *category {
 	return &category{
 		name:    name,
-		chromes: make(map[int]*Chrome),
+		chromes: make(map[string]*Chrome),
 	}
 }
 
@@ -24,14 +24,14 @@ func (c *category) AddChrome(chrome *Chrome) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if _, ok := c.chromes[chrome.ID]; ok {
+	if _, ok := c.chromes[chrome.getAddr()]; ok {
 		internal.Logger.Warn("chrome already exists in category",
 			zap.String("category", c.name),
 			zap.Int("chromeID", chrome.ID))
 		return
 	}
 
-	c.chromes[chrome.ID] = chrome
+	c.chromes[chrome.getAddr()] = chrome
 }
 
 func (c *category) GetChromes() []*Chrome {
@@ -46,10 +46,10 @@ func (c *category) GetChromes() []*Chrome {
 	return result
 }
 
-func (c *category) ContainChrome(id int) bool {
+func (c *category) ContainChrome(addr string) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	_, ok := c.chromes[id]
+	_, ok := c.chromes[addr]
 	return ok
 }
