@@ -38,10 +38,6 @@ func newChrome(ip string, port int, url string, state chromeState) *Chrome {
 }
 
 func (c *Chrome) initialize() error {
-	if c.State != chromeStateUninitialized {
-		return fmt.Errorf("instance in invalid state: %v", c.State)
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), c.opts.InitTimeout)
 	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, c.DebuggerURL)
 
@@ -52,24 +48,6 @@ func (c *Chrome) initialize() error {
 	}
 
 	go stateManager(c)
-
-	if ok, _ := RetryCheckChromeHealth(c.getAddr(), 1, 0); !ok {
-		c.cancelFunc()
-		handleEvent(c, EventInitFail)
-		internal.Logger.Error("instance initialization failed: health check failed",
-			zap.String("addr", c.getAddr()),
-			zap.Int("id", c.ID))
-		return fmt.Errorf("instance initialization failed: health check failed")
-	}
-
-	if err := handleEvent(c, EventInitSuccess); err != nil {
-		c.cancelFunc()
-		internal.Logger.Error("failed to update state",
-			zap.Error(err),
-			zap.Int("id", c.ID))
-		return fmt.Errorf("failed to update state: %w", err)
-	}
-
 	go c.heartBeat()
 	go c.cleanupTabs()
 
@@ -166,13 +144,6 @@ func (c *Chrome) Close() error {
 		//		}
 		//	}
 		//}
-
-		// 更新实例状态
-		if err := handleEvent(c, EventInitFail); err != nil {
-			internal.Logger.Error("failed to update state on close",
-				zap.Error(err),
-				zap.Int("chromeID", c.ID))
-		}
 	}
 	return nil
 }
@@ -196,7 +167,7 @@ func (c *Chrome) getState() chromeState {
 // NeedsReInitialize 判断是否需要重新初始化
 func (c *Chrome) NeedsReInitialize() bool {
 	state := c.getState()
-	return state == chromeStateInitFailed || state == chromeStateDisconnected
+	return state == chromeStateDisconnected
 }
 
 func (c *Chrome) cleanupTabs() {

@@ -11,54 +11,41 @@ import (
 type chromeState uint8
 
 const (
-	chromeStateUninitialized chromeState = iota // 未初始化：实例刚创建
-	chromeStateInitFailed                       // 初始化失败：初始化方法执行失败
-	chromeStateConnected                        // 连接成功：包含初始化成功和心跳检查正常
-	chromeStateDisconnected                     // 连接断开：心跳检查失败
+	chromeStateConnected    chromeState = iota // 连接成功：包含初始化成功和心跳检查正常
+	chromeStateDisconnected                    // 连接断开：心跳检查失败
+	chromeStateOffline
 )
 
-// EventType 表示 Chrome 实例的事件类型
-type EventType uint8
+// eventType 表示 Chrome 实例的事件类型
+type eventType uint8
 
 const (
-	EventStart              EventType = iota // 开始初始化
-	EventInitSuccess                         // 初始化成功
-	EventInitFail                            // 初始化失败
-	EventHealthCheckSuccess                  // 心跳检查成功
-	EventHealthCheckFail                     // 心跳检查失败
-	EventGetState                            // 获取状态
+	EventHealthCheckFail eventType = iota // 心跳检查失败
+	EventGetState                         // 获取状态
 )
 
 // stateEvent 表示状态变更事件
 type stateEvent struct {
-	Type     EventType
+	Type     eventType
 	Response chan interface{}
 }
 
 // String 返回状态的字符串表示
 func (s chromeState) String() string {
 	switch s {
-	case chromeStateUninitialized:
-		return "Uninitialized"
-	case chromeStateInitFailed:
-		return "InitFailed"
 	case chromeStateConnected:
 		return "Connected"
 	case chromeStateDisconnected:
 		return "Disconnected"
+	case chromeStateOffline:
+		return "Offline"
 	default:
 		return "Unknown"
 	}
 }
 
-func (s chromeState) IsValidTransition(event EventType) bool {
+func (s chromeState) IsValidTransition(event eventType) bool {
 	switch event {
-	case EventInitSuccess:
-		return s == chromeStateUninitialized
-	case EventInitFail:
-		return s == chromeStateUninitialized
-	case EventHealthCheckSuccess:
-		return s == chromeStateDisconnected
 	case EventHealthCheckFail:
 		return s == chromeStateConnected
 	default:
@@ -95,12 +82,6 @@ func handleStateTransition(c *Chrome, evt stateEvent) {
 	}
 
 	switch evt.Type {
-	case EventInitSuccess:
-		c.State = chromeStateConnected
-	case EventInitFail:
-		c.State = chromeStateInitFailed
-	case EventHealthCheckSuccess:
-		c.State = chromeStateConnected
 	case EventHealthCheckFail:
 		c.State = chromeStateDisconnected
 	}
@@ -119,7 +100,7 @@ func handleStateTransition(c *Chrome, evt stateEvent) {
 	evt.Response <- err
 }
 
-func handleEvent(c *Chrome, event EventType) error {
+func handleEvent(c *Chrome, event eventType) error {
 	response := make(chan interface{}, 1)
 	c.stateChan <- stateEvent{
 		Type:     event,

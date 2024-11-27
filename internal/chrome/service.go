@@ -2,7 +2,9 @@ package chrome
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/database"
+	"go.uber.org/zap"
 )
 
 var (
@@ -26,23 +28,8 @@ func init() {
 //	}
 //}
 
-func createChrome(ip string, port int, debuggerURL string) (*Chrome, error) {
-	return repo.create(ip, port, debuggerURL, chromeStateUninitialized)
-}
-
-func getChrome(id int) (*Chrome, error) {
-	chrome, err := repo.get(id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get chrome instance: %w", err)
-	}
-
-	if chrome.NeedsReInitialize() {
-		if err := chrome.RetryInitialize(3); err != nil {
-			return nil, fmt.Errorf("failed to reinitialize chrome instance: %w", err)
-		}
-	}
-
-	return chrome, nil
+func createChrome(ip string, port int, debuggerURL string, state chromeState) (*Chrome, error) {
+	return repo.create(ip, port, debuggerURL, state)
 }
 
 func GetAllChrome() ([]*Chrome, error) {
@@ -86,11 +73,11 @@ func CreateTempChrome() (*Chrome, error) {
 	}
 
 	chrome := newChrome(ip, port, url, chromeStateConnected)
-
-	//m, err := CreateChrome(ip, port, url)
-	//if err != nil {
-	//	return nil, err
-	//}
+	if err := chrome.RetryInitialize(3); err != nil {
+		internal.Logger.Error("failed to reinitialize zombie chrome",
+			zap.Error(err),
+			zap.String("addr", chrome.getAddr()))
+	}
 
 	err = globalPool.AddChrome(chrome)
 	if err != nil {
@@ -125,9 +112,15 @@ func BindChrome(ip string, port int) (*Chrome, error) {
 		return nil, err
 	}
 
-	chrome, err := createChrome(ip, port, url)
+	chrome, err := createChrome(ip, port, url, chromeStateConnected)
 	if err != nil {
 		return nil, err
+	}
+
+	if err := chrome.RetryInitialize(3); err != nil {
+		internal.Logger.Error("failed to reinitialize zombie chrome",
+			zap.Error(err),
+			zap.String("addr", chrome.getAddr()))
 	}
 
 	err = globalPool.AddChrome(chrome)
