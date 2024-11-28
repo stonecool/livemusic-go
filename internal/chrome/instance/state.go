@@ -4,8 +4,16 @@ import (
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/chrome"
-	"github.com/stonecool/livemusic-go/internal/chrome/storage"
 	"go.uber.org/zap"
+)
+
+// ChromeState 表示 Chrome 实例的状态
+type ChromeState uint8
+
+const (
+	ChromeStateConnected    ChromeState = iota // 连接成功：包含初始化成功和心跳检查正常
+	ChromeStateDisconnected                    // 连接断开：心跳检查失败
+	ChromeStateOffline
 )
 
 // eventType 表示 Chrome 实例的事件类型
@@ -23,7 +31,7 @@ type StateEvent struct {
 }
 
 // String 返回状态的字符串表示
-func (s chrome.ChromeState) String() string {
+func (s ChromeState) String() string {
 	switch s {
 	case ChromeStateConnected:
 		return "Connected"
@@ -64,7 +72,7 @@ func stateManager(c *Chrome) {
 
 func handleStateTransition(c *Chrome, evt StateEvent) {
 	oldState := c.State
-	var newState chrome.ChromeState
+	var newState ChromeState
 	var err error
 
 	if !oldState.IsValidTransition(evt.Type) {
@@ -84,7 +92,7 @@ func handleStateTransition(c *Chrome, evt StateEvent) {
 	if oldState != newState {
 		c.State = newState
 
-		if err := storage.Repo.Update(c); err != nil {
+		if err := chrome.UpdateChrome(c); err != nil {
 			internal.Logger.Error("failed to update chrome state",
 				zap.Error(err),
 				zap.Int("chromeID", c.ID),

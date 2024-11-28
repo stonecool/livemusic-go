@@ -3,9 +3,7 @@ package storage
 import (
 	"fmt"
 	"github.com/stonecool/livemusic-go/internal/chrome/instance"
-
 	"github.com/stonecool/livemusic-go/internal/database"
-
 	"gorm.io/gorm"
 )
 

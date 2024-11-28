@@ -19,7 +19,7 @@ import (
 //	}
 //}
 
-func createChrome(ip string, port int, debuggerURL string, state ChromeState) (*instance.Chrome, error) {
+func createChrome(ip string, port int, debuggerURL string, state instance.ChromeState) (*instance.Chrome, error) {
 	return storage.Repo.Create(ip, port, debuggerURL, state)
 }
 
@@ -71,7 +71,7 @@ func CreateTempChrome() (*instance.Chrome, error) {
 		return nil, err
 	}
 
-	chrome := instance.NewChrome(ip, port, url, ChromeStateConnected)
+	chrome := instance.NewChrome(ip, port, url, instance.ChromeStateConnected)
 	if err := chrome.RetryInitialize(3); err != nil {
 		internal.Logger.Error("failed to reinitialize zombie chrome",
 			zap.Error(err),
@@ -111,7 +111,7 @@ func BindChrome(ip string, port int) (*instance.Chrome, error) {
 		return nil, err
 	}
 
-	chrome, err := createChrome(ip, port, url, ChromeStateConnected)
+	chrome, err := createChrome(ip, port, url, instance.ChromeStateConnected)
 	if err != nil {
 		return nil, err
 	}
