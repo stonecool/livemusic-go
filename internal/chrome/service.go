@@ -32,6 +32,10 @@ func createChrome(ip string, port int, debuggerURL string, state chromeState) (*
 	return repo.create(ip, port, debuggerURL, state)
 }
 
+func getChrome(id int) (*Chrome, error) {
+	return repo.get(id)
+}
+
 func GetAllChrome() ([]*Chrome, error) {
 	return repo.getAll()
 }

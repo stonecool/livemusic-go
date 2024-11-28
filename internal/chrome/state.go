@@ -72,6 +72,7 @@ func stateManager(c *Chrome) {
 
 func handleStateTransition(c *Chrome, evt stateEvent) {
 	oldState := c.State
+	var newState chromeState
 	var err error
 
 	if !oldState.IsValidTransition(evt.Type) {
@@ -83,17 +84,19 @@ func handleStateTransition(c *Chrome, evt stateEvent) {
 
 	switch evt.Type {
 	case EventHealthCheckFail:
-		c.State = chromeStateDisconnected
+		newState = chromeStateDisconnected
+		//case eventShutdown:
+		//	newState = stateOffline
 	}
 
-	if oldState != c.State {
-		// TODO: 更新数据库中的状态
+	if oldState != newState {
+		c.State = newState
 		if err := repo.update(c); err != nil {
 			internal.Logger.Error("failed to update chrome state",
 				zap.Error(err),
 				zap.Int("chromeID", c.ID),
 				zap.String("oldState", oldState.String()),
-				zap.String("newState", c.State.String()))
+				zap.String("newState", newState.String()))
 		}
 	}
 
