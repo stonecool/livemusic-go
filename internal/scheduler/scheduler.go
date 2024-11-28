@@ -3,7 +3,7 @@ package scheduler
 import (
 	"fmt"
 	"github.com/robfig/cron/v3"
-	"github.com/stonecool/livemusic-go/internal/chrome"
+	"github.com/stonecool/livemusic-go/internal/chrome/pool"
 	"github.com/stonecool/livemusic-go/internal/message"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"log"
@@ -88,7 +88,7 @@ func (s *Scheduler) executeTask(task task.ITask) error {
 		}
 
 		// 尝试分发任务
-		if err := chrome.GetPool().DispatchTask(task.GetCategory(), msg); err == nil {
+		if err := pool.GetPool().DispatchTask(task.GetCategory(), msg); err == nil {
 			return nil
 		} else {
 			lastErr = err

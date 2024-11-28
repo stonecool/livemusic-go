@@ -1,19 +1,11 @@
-package chrome
+package instance
 
 import (
 	"fmt"
-
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/chrome"
+	"github.com/stonecool/livemusic-go/internal/chrome/storage"
 	"go.uber.org/zap"
-)
-
-// chromeState 表示 Chrome 实例的状态
-type chromeState uint8
-
-const (
-	chromeStateConnected    chromeState = iota // 连接成功：包含初始化成功和心跳检查正常
-	chromeStateDisconnected                    // 连接断开：心跳检查失败
-	chromeStateOffline
 )
 
 // eventType 表示 Chrome 实例的事件类型
@@ -24,30 +16,30 @@ const (
 	EventGetState                         // 获取状态
 )
 
-// stateEvent 表示状态变更事件
-type stateEvent struct {
+// StateEvent 表示状态变更事件
+type StateEvent struct {
 	Type     eventType
 	Response chan interface{}
 }
 
 // String 返回状态的字符串表示
-func (s chromeState) String() string {
+func (s chrome.ChromeState) String() string {
 	switch s {
-	case chromeStateConnected:
+	case ChromeStateConnected:
 		return "Connected"
-	case chromeStateDisconnected:
+	case ChromeStateDisconnected:
 		return "Disconnected"
-	case chromeStateOffline:
+	case ChromeStateOffline:
 		return "Offline"
 	default:
 		return "Unknown"
 	}
 }
 
-func (s chromeState) IsValidTransition(event eventType) bool {
+func (s ChromeState) IsValidTransition(event eventType) bool {
 	switch event {
 	case EventHealthCheckFail:
-		return s == chromeStateConnected
+		return s == ChromeStateConnected
 	default:
 		return true
 	}
@@ -56,7 +48,7 @@ func (s chromeState) IsValidTransition(event eventType) bool {
 func stateManager(c *Chrome) {
 	for {
 		select {
-		case evt := <-c.stateChan:
+		case evt := <-c.StateChan:
 			switch evt.Type {
 			case EventGetState:
 				evt.Response <- c.State
@@ -70,9 +62,9 @@ func stateManager(c *Chrome) {
 	}
 }
 
-func handleStateTransition(c *Chrome, evt stateEvent) {
+func handleStateTransition(c *Chrome, evt StateEvent) {
 	oldState := c.State
-	var newState chromeState
+	var newState chrome.ChromeState
 	var err error
 
 	if !oldState.IsValidTransition(evt.Type) {
@@ -84,14 +76,15 @@ func handleStateTransition(c *Chrome, evt stateEvent) {
 
 	switch evt.Type {
 	case EventHealthCheckFail:
-		newState = chromeStateDisconnected
+		newState = ChromeStateDisconnected
 		//case eventShutdown:
 		//	newState = stateOffline
 	}
 
 	if oldState != newState {
 		c.State = newState
-		if err := repo.update(c); err != nil {
+
+		if err := storage.Repo.Update(c); err != nil {
 			internal.Logger.Error("failed to update chrome state",
 				zap.Error(err),
 				zap.Int("chromeID", c.ID),
@@ -105,7 +98,7 @@ func handleStateTransition(c *Chrome, evt stateEvent) {
 
 func handleEvent(c *Chrome, event eventType) error {
 	response := make(chan interface{}, 1)
-	c.stateChan <- stateEvent{
+	c.StateChan <- StateEvent{
 		Type:     event,
 		Response: response,
 	}

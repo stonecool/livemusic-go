@@ -1,11 +1,11 @@
-package chrome
+package storage
 
 import (
-	"sync"
-
 	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/chrome/instance"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
+	"sync"
 )
 
 type model struct {
@@ -21,21 +21,21 @@ func (*model) TableName() string {
 	return "chromes"
 }
 
-func (m *model) toEntity() *Chrome {
-	return &Chrome{
+func (m *model) toEntity() *instance.Chrome {
+	return &instance.Chrome{
 		ID:          m.ID,
 		IP:          m.IP,
 		Port:        m.Port,
 		DebuggerURL: m.DebuggerURL,
-		State:       chromeState(m.State),
-		accounts:    make(map[string]account.IAccount),
-		accountsMu:  sync.RWMutex{},
-		stateChan:   make(chan stateEvent),
-		opts:        DefaultOptions(),
+		State:       instance.ChromeState(m.State),
+		Accounts:    make(map[string]account.IAccount),
+		AccountsMu:  sync.RWMutex{},
+		StateChan:   make(chan instance.StateEvent),
+		Opts:        instance.DefaultOptions(),
 	}
 }
 
-func (m *model) fromEntity(chrome *Chrome) {
+func (m *model) fromEntity(chrome *instance.Chrome) {
 	m.ID = chrome.ID
 	m.IP = chrome.IP
 	m.Port = chrome.Port

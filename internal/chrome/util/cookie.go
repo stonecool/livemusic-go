@@ -1,4 +1,4 @@
-package chrome
+package util
 
 import (
 	"context"

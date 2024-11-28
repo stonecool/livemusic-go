@@ -1,4 +1,4 @@
-package chrome
+package util
 
 import (
 	"bytes"
@@ -69,7 +69,7 @@ func FindAvailablePort(startPort int) (int, error) {
 	}
 }
 
-func startChromeOnPort(port int) error {
+func StartChromeOnPort(port int) error {
 	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "darwin":

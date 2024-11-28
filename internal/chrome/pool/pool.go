@@ -1,50 +1,51 @@
-package chrome
+package pool
 
 import (
 	"context"
 	"fmt"
+	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/chrome/instance"
+	"github.com/stonecool/livemusic-go/internal/chrome/util"
 	"github.com/stonecool/livemusic-go/internal/message"
 	"log"
 	"sync"
 	"time"
-
-	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/account"
 )
 
 // 全局唯一的实例池
-var globalPool *Pool
+var GlobalPool *pool
 
-type Pool struct {
-	chromes    map[string]*Chrome
+type pool struct {
+	chromes    map[string]*instance.Chrome
 	categories map[string]*category
 	mu         sync.Mutex
 }
 
 // init 在包初始化时创建实例池
 func init() {
-	globalPool = &Pool{
-		chromes:    make(map[string]*Chrome),
+	GlobalPool = &pool{
+		chromes:    make(map[string]*instance.Chrome),
 		categories: make(map[string]*category),
 	}
 }
 
 // GetPool 获取全局实例池
-func GetPool() *Pool {
-	return globalPool
+func GetPool() *pool {
+	return GlobalPool
 }
 
 // AddChrome 添加新的实例到池
-func (p *Pool) AddChrome(chrome *Chrome) error {
+func (p *pool) AddChrome(chrome *instance.Chrome) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if _, exists := p.chromes[chrome.getAddr()]; exists {
-		return fmt.Errorf("instance on:%s exists", chrome.getAddr())
+	if _, exists := p.chromes[chrome.GetAddr()]; exists {
+		return fmt.Errorf("instance on:%s exists", chrome.GetAddr())
 	}
 
-	p.chromes[chrome.getAddr()] = chrome
-	for cat := range chrome.getAccounts() {
+	p.chromes[chrome.GetAddr()] = chrome
+	for cat := range chrome.GetAccounts() {
 		if _, exists := p.categories[cat]; !exists {
 			p.categories[cat] = newCategory(cat)
 		}
@@ -54,30 +55,25 @@ func (p *Pool) AddChrome(chrome *Chrome) error {
 	return nil
 }
 
-func (p *Pool) Login(id int, cat string) {
+func (p *pool) Login(chrome *instance.Chrome, cat string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	chrome, err := getChrome(id)
-	if err != nil {
-		return
-	}
-
-	instance, exists := p.chromes[chrome.getAddr()]
+	instance, exists := p.chromes[chrome.GetAddr()]
 	if !exists {
-		fmt.Printf("instance:%d not exists in pool", id)
+		fmt.Printf("instance:%d not exists in pool", chrome.ID)
 		return
 	}
 
 	category, ok := p.categories[cat]
 	if ok {
-		if category.ContainChrome(chrome.getAddr()) {
-			fmt.Printf("instance:%d already in cat:%s", id, cat)
+		if category.ContainChrome(chrome.GetAddr()) {
+			fmt.Printf("instance:%d already in cat:%s", chrome.ID, cat)
 			return
 		}
 	}
 
-	acc, err := account.GetAccount(id)
+	acc, err := account.GetAccount(chrome.ID)
 	if err != nil {
 		return
 	}
@@ -91,9 +87,9 @@ func (p *Pool) Login(id int, cat string) {
 	//ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
 
 	err = chromedp.Run(ctx,
-		GetQRCode(acc),
+		util.GetQRCode(acc),
 		acc.WaitLogin(),
-		SaveCookies(acc),
+		util.SaveCookies(acc),
 		chromedp.Stop(),
 	)
 
@@ -107,7 +103,7 @@ func (p *Pool) Login(id int, cat string) {
 	return
 }
 
-func (p *Pool) GetChromesByCategory(cat string) []*Chrome {
+func (p *pool) GetChromesByCategory(cat string) []*instance.Chrome {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -118,7 +114,7 @@ func (p *Pool) GetChromesByCategory(cat string) []*Chrome {
 	}
 }
 
-func (p *Pool) DispatchTask(category string, message *message.AsyncMessage) error {
+func (p *pool) DispatchTask(category string, message *message.AsyncMessage) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

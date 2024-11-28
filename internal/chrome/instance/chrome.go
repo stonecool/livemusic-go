@@ -1,34 +1,33 @@
-package chrome
+package instance
 
 import (
 	"context"
 	"fmt"
+	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/chrome/util"
+	"github.com/stonecool/livemusic-go/internal/task"
+	"go.uber.org/zap"
 	"sync"
 	"time"
-
-	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/task"
-
-	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/account"
-	"go.uber.org/zap"
 )
 
 type Chrome struct {
 	ID           int
 	IP           string
 	Port         int
-	accounts     map[string]account.IAccount
-	accountsMu   sync.RWMutex
+	Accounts     map[string]account.IAccount
+	AccountsMu   sync.RWMutex
 	DebuggerURL  string
-	State        chromeState
-	stateChan    chan stateEvent
+	State        ChromeState
+	StateChan    chan StateEvent
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc
-	opts         *InstanceOptions
+	Opts         *InstanceOptions
 }
 
-func newChrome(ip string, port int, url string, state chromeState) *Chrome {
+func NewChrome(ip string, port int, url string, state ChromeState) *Chrome {
 	return &Chrome{
 		IP:          ip,
 		Port:        port,
@@ -38,7 +37,7 @@ func newChrome(ip string, port int, url string, state chromeState) *Chrome {
 }
 
 func (c *Chrome) initialize() error {
-	ctx, cancel := context.WithTimeout(context.Background(), c.opts.InitTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), c.Opts.InitTimeout)
 	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, c.DebuggerURL)
 
 	c.allocatorCtx = allocatorCtx
@@ -78,18 +77,18 @@ func (c *Chrome) RetryInitialize(maxAttempts int) error {
 
 // 心跳检查
 func (c *Chrome) heartBeat() {
-	ticker := time.NewTicker(c.opts.HeartbeatInterval)
+	ticker := time.NewTicker(c.Opts.HeartbeatInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
 			state := c.getState()
-			if state != chromeStateConnected {
+			if state != ChromeStateConnected {
 				continue
 			}
 
-			ok, _ := RetryCheckChromeHealth(c.getAddr(), 1, 0)
+			ok, _ := util.RetryCheckChromeHealth(c.GetAddr(), 1, 0)
 			if !ok {
 				handleEvent(c, EventHealthCheckFail)
 			}
@@ -100,21 +99,21 @@ func (c *Chrome) heartBeat() {
 	}
 }
 
-func (c *Chrome) getAccounts() map[string]account.IAccount {
-	c.accountsMu.RLock()
-	defer c.accountsMu.RUnlock()
+func (c *Chrome) GetAccounts() map[string]account.IAccount {
+	c.AccountsMu.RLock()
+	defer c.AccountsMu.RUnlock()
 
-	accounts := make(map[string]account.IAccount, len(c.accounts))
-	for k, v := range c.accounts {
+	accounts := make(map[string]account.IAccount, len(c.Accounts))
+	for k, v := range c.Accounts {
 		accounts[k] = v
 	}
 	return accounts
 }
 
 func (c *Chrome) isAvailable(cat string) bool {
-	c.accountsMu.RLock()
-	defer c.accountsMu.RUnlock()
-	acc, exists := c.accounts[cat]
+	c.AccountsMu.RLock()
+	defer c.AccountsMu.RUnlock()
+	acc, exists := c.Accounts[cat]
 
 	if !exists {
 		return false
@@ -123,7 +122,7 @@ func (c *Chrome) isAvailable(cat string) bool {
 	return acc.IsAvailable()
 }
 
-func (c *Chrome) getAddr() string {
+func (c *Chrome) GetAddr() string {
 	return fmt.Sprintf("%s:%d", c.IP, c.Port)
 }
 
@@ -150,24 +149,24 @@ func (c *Chrome) Close() error {
 
 // 判断实例是否可用
 func (c *Chrome) IsAvailable() bool {
-	return c.getState() == chromeStateConnected
+	return c.getState() == ChromeStateConnected
 }
 
 // getState 获取当前状态
-func (c *Chrome) getState() chromeState {
+func (c *Chrome) getState() ChromeState {
 	response := make(chan interface{}, 1)
-	c.stateChan <- stateEvent{
+	c.StateChan <- StateEvent{
 		Type:     EventGetState,
 		Response: response,
 	}
 	result := <-response
-	return result.(chromeState)
+	return result.(ChromeState)
 }
 
 // NeedsReInitialize 判断是否需要重新初始化
 func (c *Chrome) NeedsReInitialize() bool {
 	state := c.getState()
-	return state == chromeStateDisconnected
+	return state == ChromeStateDisconnected
 }
 
 func (c *Chrome) cleanupTabs() {
@@ -207,9 +206,9 @@ func (c *Chrome) cleanupTabs() {
 }
 
 func (c *Chrome) ExecuteTask(task task.ITask) error {
-	c.accountsMu.RLock()
-	defer c.accountsMu.RUnlock()
-	acc, exists := c.accounts[task.GetCategory()]
+	c.AccountsMu.RLock()
+	defer c.AccountsMu.RUnlock()
+	acc, exists := c.Accounts[task.GetCategory()]
 
 	if !exists {
 		internal.Logger.Error("no account found for category",
@@ -236,10 +235,10 @@ func (c *Chrome) ExecuteTask(task task.ITask) error {
 }
 
 func (c *Chrome) SetAccount(category string, acc account.IAccount) {
-	c.accountsMu.Lock()
-	defer c.accountsMu.Unlock()
+	c.AccountsMu.Lock()
+	defer c.AccountsMu.Unlock()
 
-	c.accounts[category] = acc
+	c.Accounts[category] = acc
 }
 
 func (c *Chrome) checkZombieProcess() {
@@ -252,7 +251,7 @@ func (c *Chrome) checkZombieProcess() {
 			if !c.IsAvailable() {
 				internal.Logger.Warn("chrome instance appears to be zombie",
 					zap.Int("chromeID", c.ID),
-					zap.String("addr", c.getAddr()))
+					zap.String("addr", c.GetAddr()))
 
 				// 尝试重新初始化
 				if err := c.RetryInitialize(3); err != nil {
