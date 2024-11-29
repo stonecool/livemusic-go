@@ -3,21 +3,22 @@ package pool
 import (
 	"context"
 	"fmt"
-	"github.com/chromedp/chromedp"
-	"github.com/stonecool/livemusic-go/internal/account"
-	"github.com/stonecool/livemusic-go/internal/chrome/instance"
-	"github.com/stonecool/livemusic-go/internal/chrome/util"
-	"github.com/stonecool/livemusic-go/internal/message"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/chrome/types"
+	"github.com/stonecool/livemusic-go/internal/chrome/util"
+	"github.com/stonecool/livemusic-go/internal/message"
 )
 
 // 全局唯一的实例池
 var GlobalPool *pool
 
 type pool struct {
-	chromes    map[string]*instance.Chrome
+	chromes    map[string]types.IChrome
 	categories map[string]*category
 	mu         sync.Mutex
 }
@@ -25,7 +26,7 @@ type pool struct {
 // init 在包初始化时创建实例池
 func init() {
 	GlobalPool = &pool{
-		chromes:    make(map[string]*instance.Chrome),
+		chromes:    make(map[string]types.IChrome),
 		categories: make(map[string]*category),
 	}
 }
@@ -36,7 +37,7 @@ func GetPool() *pool {
 }
 
 // AddChrome 添加新的实例到池
-func (p *pool) AddChrome(chrome *instance.Chrome) error {
+func (p *pool) AddChrome(chrome types.IChrome) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -55,25 +56,25 @@ func (p *pool) AddChrome(chrome *instance.Chrome) error {
 	return nil
 }
 
-func (p *pool) Login(chrome *instance.Chrome, cat string) {
+func (p *pool) Login(chrome types.IChrome, cat string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	instance, exists := p.chromes[chrome.GetAddr()]
 	if !exists {
-		fmt.Printf("instance:%d not exists in pool", chrome.ID)
+		fmt.Printf("instance:%d not exists in pool", chrome.GetID())
 		return
 	}
 
 	category, ok := p.categories[cat]
 	if ok {
 		if category.ContainChrome(chrome.GetAddr()) {
-			fmt.Printf("instance:%d already in cat:%s", chrome.ID, cat)
+			fmt.Printf("instance:%d already in cat:%s", chrome.GetID(), cat)
 			return
 		}
 	}
 
-	acc, err := account.GetAccount(chrome.ID)
+	acc, err := account.GetAccount(chrome.GetID())
 	if err != nil {
 		return
 	}
@@ -103,7 +104,7 @@ func (p *pool) Login(chrome *instance.Chrome, cat string) {
 	return
 }
 
-func (p *pool) GetChromesByCategory(cat string) []*instance.Chrome {
+func (p *pool) GetChromesByCategory(cat string) []types.IChrome {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

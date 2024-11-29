@@ -29,9 +29,20 @@ type Chrome struct {
 	Opts         *types.InstanceOptions
 }
 
+func (c *Chrome) SetState(state types.ChromeState) {
+	c.State = state
+}
+
+func (c *Chrome) GetState() types.ChromeState {
+	return c.State
+}
+
+func (c *Chrome) GetStateChan() chan types.StateEvent {
+	return c.StateChan
+}
+
 func (c *Chrome) GetID() int {
-	//TODO implement me
-	panic("implement me")
+	return c.ID
 }
 
 // 确保 Chrome 实现了 IChrome 接口
@@ -46,6 +57,22 @@ func NewChrome(ip string, port int, url string, state types.ChromeState) *Chrome
 	}
 }
 
+func (c *Chrome) stateManager() {
+	for {
+		select {
+		case evt := <-c.GetStateChan():
+			switch evt.Type {
+			case types.EventGetState:
+				evt.Response <- c.GetState()
+				continue
+			default:
+				types.HandleStateTransition(c, evt)
+			}
+		case <-c.allocatorCtx.Done():
+			return
+		}
+	}
+}
 func (c *Chrome) initialize() error {
 	ctx, cancel := context.WithTimeout(context.Background(), c.Opts.InitTimeout)
 	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, c.DebuggerURL)
@@ -56,7 +83,7 @@ func (c *Chrome) initialize() error {
 		cancel()
 	}
 
-	go stateManager(c)
+	go c.stateManager()
 	go c.heartBeat()
 	go c.cleanupTabs()
 
@@ -100,7 +127,7 @@ func (c *Chrome) heartBeat() {
 
 			ok, _ := util.RetryCheckChromeHealth(c.GetAddr(), 1, 0)
 			if !ok {
-				handleEvent(c, EventHealthCheckFail)
+				types.HandleEvent(c, types.EventHealthCheckFail)
 			}
 
 		case <-c.allocatorCtx.Done():
@@ -274,4 +301,9 @@ func (c *Chrome) checkZombieProcess() {
 			return
 		}
 	}
+}
+
+// 实现 Initialize 接口方法
+func (c *Chrome) Initialize() error {
+	return c.RetryInitialize(3)
 }

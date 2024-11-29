@@ -1,6 +1,7 @@
 package instance
 
 import (
+	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"time"
 )
 
@@ -14,8 +15,8 @@ type InstanceOptions struct {
 }
 
 // 默认配置
-func DefaultOptions() *InstanceOptions {
-	return &InstanceOptions{
+func DefaultOptions() *types.InstanceOptions {
+	return &types.InstanceOptions{
 		HeartbeatInterval:   30 * time.Second,
 		InitTimeout:         30 * time.Second,
 		TabCleanupInterval:  5 * time.Minute,

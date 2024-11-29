@@ -3,6 +3,7 @@ package storage
 import (
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/instance"
+	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 	"sync"
@@ -27,10 +28,10 @@ func (m *model) toEntity() *instance.Chrome {
 		IP:          m.IP,
 		Port:        m.Port,
 		DebuggerURL: m.DebuggerURL,
-		State:       instance.ChromeState(m.State),
+		State:       types.ChromeState(m.State),
 		Accounts:    make(map[string]account.IAccount),
 		AccountsMu:  sync.RWMutex{},
-		StateChan:   make(chan instance.StateEvent),
+		StateChan:   make(chan types.StateEvent),
 		Opts:        instance.DefaultOptions(),
 	}
 }

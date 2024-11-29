@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/chrome/instance"
-	"github.com/stonecool/livemusic-go/internal/chrome/pool"
 	"github.com/stonecool/livemusic-go/internal/chrome/storage"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
@@ -80,19 +78,8 @@ func CreateTempChrome() (types.IChrome, error) {
 		return nil, err
 	}
 
-	// 类型断言以使用 RetryInitialize 方法
-	if chromeInstance, ok := chrome.(*instance.Chrome); ok {
-		if err := chromeInstance.RetryInitialize(3); err != nil {
-			internal.Logger.Error("failed to initialize chrome",
-				zap.Error(err),
-				zap.String("addr", chromeInstance.GetAddr()))
-			return nil, err
-		}
-
-		err = pool.GlobalPool.AddChrome(chromeInstance)
-		if err != nil {
-			return nil, err
-		}
+	if err := chrome.Initialize(); err != nil {
+		return nil, err
 	}
 
 	return chrome, nil
@@ -134,19 +121,8 @@ func BindChrome(ip string, port int) (types.IChrome, error) {
 		return nil, err
 	}
 
-	// 类型断言以使用 RetryInitialize 方法
-	if chromeInstance, ok := chrome.(*instance.Chrome); ok {
-		if err := chromeInstance.RetryInitialize(3); err != nil {
-			internal.Logger.Error("failed to initialize chrome",
-				zap.Error(err),
-				zap.String("addr", chromeInstance.GetAddr()))
-			return nil, err
-		}
-
-		err = pool.GlobalPool.AddChrome(chromeInstance)
-		if err != nil {
-			return nil, err
-		}
+	if err := chrome.Initialize(); err != nil {
+		return nil, err
 	}
 
 	return chrome, nil

@@ -2,43 +2,43 @@ package pool
 
 import (
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/chrome/instance"
+	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"go.uber.org/zap"
 	"sync"
 )
 
 type category struct {
 	name    string
-	chromes map[string]*instance.Chrome
+	chromes map[string]types.IChrome
 	mu      sync.RWMutex
 }
 
 func newCategory(name string) *category {
 	return &category{
 		name:    name,
-		chromes: make(map[string]*instance.Chrome),
+		chromes: make(map[string]types.IChrome),
 	}
 }
 
-func (c *category) AddChrome(chrome *instance.Chrome) {
+func (c *category) AddChrome(chrome types.IChrome) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if _, ok := c.chromes[chrome.GetAddr()]; ok {
 		internal.Logger.Warn("chrome already exists in category",
 			zap.String("category", c.name),
-			zap.Int("chromeID", chrome.ID))
+			zap.Int("chromeID", chrome.GetID()))
 		return
 	}
 
 	c.chromes[chrome.GetAddr()] = chrome
 }
 
-func (c *category) GetChromes() []*instance.Chrome {
+func (c *category) GetChromes() []types.IChrome {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	result := make([]*instance.Chrome, 0, len(c.chromes))
+	result := make([]types.IChrome, 0, len(c.chromes))
 	for _, chrome := range c.chromes {
 		result = append(result, chrome)
 	}
