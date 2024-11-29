@@ -2,36 +2,29 @@ package chrome
 
 import (
 	"fmt"
+
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/chrome/instance"
 	"github.com/stonecool/livemusic-go/internal/chrome/pool"
 	"github.com/stonecool/livemusic-go/internal/chrome/storage"
+	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
 	"go.uber.org/zap"
 )
 
-//func GetInstance(id int) (*Chrome, error) {
-//	ins, err := chromeCache.Get(id)
-//	if err != nil {
-//		return nil, err
-//	} else {
-//		return ins.(*Chrome), nil
-//	}
-//}
-
-func createChrome(ip string, port int, debuggerURL string, state instance.ChromeState) (*instance.Chrome, error) {
+func createChrome(ip string, port int, debuggerURL string, state types.ChromeState) (types.IChrome, error) {
 	return storage.Repo.Create(ip, port, debuggerURL, state)
 }
 
-func GetChrome(id int) (*instance.Chrome, error) {
+func GetChrome(id int) (types.IChrome, error) {
 	return storage.Repo.Get(id)
 }
 
-func UpdateChrome(chrome *instance.Chrome) error {
+func UpdateChrome(chrome types.IChrome) error {
 	return storage.Repo.Update(chrome)
 }
 
-func GetAllChrome() ([]*instance.Chrome, error) {
+func GetAllChrome() ([]types.IChrome, error) {
 	return storage.Repo.GetAll()
 }
 
@@ -40,17 +33,21 @@ func ExistsByIPAndPort(ip string, port int) (bool, error) {
 }
 
 // CreateTempChrome Create a local chrome instance
-func CreateTempChrome() (*instance.Chrome, error) {
+func CreateTempChrome() (types.IChrome, error) {
 	ip := "127.0.0.1"
 	port, err := util.FindAvailablePort(9222)
 	if err != nil {
-		fmt.Printf("Failed to find an available port: %v\n", err)
+		internal.Logger.Error("failed to find available port",
+			zap.Error(err))
 		return nil, err
 	}
 
 	exists, err := ExistsByIPAndPort(ip, port)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		internal.Logger.Error("failed to check port existence",
+			zap.Error(err),
+			zap.String("ip", ip),
+			zap.Int("port", port))
 		return nil, err
 	}
 
@@ -58,37 +55,53 @@ func CreateTempChrome() (*instance.Chrome, error) {
 		return nil, fmt.Errorf("port:%d occupied", port)
 	}
 
-	fmt.Printf("Using ip:%s port: %d\n", ip, port)
+	internal.Logger.Info("using port for new chrome instance",
+		zap.String("ip", ip),
+		zap.Int("port", port))
+
 	err = util.StartChromeOnPort(port)
 	if err != nil {
-		fmt.Printf("Create instance on port:%d error: %v\n", port, err)
+		internal.Logger.Error("failed to start chrome",
+			zap.Error(err),
+			zap.Int("port", port))
 		return nil, err
 	}
 
 	ok, url := util.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 	if !ok {
-		fmt.Printf("Chrome health check error: %v\n", err)
-		return nil, err
+		internal.Logger.Error("chrome health check failed",
+			zap.String("ip", ip),
+			zap.Int("port", port))
+		return nil, fmt.Errorf("health check failed")
 	}
 
-	chrome := instance.NewChrome(ip, port, url, instance.ChromeStateConnected)
-	if err := chrome.RetryInitialize(3); err != nil {
-		internal.Logger.Error("failed to reinitialize zombie chrome",
-			zap.Error(err),
-			zap.String("addr", chrome.GetAddr()))
-	}
-
-	err = pool.GlobalPool.AddChrome(chrome)
+	chrome, err := storage.Repo.Create(ip, port, url, types.ChromeStateConnected)
 	if err != nil {
 		return nil, err
 	}
+
+	// 类型断言以使用 RetryInitialize 方法
+	if chromeInstance, ok := chrome.(*instance.Chrome); ok {
+		if err := chromeInstance.RetryInitialize(3); err != nil {
+			internal.Logger.Error("failed to initialize chrome",
+				zap.Error(err),
+				zap.String("addr", chromeInstance.GetAddr()))
+			return nil, err
+		}
+
+		err = pool.GlobalPool.AddChrome(chromeInstance)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return chrome, nil
 }
 
-// BindChrome
-func BindChrome(ip string, port int) (*instance.Chrome, error) {
+// BindChrome binds to an existing chrome instance
+func BindChrome(ip string, port int) (types.IChrome, error) {
 	if !util.IsValidIPv4(ip) || !util.IsValidPort(string(port)) {
-		return nil, fmt.Errorf("invalid")
+		return nil, fmt.Errorf("invalid ip or port")
 	}
 
 	if ip == "localhost" {
@@ -97,7 +110,10 @@ func BindChrome(ip string, port int) (*instance.Chrome, error) {
 
 	exists, err := ExistsByIPAndPort(ip, port)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		internal.Logger.Error("failed to check port existence",
+			zap.Error(err),
+			zap.String("ip", ip),
+			zap.Int("port", port))
 		return nil, err
 	}
 
@@ -107,24 +123,31 @@ func BindChrome(ip string, port int) (*instance.Chrome, error) {
 
 	ok, url := util.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 	if !ok {
-		fmt.Printf("Chrome health check error: %v\n", err)
-		return nil, err
+		internal.Logger.Error("chrome health check failed",
+			zap.String("ip", ip),
+			zap.Int("port", port))
+		return nil, fmt.Errorf("health check failed")
 	}
 
-	chrome, err := createChrome(ip, port, url, instance.ChromeStateConnected)
+	chrome, err := createChrome(ip, port, url, types.ChromeStateConnected)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := chrome.RetryInitialize(3); err != nil {
-		internal.Logger.Error("failed to reinitialize zombie chrome",
-			zap.Error(err),
-			zap.String("addr", chrome.GetAddr()))
+	// 类型断言以使用 RetryInitialize 方法
+	if chromeInstance, ok := chrome.(*instance.Chrome); ok {
+		if err := chromeInstance.RetryInitialize(3); err != nil {
+			internal.Logger.Error("failed to initialize chrome",
+				zap.Error(err),
+				zap.String("addr", chromeInstance.GetAddr()))
+			return nil, err
+		}
+
+		err = pool.GlobalPool.AddChrome(chromeInstance)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	err = pool.GlobalPool.AddChrome(chrome)
-	if err != nil {
-		return nil, err
-	}
 	return chrome, nil
 }

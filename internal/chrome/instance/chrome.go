@@ -3,14 +3,16 @@ package instance
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"go.uber.org/zap"
-	"sync"
-	"time"
 )
 
 type Chrome struct {
@@ -20,14 +22,22 @@ type Chrome struct {
 	Accounts     map[string]account.IAccount
 	AccountsMu   sync.RWMutex
 	DebuggerURL  string
-	State        ChromeState
-	StateChan    chan StateEvent
+	State        types.ChromeState
+	StateChan    chan types.StateEvent
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc
-	Opts         *InstanceOptions
+	Opts         *types.InstanceOptions
 }
 
-func NewChrome(ip string, port int, url string, state ChromeState) *Chrome {
+func (c *Chrome) GetID() int {
+	//TODO implement me
+	panic("implement me")
+}
+
+// 确保 Chrome 实现了 IChrome 接口
+var _ types.IChrome = (*Chrome)(nil)
+
+func NewChrome(ip string, port int, url string, state types.ChromeState) *Chrome {
 	return &Chrome{
 		IP:          ip,
 		Port:        port,
@@ -84,7 +94,7 @@ func (c *Chrome) heartBeat() {
 		select {
 		case <-ticker.C:
 			state := c.getState()
-			if state != ChromeStateConnected {
+			if state != types.ChromeStateConnected {
 				continue
 			}
 
@@ -149,24 +159,24 @@ func (c *Chrome) Close() error {
 
 // 判断实例是否可用
 func (c *Chrome) IsAvailable() bool {
-	return c.getState() == ChromeStateConnected
+	return c.getState() == types.ChromeStateConnected
 }
 
 // getState 获取当前状态
-func (c *Chrome) getState() ChromeState {
+func (c *Chrome) getState() types.ChromeState {
 	response := make(chan interface{}, 1)
-	c.StateChan <- StateEvent{
-		Type:     EventGetState,
+	c.StateChan <- types.StateEvent{
+		Type:     types.EventGetState,
 		Response: response,
 	}
 	result := <-response
-	return result.(ChromeState)
+	return result.(types.ChromeState)
 }
 
 // NeedsReInitialize 判断是否需要重新初始化
 func (c *Chrome) NeedsReInitialize() bool {
 	state := c.getState()
-	return state == ChromeStateDisconnected
+	return state == types.ChromeStateDisconnected
 }
 
 func (c *Chrome) cleanupTabs() {
