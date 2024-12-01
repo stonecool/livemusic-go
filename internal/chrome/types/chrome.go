@@ -7,7 +7,7 @@ import (
 )
 
 // Chrome 实例的基础接口
-type IChrome interface {
+type Chrome interface {
 	GetID() int
 	GetAddr() string
 	IsAvailable() bool

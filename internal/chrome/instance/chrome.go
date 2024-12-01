@@ -45,8 +45,8 @@ func (c *Chrome) GetID() int {
 	return c.ID
 }
 
-// 确保 Chrome 实现了 IChrome 接口
-var _ types.IChrome = (*Chrome)(nil)
+// 确保 Chrome 实现了 Chrome 接口
+var _ types.Chrome = (*Chrome)(nil)
 
 func NewChrome(ip string, port int, url string, state types.ChromeState) *Chrome {
 	return &Chrome{
@@ -66,13 +66,61 @@ func (c *Chrome) stateManager() {
 				evt.Response <- c.GetState()
 				continue
 			default:
-				types.HandleStateTransition(c, evt)
+				c.HandleStateTransition(evt)
 			}
 		case <-c.allocatorCtx.Done():
 			return
 		}
 	}
 }
+
+func (c *Chrome) HandleStateTransition(evt types.StateEvent) {
+	oldState := c.GetState()
+	var newState types.ChromeState
+	var err error
+
+	if !oldState.IsValidTransition(evt.Type) {
+		err = fmt.Errorf("invalid state transition from %s with event %v",
+			oldState.String(), evt.Type)
+		evt.Response <- err
+		return
+	}
+
+	switch evt.Type {
+	case types.EventHealthCheckFail:
+		newState = types.ChromeStateDisconnected
+		//case eventShutdown:
+		//	newState = stateOffline
+	}
+
+	if oldState != newState {
+		c.SetState(newState)
+
+		//if err := chrome.UpdateChrome(c); err != nil {
+		//	internal.Logger.Error("failed to update chrome state",
+		//		zap.Error(err),
+		//		zap.Int("chromeID", c.GetID()),
+		//		zap.String("oldState", oldState.String()),
+		//		zap.String("newState", newState.String()))
+		//}
+	}
+
+	evt.Response <- err
+}
+
+func (c *Chrome) HandleEvent(event types.EventType) error {
+	response := make(chan interface{}, 1)
+	c.GetStateChan() <- types.StateEvent{
+		Type:     event,
+		Response: response,
+	}
+	result := <-response
+	if err, ok := result.(error); ok {
+		return err
+	}
+	return nil
+}
+
 func (c *Chrome) initialize() error {
 	ctx, cancel := context.WithTimeout(context.Background(), c.Opts.InitTimeout)
 	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, c.DebuggerURL)
@@ -127,7 +175,7 @@ func (c *Chrome) heartBeat() {
 
 			ok, _ := util.RetryCheckChromeHealth(c.GetAddr(), 1, 0)
 			if !ok {
-				types.HandleEvent(c, types.EventHealthCheckFail)
+				c.HandleEvent(types.EventHealthCheckFail)
 			}
 
 		case <-c.allocatorCtx.Done():

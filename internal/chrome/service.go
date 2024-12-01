@@ -10,19 +10,19 @@ import (
 	"go.uber.org/zap"
 )
 
-func createChrome(ip string, port int, debuggerURL string, state types.ChromeState) (types.IChrome, error) {
+func createChrome(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
 	return storage.Repo.Create(ip, port, debuggerURL, state)
 }
 
-func GetChrome(id int) (types.IChrome, error) {
+func GetChrome(id int) (types.Chrome, error) {
 	return storage.Repo.Get(id)
 }
 
-func UpdateChrome(chrome types.IChrome) error {
+func UpdateChrome(chrome types.Chrome) error {
 	return storage.Repo.Update(chrome)
 }
 
-func GetAllChrome() ([]types.IChrome, error) {
+func GetAllChrome() ([]types.Chrome, error) {
 	return storage.Repo.GetAll()
 }
 
@@ -31,7 +31,7 @@ func ExistsByIPAndPort(ip string, port int) (bool, error) {
 }
 
 // CreateTempChrome Create a local chrome instance
-func CreateTempChrome() (types.IChrome, error) {
+func CreateTempChrome() (types.Chrome, error) {
 	ip := "127.0.0.1"
 	port, err := util.FindAvailablePort(9222)
 	if err != nil {
@@ -86,7 +86,7 @@ func CreateTempChrome() (types.IChrome, error) {
 }
 
 // BindChrome binds to an existing chrome instance
-func BindChrome(ip string, port int) (types.IChrome, error) {
+func BindChrome(ip string, port int) (types.Chrome, error) {
 	if !util.IsValidIPv4(ip) || !util.IsValidPort(string(port)) {
 		return nil, fmt.Errorf("invalid ip or port")
 	}

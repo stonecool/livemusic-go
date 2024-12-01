@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -50,53 +49,6 @@ func (s ChromeState) IsValidTransition(event EventType) bool {
 	default:
 		return true
 	}
-}
-
-func HandleStateTransition(c IChrome, evt StateEvent) {
-	oldState := c.GetState()
-	var newState ChromeState
-	var err error
-
-	if !oldState.IsValidTransition(evt.Type) {
-		err = fmt.Errorf("invalid state transition from %s with event %v",
-			oldState.String(), evt.Type)
-		evt.Response <- err
-		return
-	}
-
-	switch evt.Type {
-	case EventHealthCheckFail:
-		newState = ChromeStateDisconnected
-		//case eventShutdown:
-		//	newState = stateOffline
-	}
-
-	if oldState != newState {
-		c.SetState(newState)
-
-		//if err := chrome.UpdateChrome(c); err != nil {
-		//	internal.Logger.Error("failed to update chrome state",
-		//		zap.Error(err),
-		//		zap.Int("chromeID", c.GetID()),
-		//		zap.String("oldState", oldState.String()),
-		//		zap.String("newState", newState.String()))
-		//}
-	}
-
-	evt.Response <- err
-}
-
-func HandleEvent(c IChrome, event EventType) error {
-	response := make(chan interface{}, 1)
-	c.GetStateChan() <- StateEvent{
-		Type:     event,
-		Response: response,
-	}
-	result := <-response
-	if err, ok := result.(error); ok {
-		return err
-	}
-	return nil
 }
 
 type EventType uint8

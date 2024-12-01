@@ -18,7 +18,7 @@ import (
 var GlobalPool *pool
 
 type pool struct {
-	chromes    map[string]types.IChrome
+	chromes    map[string]types.Chrome
 	categories map[string]*category
 	mu         sync.Mutex
 }
@@ -26,7 +26,7 @@ type pool struct {
 // init 在包初始化时创建实例池
 func init() {
 	GlobalPool = &pool{
-		chromes:    make(map[string]types.IChrome),
+		chromes:    make(map[string]types.Chrome),
 		categories: make(map[string]*category),
 	}
 }
@@ -37,7 +37,7 @@ func GetPool() *pool {
 }
 
 // AddChrome 添加新的实例到池
-func (p *pool) AddChrome(chrome types.IChrome) error {
+func (p *pool) AddChrome(chrome types.Chrome) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -56,7 +56,7 @@ func (p *pool) AddChrome(chrome types.IChrome) error {
 	return nil
 }
 
-func (p *pool) Login(chrome types.IChrome, cat string) {
+func (p *pool) Login(chrome types.Chrome, cat string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -104,7 +104,7 @@ func (p *pool) Login(chrome types.IChrome, cat string) {
 	return
 }
 
-func (p *pool) GetChromesByCategory(cat string) []types.IChrome {
+func (p *pool) GetChromesByCategory(cat string) []types.Chrome {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

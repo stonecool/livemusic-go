@@ -9,18 +9,18 @@ import (
 
 type category struct {
 	name    string
-	chromes map[string]types.IChrome
+	chromes map[string]types.Chrome
 	mu      sync.RWMutex
 }
 
 func newCategory(name string) *category {
 	return &category{
 		name:    name,
-		chromes: make(map[string]types.IChrome),
+		chromes: make(map[string]types.Chrome),
 	}
 }
 
-func (c *category) AddChrome(chrome types.IChrome) {
+func (c *category) AddChrome(chrome types.Chrome) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -34,11 +34,11 @@ func (c *category) AddChrome(chrome types.IChrome) {
 	c.chromes[chrome.GetAddr()] = chrome
 }
 
-func (c *category) GetChromes() []types.IChrome {
+func (c *category) GetChromes() []types.Chrome {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	result := make([]types.IChrome, 0, len(c.chromes))
+	result := make([]types.Chrome, 0, len(c.chromes))
 	for _, chrome := range c.chromes {
 		result = append(result, chrome)
 	}
