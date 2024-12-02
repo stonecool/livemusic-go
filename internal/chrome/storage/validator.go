@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/chrome/types"
 )
 
 type Validator struct{}
@@ -10,7 +11,7 @@ func NewValidator() *Validator {
 	return &Validator{}
 }
 
-func (v *Validator) ValidateChrome(model *model) error {
+func (v *Validator) ValidateChrome(model *types.model) error {
 	if model.IP == "" {
 		return fmt.Errorf("IP cannot be empty")
 	}

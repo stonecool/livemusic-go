@@ -1,15 +1,15 @@
-package storage
+package types
 
 import (
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/instance"
-	"github.com/stonecool/livemusic-go/internal/chrome/types"
+	"github.com/stonecool/livemusic-go/internal/chrome/storage"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 	"sync"
 )
 
-type model struct {
+type Model struct {
 	database.BaseModel
 
 	IP          string `gorm:"type:varchar(20);not null"`
@@ -18,25 +18,25 @@ type model struct {
 	State       int    `gorm:"default:0"`
 }
 
-func (*model) TableName() string {
+func (*Model) TableName() string {
 	return "chromes"
 }
 
-func (m *model) toEntity() *instance.Chrome {
+func (m *Model) ToEntity() *instance.Chrome {
 	return &instance.Chrome{
 		ID:          m.ID,
 		IP:          m.IP,
 		Port:        m.Port,
 		DebuggerURL: m.DebuggerURL,
-		State:       types.ChromeState(m.State),
+		State:       ChromeState(m.State),
 		Accounts:    make(map[string]account.IAccount),
 		AccountsMu:  sync.RWMutex{},
-		StateChan:   make(chan types.StateEvent),
+		StateChan:   make(chan StateEvent),
 		Opts:        instance.DefaultOptions(),
 	}
 }
 
-func (m *model) fromEntity(chrome *instance.Chrome) {
+func (m *Model) FromEntity(chrome *instance.Chrome) {
 	m.ID = chrome.ID
 	m.IP = chrome.IP
 	m.Port = chrome.Port
@@ -44,18 +44,18 @@ func (m *model) fromEntity(chrome *instance.Chrome) {
 	m.State = int(chrome.State)
 }
 
-func (m *model) Validate() error {
-	return NewValidator().ValidateChrome(m)
+func (m *Model) Validate() error {
+	return storage.NewValidator().ValidateChrome(m)
 }
 
-func (m *model) BeforeCreate(tx *gorm.DB) error {
+func (m *Model) BeforeCreate(tx *gorm.DB) error {
 	return m.Validate()
 }
 
-func (m *model) BeforeUpdate(tx *gorm.DB) error {
+func (m *Model) BeforeUpdate(tx *gorm.DB) error {
 	return m.Validate()
 }
 
-func (m *model) GetID() int {
+func (m *Model) GetID() int {
 	return m.ID
 }

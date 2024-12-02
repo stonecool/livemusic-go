@@ -2,10 +2,7 @@ package storage
 
 import (
 	"fmt"
-
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
-
-	"github.com/stonecool/livemusic-go/internal/chrome/instance"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )
@@ -19,49 +16,48 @@ func init() {
 }
 
 type repositoryDB struct {
-	db database.Repository[*model]
+	db database.Repository[*types.Model]
 }
 
 func newRepositoryDB(db *gorm.DB) types.Repository {
 	return &repositoryDB{
-		db: database.NewBaseRepository[*model](db),
+		db: database.NewBaseRepository[*types.Model](db),
 	}
 }
 
-func (r *repositoryDB) Create(dto types.ChromeDTO) (*types.ChromeDTO, error) {
-	m := &model{
-		IP:          dto.IP,
-		Port:        dto.Port,
-		DebuggerURL: dto.DebuggerURL,
-		State:       int(dto.State),
+func (r *repositoryDB) Create(ip string, port int, debuggerURL string, state types.ChromeState) (*types.Model, error) {
+	model := &types.Model{
+		IP:          ip,
+		Port:        port,
+		DebuggerURL: debuggerURL,
+		State:       int(state),
 	}
-
-	if err := r.db.Create(m); err != nil {
-		return nil, fmt.Errorf("failed to create chrome: %w", err)
+	if err := model.Validate(); err != nil {
+		return nil, err
 	}
-
-	return m.toDTO(), nil
+	if err := r.db.Create(model); err != nil {
+		return nil, fmt.Errorf("failed to create instance: %w", err)
+	}
+	return model, nil
 }
 
-func (r *repositoryDB) Get(id int) (*types.ChromeDTO, error) {
+func (r *repositoryDB) Get(id int) (*types.Model, error) {
 	m, err := r.db.Get(id)
 	if err != nil {
 		return nil, err
 	}
-	return m.toDTO(), nil
+	return m, nil
 }
 
-func (r *repositoryDB) Update(chrome types.Chrome) error {
-	// 由于接口转换的问题，这里需要做一个类型断言
-	chromeInstance, ok := chrome.(*instance.Chrome)
-	if !ok {
-		return fmt.Errorf("invalid chrome instance type")
-	}
-
-	m := &model{}
-	m.fromEntity(chromeInstance)
-
-	if err := r.db.Update(m).Error; err != nil {
+func (r *repositoryDB) Update(model *types.Model) error {
+	//// 由于接口转换的问题，这里需要做一个类型断言
+	//chromeInstance, ok := chrome.(*instance.Chrome)
+	//if !ok {
+	//	return fmt.Errorf("invalid chrome instance type")
+	//}
+	//m := &model{}
+	//m.fromEntity(chromeInstance)
+	if err := r.db.Update(model).Error; err != nil {
 		return fmt.Errorf("failed to update instance: %w", err)
 	}
 	return nil
@@ -74,18 +70,13 @@ func (r *repositoryDB) Delete(id int) error {
 	return nil
 }
 
-func (r *repositoryDB) GetAll() ([]types.Chrome, error) {
+func (r *repositoryDB) GetAll() ([]*types.Model, error) {
 	models, err := r.db.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all instances: %w", err)
 	}
 
-	chromes := make([]types.Chrome, len(models))
-	for i, m := range models {
-		chromes[i] = m.toEntity()
-	}
-
-	return chromes, nil
+	return models, nil
 }
 
 func (r *repositoryDB) ExistsByIPAndPort(ip string, port int) (bool, error) {

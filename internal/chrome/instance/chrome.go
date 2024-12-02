@@ -3,6 +3,7 @@ package instance
 import (
 	"context"
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/database"
 	"sync"
 	"time"
 
@@ -354,4 +355,30 @@ func (c *Chrome) checkZombieProcess() {
 // 实现 Initialize 接口方法
 func (c *Chrome) Initialize() error {
 	return c.RetryInitialize(3)
+}
+
+func (c *Chrome) ToModel() *types.Model {
+	//ID           int
+	//IP           string
+	//Port         int
+	//Accounts     map[string]account.IAccount
+	//AccountsMu   sync.RWMutex
+	//DebuggerURL  string
+	//State        types.ChromeState
+	//StateChan    chan types.StateEvent
+	//allocatorCtx context.Context
+	//cancelFunc   context.CancelFunc
+	//Opts         *types.InstanceOptions
+
+	baseModel := database.BaseModel{
+		ID: c.ID,
+	}
+
+	return &types.Model{
+		BaseModel:   baseModel,
+		IP:          c.IP,
+		Port:        c.Port,
+		DebuggerURL: c.DebuggerURL,
+		State:       int(c.State),
+	}
 }

@@ -11,12 +11,12 @@ import (
 	"go.uber.org/zap"
 )
 
-func createChrome(dto *types.ChromeDTO) (types.Chrome, error) {
+func createChrome(model *types.Model) (types.Chrome, error) {
 	chrome := instance.NewChrome(
-		dto.IP,
-		dto.Port,
-		dto.DebuggerURL,
-		dto.State,
+		model.IP,
+		model.Port,
+		model.DebuggerURL,
+		types.ChromeState(model.State),
 	)
 
 	if err := chrome.Initialize(); err != nil {
@@ -27,20 +27,31 @@ func createChrome(dto *types.ChromeDTO) (types.Chrome, error) {
 }
 
 func GetChrome(id int) (types.Chrome, error) {
-	dto, err := storage.Repo.Get(id)
+	model, err := storage.Repo.Get(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return createChrome(dto)
+	return createChrome(model)
 }
 
 func UpdateChrome(chrome types.Chrome) error {
-	return storage.Repo.Update(chrome)
+	return storage.Repo.Update(chrome.ToModel())
 }
 
 func GetAllChrome() ([]types.Chrome, error) {
-	return storage.Repo.GetAll()
+	models, err := storage.Repo.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all instances: %w", err)
+
+	}
+
+	chromes := make([]types.Chrome, len(models))
+	for i, m := range models {
+		chromes[i] = m.ToEntity()
+	}
+
+	return chromes, nil
 }
 
 func ExistsByIPAndPort(ip string, port int) (bool, error) {
@@ -70,13 +81,13 @@ func CreateTempChrome() (types.Chrome, error) {
 		return nil, fmt.Errorf("port:%d occupied", port)
 	}
 
-	internal.Logger.Info("using port for new chrome instance",
+	internal.Logger.Info("using port for new model instance",
 		zap.String("ip", ip),
 		zap.Int("port", port))
 
 	err = util.StartChromeOnPort(port)
 	if err != nil {
-		internal.Logger.Error("failed to start chrome",
+		internal.Logger.Error("failed to start model",
 			zap.Error(err),
 			zap.Int("port", port))
 		return nil, err
@@ -84,22 +95,23 @@ func CreateTempChrome() (types.Chrome, error) {
 
 	ok, url := util.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 	if !ok {
-		internal.Logger.Error("chrome health check failed",
+		internal.Logger.Error("model health check failed",
 			zap.String("ip", ip),
 			zap.Int("port", port))
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	chrome, err := storage.Repo.Create(ip, port, url, types.ChromeStateConnected)
+	model, err := storage.Repo.Create(ip, port, url, types.ChromeStateConnected)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := chrome.Initialize(); err != nil {
+	instance := model.ToEntity()
+	if err := instance.Initialize(); err != nil {
 		return nil, err
 	}
 
-	return chrome, nil
+	return instance, nil
 }
 
 // BindChrome binds to an existing chrome instance
@@ -127,20 +139,20 @@ func BindChrome(ip string, port int) (types.Chrome, error) {
 
 	ok, url := util.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 	if !ok {
-		internal.Logger.Error("chrome health check failed",
+		internal.Logger.Error("model health check failed",
 			zap.String("ip", ip),
 			zap.Int("port", port))
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	chrome, err := createChrome(ip, port, url, types.ChromeStateConnected)
+	model, err := createChrome(ip, port, url, types.ChromeStateConnected)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := chrome.Initialize(); err != nil {
+	if err := model.Initialize(); err != nil {
 		return nil, err
 	}
 
-	return chrome, nil
+	return model, nil
 }

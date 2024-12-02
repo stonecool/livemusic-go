@@ -1,18 +1,10 @@
 package types
 
-type ChromeDTO struct {
-	ID          int
-	IP          string
-	Port        int
-	DebuggerURL string
-	State       ChromeState
-}
-
 type Repository interface {
-	Create(dto ChromeDTO) (*ChromeDTO, error)
-	Get(id int) (*ChromeDTO, error)
-	Update(dto ChromeDTO) error
-	Delete(id int) error
-	GetAll() ([]*ChromeDTO, error)
+	Create(ip string, port int, debuggerURL string, state ChromeState) (*Model, error)
+	Get(int) (*Model, error)
+	Update(*Model) error
+	Delete(int) error
+	GetAll() ([]*Model, error)
 	ExistsByIPAndPort(ip string, port int) (bool, error)
 }
