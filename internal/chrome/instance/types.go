@@ -1,8 +1,9 @@
 package instance
 
 import (
-	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"time"
+
+	"github.com/stonecool/livemusic-go/internal/chrome/types"
 )
 
 // 实例配置选项

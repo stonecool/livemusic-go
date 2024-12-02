@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 
 	"github.com/stonecool/livemusic-go/internal/chrome/instance"
@@ -27,30 +28,27 @@ func newRepositoryDB(db *gorm.DB) types.Repository {
 	}
 }
 
-func (r *repositoryDB) Create(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
+func (r *repositoryDB) Create(dto types.ChromeDTO) (*types.ChromeDTO, error) {
 	m := &model{
-		IP:          ip,
-		Port:        port,
-		DebuggerURL: debuggerURL,
-		State:       int(state),
-	}
-	if err := m.Validate(); err != nil {
-		return nil, err
+		IP:          dto.IP,
+		Port:        dto.Port,
+		DebuggerURL: dto.DebuggerURL,
+		State:       int(dto.State),
 	}
 
 	if err := r.db.Create(m); err != nil {
-		return nil, fmt.Errorf("failed to create instance: %w", err)
+		return nil, fmt.Errorf("failed to create chrome: %w", err)
 	}
 
-	return m.toEntity(), nil
+	return m.toDTO(), nil
 }
 
-func (r *repositoryDB) Get(id int) (types.Chrome, error) {
+func (r *repositoryDB) Get(id int) (*types.ChromeDTO, error) {
 	m, err := r.db.Get(id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get instance: %w", err)
+		return nil, err
 	}
-	return m.toEntity(), nil
+	return m.toDTO(), nil
 }
 
 func (r *repositoryDB) Update(chrome types.Chrome) error {

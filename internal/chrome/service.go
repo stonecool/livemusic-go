@@ -4,18 +4,35 @@ import (
 	"fmt"
 
 	"github.com/stonecool/livemusic-go/internal"
+	"github.com/stonecool/livemusic-go/internal/chrome/instance"
 	"github.com/stonecool/livemusic-go/internal/chrome/storage"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
 	"go.uber.org/zap"
 )
 
-func createChrome(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
-	return storage.Repo.Create(ip, port, debuggerURL, state)
+func createChrome(dto *types.ChromeDTO) (types.Chrome, error) {
+	chrome := instance.NewChrome(
+		dto.IP,
+		dto.Port,
+		dto.DebuggerURL,
+		dto.State,
+	)
+
+	if err := chrome.Initialize(); err != nil {
+		return nil, err
+	}
+
+	return chrome, nil
 }
 
 func GetChrome(id int) (types.Chrome, error) {
-	return storage.Repo.Get(id)
+	dto, err := storage.Repo.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return createChrome(dto)
 }
 
 func UpdateChrome(chrome types.Chrome) error {

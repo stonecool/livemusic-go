@@ -1,9 +1,5 @@
 package types
 
-import (
-	"time"
-)
-
 // Chrome 实例状态
 type ChromeState uint8
 
@@ -12,21 +8,6 @@ const (
 	ChromeStateDisconnected
 	ChromeStateOffline
 )
-
-// 实例配置选项
-type InstanceOptions struct {
-	HeartbeatInterval   time.Duration
-	InitTimeout         time.Duration
-	TabCleanupInterval  time.Duration
-	TabInactiveTimeout  time.Duration
-	ZombieCheckInterval time.Duration
-}
-
-// StateEvent 状态事件
-type StateEvent struct {
-	Type     EventType
-	Response chan interface{}
-}
 
 // String 返回状态的字符串表示
 func (s ChromeState) String() string {
@@ -42,18 +23,32 @@ func (s ChromeState) String() string {
 	}
 }
 
-func (s ChromeState) IsValidTransition(event EventType) bool {
-	switch event {
-	case EventHealthCheckFail:
-		return s == ChromeStateConnected
-	default:
-		return true
-	}
+// 建议添加状态转换管理器接口
+type StateManager interface {
+	GetState() ChromeState
+	SetState(state ChromeState)
+	GetStateChan() chan StateEvent
+	HandleStateTransition(evt StateEvent)
+	HandleEvent(event EventType) error
 }
 
-type EventType uint8
+// 添加状态转换规则定义
+var validTransitions = map[ChromeState][]EventType{
+	ChromeStateConnected:    {EventHealthCheckFail},
+	ChromeStateDisconnected: {EventGetState},
+	ChromeStateOffline:      {EventGetState},
+}
 
-const (
-	EventHealthCheckFail EventType = iota
-	EventGetState
-)
+// 优化状态转换验证
+func (s ChromeState) IsValidTransition(event EventType) bool {
+	validEvents, exists := validTransitions[s]
+	if !exists {
+		return false
+	}
+	for _, e := range validEvents {
+		if e == event {
+			return true
+		}
+	}
+	return false
+}
