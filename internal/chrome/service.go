@@ -12,7 +12,7 @@ import (
 )
 
 func createChrome(model *types.Model) (types.Chrome, error) {
-	chrome := instance.NewInstance(
+	chrome := NewInstance(
 		model.IP,
 		model.Port,
 		model.DebuggerURL,
@@ -27,7 +27,7 @@ func createChrome(model *types.Model) (types.Chrome, error) {
 }
 
 func createChromeWithParam(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
-	instance := instance.NewInstance(ip, port, debuggerURL, state)
+	instance := NewInstance(ip, port, debuggerURL, state)
 	if err := instance.Initialize(); err != nil {
 		return nil, err
 	}
@@ -111,12 +111,12 @@ func CreateTempChrome() (types.Chrome, error) {
 		return nil, err
 	}
 
-	instance := modelToChrome(model)
-	if err := instance.Initialize(); err != nil {
+	ins := modelToChrome(model)
+	if err := ins.Initialize(); err != nil {
 		return nil, err
 	}
 
-	return instance, nil
+	return ins, nil
 }
 
 // BindChrome binds to an existing chrome instance
@@ -162,8 +162,8 @@ func BindChrome(ip string, port int) (types.Chrome, error) {
 	return model, nil
 }
 
-func modelToChrome(model *types.Model) *instance.Instance {
-	return instance.NewInstance(
+func modelToChrome(model *types.Model) types.Chrome {
+	return NewInstance(
 		model.IP,
 		model.Port,
 		model.DebuggerURL,
@@ -171,6 +171,11 @@ func modelToChrome(model *types.Model) *instance.Instance {
 	)
 }
 
-func chromeToModel(chrome *instance.Instance) *types.Model {
-	return chrome.GetModelData()
+func NewInstance(ip string, port int, url string, state types.ChromeState) *instance.Instance {
+	return &instance.Instance{
+		IP:          ip,
+		Port:        port,
+		DebuggerURL: url,
+		State:       state,
+	}
 }

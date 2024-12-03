@@ -31,13 +31,66 @@ type Instance struct {
 	Opts         *types.InstanceOptions
 }
 
-func NewInstance(ip string, port int, url string, state types.ChromeState) *Instance {
-	return &Instance{
-		IP:          ip,
-		Port:        port,
-		DebuggerURL: url,
-		State:       state,
+func (i *Instance) GetID() int {
+	return i.ID
+}
+
+func (i *Instance) GetAddr() string {
+	return fmt.Sprintf("%s:%d", i.IP, i.Port)
+}
+
+func (i *Instance) initialize() error {
+	ctx, cancel := context.WithTimeout(context.Background(), i.Opts.InitTimeout)
+	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
+
+	i.allocatorCtx = allocatorCtx
+	i.cancelFunc = func() {
+		allocatorCancel()
+		cancel()
 	}
+
+	go i.stateManager()
+	go i.heartBeat()
+	go i.cleanupTabs()
+
+	return nil
+}
+
+func (i *Instance) Close() error {
+	if i.cancelFunc != nil {
+		// 先取消上下文，让所有goroutine优雅退出
+		i.cancelFunc()
+
+		// 等待一段时间让goroutine完成清理工作
+		time.Sleep(time.Second)
+
+		// 关闭所有打开的标签页
+		//targets, err := chromedp.Targets(context.Background())
+		//if err == nil {
+		//	for _, t := range targets {
+		//		if t.Type == "page" {
+		//			chromedp.CloseTarget(context.Background(), t.TargetID)
+		//		}
+		//	}
+		//}
+	}
+	return nil
+}
+
+func (i *Instance) IsAvailable() bool {
+	return i.getState() == types.ChromeStateConnected
+}
+
+func (i *Instance) isAvailable(cat string) bool {
+	i.AccountsMu.RLock()
+	defer i.AccountsMu.RUnlock()
+	acc, exists := i.Accounts[cat]
+
+	if !exists {
+		return false
+	}
+
+	return acc.IsAvailable()
 }
 
 func (i *Instance) SetState(state types.ChromeState) {
@@ -50,10 +103,6 @@ func (i *Instance) GetState() types.ChromeState {
 
 func (i *Instance) GetStateChan() chan types.StateEvent {
 	return i.StateChan
-}
-
-func (i *Instance) GetID() int {
-	return i.ID
 }
 
 func (i *Instance) stateManager() {
@@ -120,23 +169,6 @@ func (i *Instance) HandleEvent(event types.EventType) error {
 	return nil
 }
 
-func (i *Instance) initialize() error {
-	ctx, cancel := context.WithTimeout(context.Background(), i.Opts.InitTimeout)
-	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
-
-	i.allocatorCtx = allocatorCtx
-	i.cancelFunc = func() {
-		allocatorCancel()
-		cancel()
-	}
-
-	go i.stateManager()
-	go i.heartBeat()
-	go i.cleanupTabs()
-
-	return nil
-}
-
 func (i *Instance) GetNewContext() (context.Context, context.CancelFunc) {
 	return chromedp.NewContext(i.allocatorCtx)
 }
@@ -192,48 +224,6 @@ func (i *Instance) GetAccounts() map[string]account.IAccount {
 		accounts[k] = v
 	}
 	return accounts
-}
-
-func (i *Instance) isAvailable(cat string) bool {
-	i.AccountsMu.RLock()
-	defer i.AccountsMu.RUnlock()
-	acc, exists := i.Accounts[cat]
-
-	if !exists {
-		return false
-	}
-
-	return acc.IsAvailable()
-}
-
-func (i *Instance) GetAddr() string {
-	return fmt.Sprintf("%s:%d", i.IP, i.Port)
-}
-
-func (i *Instance) Close() error {
-	if i.cancelFunc != nil {
-		// 先取消上下文，让所有goroutine优雅退出
-		i.cancelFunc()
-
-		// 等待一段时间让goroutine完成清理工作
-		time.Sleep(time.Second)
-
-		// 关闭所有打开的标签页
-		//targets, err := chromedp.Targets(context.Background())
-		//if err == nil {
-		//	for _, t := range targets {
-		//		if t.Type == "page" {
-		//			chromedp.CloseTarget(context.Background(), t.TargetID)
-		//		}
-		//	}
-		//}
-	}
-	return nil
-}
-
-// 判断实例是否可用
-func (i *Instance) IsAvailable() bool {
-	return i.getState() == types.ChromeStateConnected
 }
 
 // getState 获取当前状态
