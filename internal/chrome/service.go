@@ -12,7 +12,7 @@ import (
 )
 
 func createChrome(model *types.Model) (types.Chrome, error) {
-	chrome := instance.NewChrome(
+	chrome := instance.NewInstance(
 		model.IP,
 		model.Port,
 		model.DebuggerURL,
@@ -27,12 +27,12 @@ func createChrome(model *types.Model) (types.Chrome, error) {
 }
 
 func createChromeWithParam(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
-	chrome := instance.NewChrome(ip, port, debuggerURL, state)
-	if err := chrome.Initialize(); err != nil {
+	instance := instance.NewInstance(ip, port, debuggerURL, state)
+	if err := instance.Initialize(); err != nil {
 		return nil, err
 	}
 
-	return chrome, nil
+	return instance, nil
 }
 
 func GetChrome(id int) (types.Chrome, error) {
@@ -162,8 +162,8 @@ func BindChrome(ip string, port int) (types.Chrome, error) {
 	return model, nil
 }
 
-func modelToChrome(model *types.Model) *instance.Chrome {
-	return instance.NewChrome(
+func modelToChrome(model *types.Model) *instance.Instance {
+	return instance.NewInstance(
 		model.IP,
 		model.Port,
 		model.DebuggerURL,
@@ -171,6 +171,6 @@ func modelToChrome(model *types.Model) *instance.Chrome {
 	)
 }
 
-func chromeToModel(chrome *instance.Chrome) *types.Model {
+func chromeToModel(chrome *instance.Instance) *types.Model {
 	return chrome.GetModelData()
 }

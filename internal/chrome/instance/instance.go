@@ -3,21 +3,21 @@ package instance
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
-
-	"github.com/stonecool/livemusic-go/internal/database"
-
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
+	"github.com/stonecool/livemusic-go/internal/database"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"go.uber.org/zap"
+	"sync"
+	"time"
 )
 
-type Chrome struct {
+var _ types.Chrome = (*Instance)(nil)
+
+type Instance struct {
 	ID           int
 	IP           string
 	Port         int
@@ -31,27 +31,8 @@ type Chrome struct {
 	Opts         *types.InstanceOptions
 }
 
-func (c *Chrome) SetState(state types.ChromeState) {
-	c.State = state
-}
-
-func (c *Chrome) GetState() types.ChromeState {
-	return c.State
-}
-
-func (c *Chrome) GetStateChan() chan types.StateEvent {
-	return c.StateChan
-}
-
-func (c *Chrome) GetID() int {
-	return c.ID
-}
-
-// 确保 Chrome 实现了 Chrome 接口
-var _ types.Chrome = (*Chrome)(nil)
-
-func NewChrome(ip string, port int, url string, state types.ChromeState) *Chrome {
-	return &Chrome{
+func NewInstance(ip string, port int, url string, state types.ChromeState) *Instance {
+	return &Instance{
 		IP:          ip,
 		Port:        port,
 		DebuggerURL: url,
@@ -59,25 +40,41 @@ func NewChrome(ip string, port int, url string, state types.ChromeState) *Chrome
 	}
 }
 
-func (c *Chrome) stateManager() {
+func (i *Instance) SetState(state types.ChromeState) {
+	i.State = state
+}
+
+func (i *Instance) GetState() types.ChromeState {
+	return i.State
+}
+
+func (i *Instance) GetStateChan() chan types.StateEvent {
+	return i.StateChan
+}
+
+func (i *Instance) GetID() int {
+	return i.ID
+}
+
+func (i *Instance) stateManager() {
 	for {
 		select {
-		case evt := <-c.GetStateChan():
+		case evt := <-i.GetStateChan():
 			switch evt.Type {
 			case types.EventGetState:
-				evt.Response <- c.GetState()
+				evt.Response <- i.GetState()
 				continue
 			default:
-				c.HandleStateTransition(evt)
+				i.HandleStateTransition(evt)
 			}
-		case <-c.allocatorCtx.Done():
+		case <-i.allocatorCtx.Done():
 			return
 		}
 	}
 }
 
-func (c *Chrome) HandleStateTransition(evt types.StateEvent) {
-	oldState := c.GetState()
+func (i *Instance) HandleStateTransition(evt types.StateEvent) {
+	oldState := i.GetState()
 	var newState types.ChromeState
 	var err error
 
@@ -96,7 +93,7 @@ func (c *Chrome) HandleStateTransition(evt types.StateEvent) {
 	}
 
 	if oldState != newState {
-		c.SetState(newState)
+		i.SetState(newState)
 
 		//if err := chrome.UpdateChrome(c); err != nil {
 		//	internal.Logger.Error("failed to update chrome state",
@@ -110,9 +107,9 @@ func (c *Chrome) HandleStateTransition(evt types.StateEvent) {
 	evt.Response <- err
 }
 
-func (c *Chrome) HandleEvent(event types.EventType) error {
+func (i *Instance) HandleEvent(event types.EventType) error {
 	response := make(chan interface{}, 1)
-	c.GetStateChan() <- types.StateEvent{
+	i.GetStateChan() <- types.StateEvent{
 		Type:     event,
 		Response: response,
 	}
@@ -123,31 +120,31 @@ func (c *Chrome) HandleEvent(event types.EventType) error {
 	return nil
 }
 
-func (c *Chrome) initialize() error {
-	ctx, cancel := context.WithTimeout(context.Background(), c.Opts.InitTimeout)
-	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, c.DebuggerURL)
+func (i *Instance) initialize() error {
+	ctx, cancel := context.WithTimeout(context.Background(), i.Opts.InitTimeout)
+	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
 
-	c.allocatorCtx = allocatorCtx
-	c.cancelFunc = func() {
+	i.allocatorCtx = allocatorCtx
+	i.cancelFunc = func() {
 		allocatorCancel()
 		cancel()
 	}
 
-	go c.stateManager()
-	go c.heartBeat()
-	go c.cleanupTabs()
+	go i.stateManager()
+	go i.heartBeat()
+	go i.cleanupTabs()
 
 	return nil
 }
 
-func (c *Chrome) GetNewContext() (context.Context, context.CancelFunc) {
-	return chromedp.NewContext(c.allocatorCtx)
+func (i *Instance) GetNewContext() (context.Context, context.CancelFunc) {
+	return chromedp.NewContext(i.allocatorCtx)
 }
 
-func (c *Chrome) RetryInitialize(maxAttempts int) error {
+func (i *Instance) RetryInitialize(maxAttempts int) error {
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		if err := c.initialize(); err == nil {
+		if err := i.initialize(); err == nil {
 			return nil
 		} else {
 			lastErr = err
@@ -155,7 +152,7 @@ func (c *Chrome) RetryInitialize(maxAttempts int) error {
 				zap.Int("attempt", attempt),
 				zap.Int("maxAttempts", maxAttempts),
 				zap.Error(err),
-				zap.Int("id", c.ID))
+				zap.Int("id", i.ID))
 			time.Sleep(time.Second * time.Duration(attempt))
 		}
 	}
@@ -163,44 +160,44 @@ func (c *Chrome) RetryInitialize(maxAttempts int) error {
 }
 
 // 心跳检查
-func (c *Chrome) heartBeat() {
-	ticker := time.NewTicker(c.Opts.HeartbeatInterval)
+func (i *Instance) heartBeat() {
+	ticker := time.NewTicker(i.Opts.HeartbeatInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			state := c.getState()
+			state := i.getState()
 			if state != types.ChromeStateConnected {
 				continue
 			}
 
-			ok, _ := util.RetryCheckChromeHealth(c.GetAddr(), 1, 0)
+			ok, _ := util.RetryCheckChromeHealth(i.GetAddr(), 1, 0)
 			if !ok {
-				c.HandleEvent(types.EventHealthCheckFail)
+				i.HandleEvent(types.EventHealthCheckFail)
 			}
 
-		case <-c.allocatorCtx.Done():
+		case <-i.allocatorCtx.Done():
 			return
 		}
 	}
 }
 
-func (c *Chrome) GetAccounts() map[string]account.IAccount {
-	c.AccountsMu.RLock()
-	defer c.AccountsMu.RUnlock()
+func (i *Instance) GetAccounts() map[string]account.IAccount {
+	i.AccountsMu.RLock()
+	defer i.AccountsMu.RUnlock()
 
-	accounts := make(map[string]account.IAccount, len(c.Accounts))
-	for k, v := range c.Accounts {
+	accounts := make(map[string]account.IAccount, len(i.Accounts))
+	for k, v := range i.Accounts {
 		accounts[k] = v
 	}
 	return accounts
 }
 
-func (c *Chrome) isAvailable(cat string) bool {
-	c.AccountsMu.RLock()
-	defer c.AccountsMu.RUnlock()
-	acc, exists := c.Accounts[cat]
+func (i *Instance) isAvailable(cat string) bool {
+	i.AccountsMu.RLock()
+	defer i.AccountsMu.RUnlock()
+	acc, exists := i.Accounts[cat]
 
 	if !exists {
 		return false
@@ -209,14 +206,14 @@ func (c *Chrome) isAvailable(cat string) bool {
 	return acc.IsAvailable()
 }
 
-func (c *Chrome) GetAddr() string {
-	return fmt.Sprintf("%s:%d", c.IP, c.Port)
+func (i *Instance) GetAddr() string {
+	return fmt.Sprintf("%s:%d", i.IP, i.Port)
 }
 
-func (c *Chrome) Close() error {
-	if c.cancelFunc != nil {
+func (i *Instance) Close() error {
+	if i.cancelFunc != nil {
 		// 先取消上下文，让所有goroutine优雅退出
-		c.cancelFunc()
+		i.cancelFunc()
 
 		// 等待一段时间让goroutine完成清理工作
 		time.Sleep(time.Second)
@@ -235,14 +232,14 @@ func (c *Chrome) Close() error {
 }
 
 // 判断实例是否可用
-func (c *Chrome) IsAvailable() bool {
-	return c.getState() == types.ChromeStateConnected
+func (i *Instance) IsAvailable() bool {
+	return i.getState() == types.ChromeStateConnected
 }
 
 // getState 获取当前状态
-func (c *Chrome) getState() types.ChromeState {
+func (i *Instance) getState() types.ChromeState {
 	response := make(chan interface{}, 1)
-	c.StateChan <- types.StateEvent{
+	i.StateChan <- types.StateEvent{
 		Type:     types.EventGetState,
 		Response: response,
 	}
@@ -251,23 +248,23 @@ func (c *Chrome) getState() types.ChromeState {
 }
 
 // NeedsReInitialize 判断是否需要重新初始化
-func (c *Chrome) NeedsReInitialize() bool {
-	state := c.getState()
+func (i *Instance) NeedsReInitialize() bool {
+	state := i.getState()
 	return state == types.ChromeStateDisconnected
 }
 
-func (c *Chrome) cleanupTabs() {
+func (i *Instance) cleanupTabs() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			//targets, err := chromedp.Targets(c.allocatorCtx)
+			//targets, err := chromedp.Targets(i.allocatorCtx)
 			//if err != nil {
 			//	internal.Logger.Error("failed to get targets",
 			//		zap.Error(err),
-			//		zap.Int("chromeID", c.ID))
+			//		zap.Int("chromeID", i.ID))
 			//	continue
 			//}
 
@@ -276,38 +273,38 @@ func (c *Chrome) cleanupTabs() {
 			//	// 跳过主页面和空白页
 			//	if t.Type == "page" && t.URL != "about:blank" {
 			//		if now.Sub(t.LastActivityTime) > 30*time.Minute {
-			//			if err := chromedp.CloseTarget(c.allocatorCtx, t.TargetID); err != nil {
+			//			if err := chromedp.CloseTarget(i.allocatorCtx, t.TargetID); err != nil {
 			//				internal.Logger.Error("failed to close target",
 			//					zap.Error(err),
 			//					zap.String("targetID", string(t.TargetID)),
-			//					zap.Int("chromeID", c.ID))
+			//					zap.Int("chromeID", i.ID))
 			//			}
 			//		}
 			//	}
 			//}
 
-		case <-c.allocatorCtx.Done():
+		case <-i.allocatorCtx.Done():
 			return
 		}
 	}
 }
 
-func (c *Chrome) ExecuteTask(task task.ITask) error {
-	c.AccountsMu.RLock()
-	defer c.AccountsMu.RUnlock()
-	acc, exists := c.Accounts[task.GetCategory()]
+func (i *Instance) ExecuteTask(task task.ITask) error {
+	i.AccountsMu.RLock()
+	defer i.AccountsMu.RUnlock()
+	acc, exists := i.Accounts[task.GetCategory()]
 
 	if !exists {
 		internal.Logger.Error("no account found for category",
 			zap.String("category", task.GetCategory()),
-			zap.Int("chromeID", c.ID))
+			zap.Int("chromeID", i.ID))
 		return fmt.Errorf("no account found for category: %s", task.GetCategory())
 	}
 
 	if !acc.IsAvailable() {
 		internal.Logger.Error("account not available",
 			zap.String("category", task.GetCategory()),
-			zap.Int("chromeID", c.ID))
+			zap.Int("chromeID", i.ID))
 		return fmt.Errorf("account not available")
 	}
 
@@ -321,51 +318,51 @@ func (c *Chrome) ExecuteTask(task task.ITask) error {
 	return nil
 }
 
-func (c *Chrome) SetAccount(category string, acc account.IAccount) {
-	c.AccountsMu.Lock()
-	defer c.AccountsMu.Unlock()
+func (i *Instance) SetAccount(category string, acc account.IAccount) {
+	i.AccountsMu.Lock()
+	defer i.AccountsMu.Unlock()
 
-	c.Accounts[category] = acc
+	i.Accounts[category] = acc
 }
 
-func (c *Chrome) checkZombieProcess() {
+func (i *Instance) checkZombieProcess() {
 	ticker := time.NewTicker(10 * time.Minute)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			if !c.IsAvailable() {
+			if !i.IsAvailable() {
 				internal.Logger.Warn("chrome instance appears to be zombie",
-					zap.Int("chromeID", c.ID),
-					zap.String("addr", c.GetAddr()))
+					zap.Int("chromeID", i.ID),
+					zap.String("addr", i.GetAddr()))
 
 				// 尝试重新初始化
-				if err := c.RetryInitialize(3); err != nil {
+				if err := i.RetryInitialize(3); err != nil {
 					internal.Logger.Error("failed to reinitialize zombie chrome",
 						zap.Error(err),
-						zap.Int("chromeID", c.ID))
+						zap.Int("chromeID", i.ID))
 				}
 			}
-		case <-c.allocatorCtx.Done():
+		case <-i.allocatorCtx.Done():
 			return
 		}
 	}
 }
 
 // 实现 Initialize 接口方法
-func (c *Chrome) Initialize() error {
-	return c.RetryInitialize(3)
+func (i *Instance) Initialize() error {
+	return i.RetryInitialize(3)
 }
 
-func (c *Chrome) GetModelData() *types.Model {
+func (i *Instance) GetModelData() *types.Model {
 	return &types.Model{
 		BaseModel: database.BaseModel{
-			ID: c.ID,
+			ID: i.ID,
 		},
-		IP:          c.IP,
-		Port:        c.Port,
-		DebuggerURL: c.DebuggerURL,
-		State:       int(c.State),
+		IP:          i.IP,
+		Port:        i.Port,
+		DebuggerURL: i.DebuggerURL,
+		State:       int(i.State),
 	}
 }
