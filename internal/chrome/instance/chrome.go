@@ -3,9 +3,10 @@ package instance
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/database"
 	"sync"
 	"time"
+
+	"github.com/stonecool/livemusic-go/internal/database"
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
@@ -357,25 +358,11 @@ func (c *Chrome) Initialize() error {
 	return c.RetryInitialize(3)
 }
 
-func (c *Chrome) ToModel() *types.Model {
-	//ID           int
-	//IP           string
-	//Port         int
-	//Accounts     map[string]account.IAccount
-	//AccountsMu   sync.RWMutex
-	//DebuggerURL  string
-	//State        types.ChromeState
-	//StateChan    chan types.StateEvent
-	//allocatorCtx context.Context
-	//cancelFunc   context.CancelFunc
-	//Opts         *types.InstanceOptions
-
-	baseModel := database.BaseModel{
-		ID: c.ID,
-	}
-
+func (c *Chrome) GetModelData() *types.Model {
 	return &types.Model{
-		BaseModel:   baseModel,
+		BaseModel: database.BaseModel{
+			ID: c.ID,
+		},
 		IP:          c.IP,
 		Port:        c.Port,
 		DebuggerURL: c.DebuggerURL,

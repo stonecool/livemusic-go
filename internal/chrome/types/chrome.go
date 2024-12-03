@@ -2,7 +2,6 @@ package types
 
 import (
 	"context"
-
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/task"
 )
@@ -12,7 +11,6 @@ type Chrome interface {
 	// 基础信息
 	GetID() int
 	GetAddr() string
-	ToModel() *Model
 
 	// 生命周期管理
 	Initialize() error

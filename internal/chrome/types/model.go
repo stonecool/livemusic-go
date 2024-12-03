@@ -1,12 +1,9 @@
 package types
 
 import (
-	"github.com/stonecool/livemusic-go/internal/account"
-	"github.com/stonecool/livemusic-go/internal/chrome/instance"
-	"github.com/stonecool/livemusic-go/internal/chrome/storage"
+	"fmt"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
-	"sync"
 )
 
 type Model struct {
@@ -22,30 +19,20 @@ func (*Model) TableName() string {
 	return "chromes"
 }
 
-func (m *Model) ToEntity() *instance.Chrome {
-	return &instance.Chrome{
-		ID:          m.ID,
-		IP:          m.IP,
-		Port:        m.Port,
-		DebuggerURL: m.DebuggerURL,
-		State:       ChromeState(m.State),
-		Accounts:    make(map[string]account.IAccount),
-		AccountsMu:  sync.RWMutex{},
-		StateChan:   make(chan StateEvent),
-		Opts:        instance.DefaultOptions(),
-	}
-}
-
-func (m *Model) FromEntity(chrome *instance.Chrome) {
-	m.ID = chrome.ID
-	m.IP = chrome.IP
-	m.Port = chrome.Port
-	m.DebuggerURL = chrome.DebuggerURL
-	m.State = int(chrome.State)
-}
-
 func (m *Model) Validate() error {
-	return storage.NewValidator().ValidateChrome(m)
+	if m.IP == "" {
+		return fmt.Errorf("IP cannot be empty")
+	}
+
+	if m.Port <= 0 {
+		return fmt.Errorf("invalid port number")
+	}
+
+	if m.DebuggerURL == "" {
+		return fmt.Errorf("debugger URL cannot be empty")
+	}
+
+	return nil
 }
 
 func (m *Model) BeforeCreate(tx *gorm.DB) error {

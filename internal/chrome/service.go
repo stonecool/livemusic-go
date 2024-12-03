@@ -26,6 +26,15 @@ func createChrome(model *types.Model) (types.Chrome, error) {
 	return chrome, nil
 }
 
+func createChromeWithParam(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
+	chrome := instance.NewChrome(ip, port, debuggerURL, state)
+	if err := chrome.Initialize(); err != nil {
+		return nil, err
+	}
+
+	return chrome, nil
+}
+
 func GetChrome(id int) (types.Chrome, error) {
 	model, err := storage.Repo.Get(id)
 	if err != nil {
@@ -33,10 +42,6 @@ func GetChrome(id int) (types.Chrome, error) {
 	}
 
 	return createChrome(model)
-}
-
-func UpdateChrome(chrome types.Chrome) error {
-	return storage.Repo.Update(chrome.ToModel())
 }
 
 func GetAllChrome() ([]types.Chrome, error) {
@@ -48,7 +53,7 @@ func GetAllChrome() ([]types.Chrome, error) {
 
 	chromes := make([]types.Chrome, len(models))
 	for i, m := range models {
-		chromes[i] = m.ToEntity()
+		chromes[i] = modelToChrome(m)
 	}
 
 	return chromes, nil
@@ -106,7 +111,7 @@ func CreateTempChrome() (types.Chrome, error) {
 		return nil, err
 	}
 
-	instance := model.ToEntity()
+	instance := modelToChrome(model)
 	if err := instance.Initialize(); err != nil {
 		return nil, err
 	}
@@ -145,7 +150,7 @@ func BindChrome(ip string, port int) (types.Chrome, error) {
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	model, err := createChrome(ip, port, url, types.ChromeStateConnected)
+	model, err := createChromeWithParam(ip, port, url, types.ChromeStateConnected)
 	if err != nil {
 		return nil, err
 	}
@@ -155,4 +160,17 @@ func BindChrome(ip string, port int) (types.Chrome, error) {
 	}
 
 	return model, nil
+}
+
+func modelToChrome(model *types.Model) *instance.Chrome {
+	return instance.NewChrome(
+		model.IP,
+		model.Port,
+		model.DebuggerURL,
+		types.ChromeState(model.State),
+	)
+}
+
+func chromeToModel(chrome *instance.Chrome) *types.Model {
+	return chrome.GetModelData()
 }

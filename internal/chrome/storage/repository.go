@@ -2,14 +2,24 @@ package storage
 
 import (
 	"fmt"
+
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )
 
 var (
-	Repo types.Repository
+	Repo Repository
 )
+
+type Repository interface {
+	Create(ip string, port int, debuggerURL string, state types.ChromeState) (*types.Model, error)
+	Get(int) (*types.Model, error)
+	Update(*types.Model) error
+	Delete(int) error
+	GetAll() ([]*types.Model, error)
+	ExistsByIPAndPort(ip string, port int) (bool, error)
+}
 
 func init() {
 	Repo = newRepositoryDB(database.DB)
@@ -19,7 +29,7 @@ type repositoryDB struct {
 	db database.Repository[*types.Model]
 }
 
-func newRepositoryDB(db *gorm.DB) types.Repository {
+func newRepositoryDB(db *gorm.DB) Repository {
 	return &repositoryDB{
 		db: database.NewBaseRepository[*types.Model](db),
 	}
@@ -50,13 +60,6 @@ func (r *repositoryDB) Get(id int) (*types.Model, error) {
 }
 
 func (r *repositoryDB) Update(model *types.Model) error {
-	//// 由于接口转换的问题，这里需要做一个类型断言
-	//chromeInstance, ok := chrome.(*instance.Chrome)
-	//if !ok {
-	//	return fmt.Errorf("invalid chrome instance type")
-	//}
-	//m := &model{}
-	//m.fromEntity(chromeInstance)
 	if err := r.db.Update(model).Error; err != nil {
 		return fmt.Errorf("failed to update instance: %w", err)
 	}
