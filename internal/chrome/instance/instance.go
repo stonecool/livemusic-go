@@ -112,8 +112,7 @@ func (i *Instance) stateManager() {
 		case evt := <-i.GetStateChan():
 			switch evt.Type {
 			case types.EventGetState:
-				evt.Response <- i.GetState()
-				continue
+				evt.Response <- i.State
 			default:
 				i.HandleStateTransition(evt)
 			}
