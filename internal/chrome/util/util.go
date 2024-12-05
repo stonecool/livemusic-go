@@ -146,8 +146,8 @@ func ConvertIPv4ToInt(ip string) (uint32, error) {
 	var result uint32
 	for i := 0; i < 4; i++ {
 		part, err := strconv.Atoi(parts[i])
-		if err != nil {
-			return 0, err
+		if err != nil || part < 0 || part > 255 {
+			return 0, fmt.Errorf("invalid IPv4 address part: %s", parts[i])
 		}
 		result = result<<8 + uint32(part)
 	}
@@ -168,10 +168,6 @@ func IsValidIPv4(ip string) bool {
 	return parsedIP != nil && parsedIP.To4() != nil
 }
 
-func IsValidPort(port string) bool {
-	portNum, err := strconv.Atoi(port)
-	if err != nil {
-		return false
-	}
-	return portNum >= 0 && portNum <= 65535
+func IsValidPort(port int) bool {
+	return port >= 0 && port <= 65535
 }

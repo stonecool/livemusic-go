@@ -1,3 +1,18 @@
+-- chrome
+CREATE TABLE `chromes` (
+    `id`               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    `ip`               VARCHAR(20) NOT NULL COMMENT 'ip',
+    `port`             INT(10) UNSIGNED NOT NULL COMMENT 'port',
+    `debugger_url`     VARCHAR(100) NOT NULL COMMENT 'debugger_url',
+    `state`            TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'state',
+    `created_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
+    `updated_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
+    `deleted_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY unique_addr (ip, port)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='chromes';
+
 -- 爬虫账号
 CREATE TABLE `accounts` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -34,20 +49,7 @@ CREATE TABLE tasks (
     UNIQUE KEY idx_category__meta (`category`, `meta_type`, `meta_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='crawl tasks';
 
--- chrome
-CREATE TABLE `chromes` (
-     `id`               INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-     `ip`               VARCHAR(20) NOT NULL COMMENT 'ip',
-     `port`             INT(10) UNSIGNED NOT NULL COMMENT 'port',
-     `debugger_url`     VARCHAR(100) NOT NULL COMMENT 'debugger_url',
-     `state`            TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'state',
-     `created_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'created time',
-     `updated_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'updated time',
-     `deleted_at`       INT(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'deleted time',
 
-     PRIMARY KEY (`id`),
-     UNIQUE KEY unique_addr (ip, port)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='chromes';
 
 CREATE TABLE `crawl_data_wechat` (
     `id`                INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,

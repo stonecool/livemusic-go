@@ -22,10 +22,10 @@ type Instance struct {
 	ID           int
 	IP           string
 	Port         int
-	Accounts     map[string]account.IAccount
-	AccountsMu   sync.RWMutex
 	DebuggerURL  string
 	State        types.ChromeState
+	Accounts     map[string]account.IAccount
+	AccountsMu   sync.RWMutex
 	StateChan    chan types.StateEvent
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc

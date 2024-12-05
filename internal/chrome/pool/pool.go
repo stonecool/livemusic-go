@@ -46,7 +46,8 @@ func (p *pool) AddChrome(chrome types.Chrome) error {
 	}
 
 	p.chromes[chrome.GetAddr()] = chrome
-	for cat := range chrome.GetAccounts() {
+	for _, account := range chrome.GetAccounts() {
+		cat := account.GetCategory()
 		if _, exists := p.categories[cat]; !exists {
 			p.categories[cat] = newCategory(cat)
 		}

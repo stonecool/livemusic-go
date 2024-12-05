@@ -35,7 +35,7 @@ func (r *repository) Create(ip string, port int, debuggerURL string, state types
 	}
 
 	if err := model.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to validate model: %v", err)
 	}
 
 	if err := r.db.Create(model); err != nil {
@@ -55,17 +55,17 @@ func (r *repository) Get(id int) (*types.Model, error) {
 
 func (r *repository) Update(model *types.Model) error {
 	if err := model.Validate(); err != nil {
-		return err
+		return fmt.Errorf("failed to validate model: %v", err)
 	}
 
-	if err := r.db.Update(model).Error; err != nil {
+	if err := r.db.Update(model); err != nil {
 		return fmt.Errorf("failed to update instance: %w", err)
 	}
 	return nil
 }
 
 func (r *repository) Delete(id int) error {
-	if err := r.db.Delete(id).Error; err != nil {
+	if err := r.db.Delete(id); err != nil {
 		return fmt.Errorf("failed to delete instance: %w", err)
 	}
 	return nil
@@ -74,7 +74,7 @@ func (r *repository) Delete(id int) error {
 func (r *repository) GetAll() ([]*types.Model, error) {
 	models, err := r.db.GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all instances: %w", err)
+		return nil, fmt.Errorf("failed to get all instances: %v", err)
 	}
 
 	return models, nil

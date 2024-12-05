@@ -121,7 +121,7 @@ func CreateTempChrome() (types.Chrome, error) {
 
 // BindChrome binds to an existing chrome instance
 func BindChrome(ip string, port int) (types.Chrome, error) {
-	if !util.IsValidIPv4(ip) || !util.IsValidPort(string(port)) {
+	if !util.IsValidIPv4(ip) || !util.IsValidPort(port) {
 		return nil, fmt.Errorf("invalid ip or port")
 	}
 
