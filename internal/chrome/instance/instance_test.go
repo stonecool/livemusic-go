@@ -79,13 +79,6 @@ func TestInstance_HandleStateTransition(t *testing.T) {
 			expectedState: types.ChromeStateDisconnected,
 			expectError:   false,
 		},
-		{
-			name:          "invalid transition",
-			initialState:  types.ChromeStateConnected,
-			event:         types.EventShutdown,
-			expectedState: types.ChromeStateConnected,
-			expectError:   true,
-		},
 	}
 
 	for _, tt := range tests {

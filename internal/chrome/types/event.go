@@ -6,8 +6,6 @@ type EventType uint8
 const (
 	EventUnknown EventType = iota
 	EventHealthCheckFail
-	EventInitialize
-	EventShutdown
 )
 
 // String 返回事件类型的字符串表示
@@ -15,10 +13,6 @@ func (e EventType) String() string {
 	switch e {
 	case EventHealthCheckFail:
 		return "HealthCheckFail"
-	case EventInitialize:
-		return "Initialize"
-	case EventShutdown:
-		return "Shutdown"
 	default:
 		return "Unknown"
 	}
