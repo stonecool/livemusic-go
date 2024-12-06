@@ -55,12 +55,6 @@ func TestChromeState_IsValidTransition(t *testing.T) {
 			wantValid: true,
 		},
 		{
-			name:      "disconnected get state",
-			state:     ChromeStateDisconnected,
-			event:     EventGetState,
-			wantValid: true,
-		},
-		{
 			name:      "invalid transition",
 			state:     ChromeStateConnected,
 			event:     EventShutdown,

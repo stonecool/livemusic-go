@@ -35,11 +35,10 @@ func createInstance(ip string, port int, debuggerURL string, state types.ChromeS
 	return newInstance, nil
 }
 
-func GetAllChrome() ([]types.Chrome, error) {
+func GetAll() ([]types.Chrome, error) {
 	models, err := storage.Repo.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all instances: %w", err)
-
 	}
 
 	chromes := make([]types.Chrome, len(models))

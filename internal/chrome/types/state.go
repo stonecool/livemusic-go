@@ -35,8 +35,8 @@ type StateManager interface {
 // 添加状态转换规则定义
 var validTransitions = map[ChromeState][]EventType{
 	ChromeStateConnected:    {EventHealthCheckFail},
-	ChromeStateDisconnected: {EventGetState},
-	ChromeStateOffline:      {EventGetState},
+	ChromeStateDisconnected: {},
+	ChromeStateOffline:      {},
 }
 
 // 优化状态转换验证

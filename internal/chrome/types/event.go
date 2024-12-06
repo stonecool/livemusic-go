@@ -6,7 +6,6 @@ type EventType uint8
 const (
 	EventUnknown EventType = iota
 	EventHealthCheckFail
-	EventGetState
 	EventInitialize
 	EventShutdown
 )
@@ -16,8 +15,6 @@ func (e EventType) String() string {
 	switch e {
 	case EventHealthCheckFail:
 		return "HealthCheckFail"
-	case EventGetState:
-		return "GetState"
 	case EventInitialize:
 		return "Initialize"
 	case EventShutdown:

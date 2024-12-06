@@ -63,7 +63,7 @@ func BindChrome(ctx *gin.Context) {
 func GetChrome(ctx *gin.Context) {
 	var context = Context{Context: ctx}
 
-	if chromes, err := chrome.GetAllChrome(); err != nil {
+	if chromes, err := chrome.GetAll(); err != nil {
 		context.Response(http.StatusBadRequest, 0, nil)
 	} else {
 		context.Response(http.StatusBadRequest, 0, chromes)

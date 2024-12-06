@@ -111,12 +111,7 @@ func (i *Instance) stateManager() {
 	for {
 		select {
 		case evt := <-i.GetStateChan():
-			switch evt.Type {
-			case types.EventGetState:
-				evt.Response <- i.GetState()
-			default:
-				i.HandleStateTransition(evt)
-			}
+			i.HandleStateTransition(evt)
 		case <-i.allocatorCtx.Done():
 			return
 		}
