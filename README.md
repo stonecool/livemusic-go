@@ -10,7 +10,7 @@ gofmt -w .
 
 go test -v .\internal\account\
 go test  .\internal\account\account_test.go  .\internal\account\account.go
-go test -v .\internal\chrome\... 三个点，所有目录和子目录
+go test -v .\internal\chrome\... -v -cover 三个点，所有目录和子目录
 
 ### TODO
 

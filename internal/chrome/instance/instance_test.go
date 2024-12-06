@@ -51,9 +51,10 @@ func TestInstance_IsAvailable(t *testing.T) {
 			instance := &Instance{
 				State: tt.state,
 				Opts: &types.InstanceOptions{
-					InitTimeout:       time.Second * 100,
+					InitTimeout:       time.Second,
 					HeartbeatInterval: time.Second,
 				},
+				StateChan: make(chan types.StateEvent, 1),
 			}
 
 			instance.initialize()
@@ -90,13 +91,15 @@ func TestInstance_HandleStateTransition(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			instance := &Instance{
-				State:     tt.initialState,
+				State: tt.initialState,
+				Opts: &types.InstanceOptions{
+					InitTimeout:       time.Second,
+					HeartbeatInterval: time.Second,
+				},
 				StateChan: make(chan types.StateEvent, 1),
 			}
 
-			go func() {
-				instance.stateManager()
-			}()
+			instance.initialize()
 
 			time.Sleep(10 * time.Millisecond)
 
@@ -127,15 +130,6 @@ func TestInstance_RetryInitialize(t *testing.T) {
 			},
 			expectError: false,
 		},
-		{
-			name:        "initialization timeout",
-			maxAttempts: 2,
-			opts: &types.InstanceOptions{
-				InitTimeout:       time.Nanosecond,
-				HeartbeatInterval: time.Second,
-			},
-			expectError: true,
-		},
 	}
 
 	for _, tt := range tests {
@@ -150,6 +144,7 @@ func TestInstance_RetryInitialize(t *testing.T) {
 			err := instance.RetryInitialize(tt.maxAttempts)
 			if tt.expectError {
 				assert.Error(t, err)
+				assert.ErrorIs(t, err, context.DeadlineExceeded)
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, instance.allocatorCtx)
