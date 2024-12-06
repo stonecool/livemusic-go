@@ -15,10 +15,10 @@ type crawlRoutineForm struct {
 // AddCrawlRoutine
 // @Summary	Adds crawl routine
 // @Accept		json
-// @Param		form	body	api.crawlRoutineForm	true	"created crawl message"
+// @Param		form	body	crawlRoutineForm	true	"created crawl message"
 // @Produce	json
-// @Success	200	{object}			http.Response
-// @Failure	400	{object}			http.Response
+// @Success	200	{object}			Response
+// @Failure	400	{object}			Response
 // @Router		/api/v1/crawl-routines 	[post]
 func AddCrawlRoutine(ctx *gin.Context) {
 	var (
@@ -50,8 +50,8 @@ func AddCrawlRoutine(ctx *gin.Context) {
 // @Summary	Get a crawl routine
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/crawl-routines/{ID} [get]
 func GetCrawlRoutine(ctx *gin.Context) {
 	var (
@@ -77,8 +77,8 @@ func GetCrawlRoutine(ctx *gin.Context) {
 // GetCrawlRoutines
 // @Summary	Get all crawl routines
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/crawl-routines [get]
 func GetCrawlRoutines(ctx *gin.Context) {
 	//var context = Context{Context: ctx}
@@ -95,8 +95,8 @@ func GetCrawlRoutines(ctx *gin.Context) {
 // @Summary	Delete crawl routine
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/crawl-routines/{ID} [delete]
 func DeleteCrawlRoutine(ctx *gin.Context) {
 	var (
@@ -123,10 +123,10 @@ func DeleteCrawlRoutine(ctx *gin.Context) {
 // @Summary	Edit crawl routine
 // @Param		id	path	int	true	"ID"	default(1)
 // @Accept		json
-// @Param		form	body	api.crawlRoutineForm	true	"edit crawl message"
+// @Param		form	body	crawlRoutineForm	true	"edit crawl message"
 // @Produce	json
-// @Success	200	{object}			http.Response
-// @Failure	400	{object}			http.Response
+// @Success	200	{object}			Response
+// @Failure	400	{object}			Response
 // @Router		/api/v1/crawl-routines/{ID} 	[put]
 func EditCrawlRoutine(ctx *gin.Context) {
 	var (
@@ -166,9 +166,9 @@ func EditCrawlRoutine(ctx *gin.Context) {
 // @Summary	Start a crawl message
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
-// @Router		/api/v1/crawl-routines/start/{ID} [pos]
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
+// @Router		/api/v1/crawl-routines/start/{ID} [post]
 func StartCrawlRoutine(ctx *gin.Context) {
 
 }

@@ -17,10 +17,10 @@ type crawlAccountForm struct {
 // AddCrawlAccount
 // @Summary	Add crawl account
 // @Accept		json
-// @Param		form	body	api.crawlAccountForm	true	"created crawl account object"
+// @Param		form	body	crawlAccountForm	true	"created crawl account object"
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/crawl-accounts [post]
 func AddCrawlAccount(ctx *gin.Context) {
 	var (
@@ -45,8 +45,8 @@ func AddCrawlAccount(ctx *gin.Context) {
 // @Summary	Get crawl account
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/crawl-accounts/{id} [get]
 func GetCrawlAccount(ctx *gin.Context) {
 	var (
@@ -71,8 +71,8 @@ func GetCrawlAccount(ctx *gin.Context) {
 // GetCrawlAccounts
 // @Summary	Get multiple accounts
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	500	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	500	{object}	Response
 // @Router		/api/v1/crawl-accounts [get]
 func GetCrawlAccounts(ctx *gin.Context) {
 	var context = Context{Context: ctx}
@@ -89,8 +89,8 @@ func GetCrawlAccounts(ctx *gin.Context) {
 // @Summary	Delete crawl account
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/crawl-accounts/{ID} [delete]
 func DeleteCrawlAccount(ctx *gin.Context) {
 	var (
@@ -116,8 +116,8 @@ func DeleteCrawlAccount(ctx *gin.Context) {
 // @Summary	Crawl account websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	500	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	500	{object}	Response
 // @Router		/api/v1/crawl-accounts/ws/{ID} [get]
 func CrawlAccountWebSocket(ctx *gin.Context) {
 	var (
@@ -141,8 +141,8 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 // @Summary	Crawl account websocket
 // @Param		id	path	int	true	"ID"	default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	500	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	500	{object}	Response
 // @Router		/api/v1/crawl-accounts/ws/{ID} [get]
 func CrawlAccountLogin(ctx *gin.Context) {
 	pool.GetPool().Login(nil, "")

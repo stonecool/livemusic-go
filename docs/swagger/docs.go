@@ -15,6 +15,42 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/bind-instance": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Bind a chrome instance",
+                "parameters": [
+                    {
+                        "description": "form",
+                        "name": "form",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.chromeForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/crawl-accounts": {
             "get": {
                 "produces": [
@@ -25,13 +61,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -59,13 +95,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -76,7 +112,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get multiple accounts",
+                "summary": "Crawl account websocket",
                 "parameters": [
                     {
                         "type": "integer",
@@ -91,13 +127,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -123,13 +159,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -155,35 +191,35 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
             }
         },
-        "/api/v1/crawl-messages": {
+        "/api/v1/crawl-routines": {
             "get": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get all crawl messages",
+                "summary": "Get all crawl routines",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -195,7 +231,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Adds crawl message",
+                "summary": "Adds crawl routine",
                 "parameters": [
                     {
                         "description": "created crawl message",
@@ -203,7 +239,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.crawlMsgForm"
+                            "$ref": "#/definitions/api.crawlRoutineForm"
                         }
                     }
                 ],
@@ -211,24 +247,24 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
             }
         },
-        "/api/v1/crawl-messages/{ID}": {
-            "get": {
+        "/api/v1/crawl-routines/start/{ID}": {
+            "post": {
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get a crawl message",
+                "summary": "Start a crawl message",
                 "parameters": [
                     {
                         "type": "integer",
@@ -243,13 +279,45 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/crawl-routines/{ID}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get a crawl routine",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -261,7 +329,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Edit crawl message",
+                "summary": "Edit crawl routine",
                 "parameters": [
                     {
                         "type": "integer",
@@ -277,7 +345,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.crawlMsgForm"
+                            "$ref": "#/definitions/api.crawlRoutineForm"
                         }
                     }
                 ],
@@ -285,13 +353,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -300,7 +368,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Delete crawl message",
+                "summary": "Delete crawl routine",
                 "parameters": [
                     {
                         "type": "integer",
@@ -315,13 +383,104 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/crawl-tasks": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Adds crawl task",
+                "parameters": [
+                    {
+                        "description": "created crawl task",
+                        "name": "form",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.crawlTaskForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/create-instance": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create a local chrome instance",
+                "parameters": [
+                    {
+                        "description": "form",
+                        "name": "form",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.chromeForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/instances": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get multiple chrome instances",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -337,13 +496,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -371,13 +530,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -403,13 +562,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -439,13 +598,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -469,13 +628,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/http.Response"
+                            "$ref": "#/definitions/api.Response"
                         }
                     }
                 }
@@ -483,6 +642,29 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.chromeForm": {
+            "type": "object",
+            "properties": {
+                "ip": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                }
+            }
+        },
         "api.crawlAccountForm": {
             "type": "object",
             "properties": {
@@ -491,10 +673,30 @@ const docTemplate = `{
                 }
             }
         },
-        "api.crawlMsgForm": {
+        "api.crawlRoutineForm": {
             "type": "object",
             "properties": {
                 "account_type": {
+                    "type": "string"
+                },
+                "data_id": {
+                    "type": "integer"
+                },
+                "data_type": {
+                    "type": "string"
+                },
+                "target_account_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.crawlTaskForm": {
+            "type": "object",
+            "properties": {
+                "account_type": {
+                    "type": "string"
+                },
+                "cron_spec": {
                     "type": "string"
                 },
                 "data_id": {
@@ -515,18 +717,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "http.Response": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "data": {},
-                "message": {
                     "type": "string"
                 }
             }

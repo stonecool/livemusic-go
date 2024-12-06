@@ -1,12 +1,40 @@
 definitions:
+  api.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+  api.chromeForm:
+    properties:
+      ip:
+        type: string
+      port:
+        type: integer
+    type: object
   api.crawlAccountForm:
     properties:
       account_type:
         type: string
     type: object
-  api.crawlMsgForm:
+  api.crawlRoutineForm:
     properties:
       account_type:
+        type: string
+      data_id:
+        type: integer
+      data_type:
+        type: string
+      target_account_id:
+        type: string
+    type: object
+  api.crawlTaskForm:
+    properties:
+      account_type:
+        type: string
+      cron_spec:
         type: string
       data_id:
         type: integer
@@ -22,17 +50,32 @@ definitions:
       name:
         type: string
     type: object
-  http.Response:
-    properties:
-      code:
-        type: integer
-      data: {}
-      msg:
-        type: string
-    type: object
 info:
   contact: {}
 paths:
+  /api/v1/bind-instance:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: form
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.chromeForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Bind a chrome instance
   /api/v1/crawl-accounts:
     get:
       produces:
@@ -41,11 +84,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: Get multiple accounts
     post:
       consumes:
@@ -63,11 +106,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: Add crawl account
   /api/v1/crawl-accounts/{ID}:
     delete:
@@ -84,11 +127,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: Delete crawl account
   /api/v1/crawl-accounts/{id}:
     get:
@@ -105,11 +148,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: Get crawl account
   /api/v1/crawl-accounts/ws/{ID}:
     get:
@@ -126,13 +169,13 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/http.Response'
-      summary: Get multiple accounts
-  /api/v1/crawl-messages:
+            $ref: '#/definitions/api.Response'
+      summary: Crawl account websocket
+  /api/v1/crawl-routines:
     get:
       produces:
       - application/json
@@ -140,12 +183,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
-      summary: Get all crawl messages
+            $ref: '#/definitions/api.Response'
+      summary: Get all crawl routines
     post:
       consumes:
       - application/json
@@ -155,20 +198,20 @@ paths:
         name: form
         required: true
         schema:
-          $ref: '#/definitions/api.crawlMsgForm'
+          $ref: '#/definitions/api.crawlRoutineForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
-      summary: Adds crawl message
-  /api/v1/crawl-messages/{ID}:
+            $ref: '#/definitions/api.Response'
+      summary: Adds crawl routine
+  /api/v1/crawl-routines/{ID}:
     delete:
       parameters:
       - default: 1
@@ -183,12 +226,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
-      summary: Delete crawl message
+            $ref: '#/definitions/api.Response'
+      summary: Delete crawl routine
     get:
       parameters:
       - default: 1
@@ -203,12 +246,12 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
-      summary: Get a crawl message
+            $ref: '#/definitions/api.Response'
+      summary: Get a crawl routine
     put:
       consumes:
       - application/json
@@ -224,19 +267,98 @@ paths:
         name: form
         required: true
         schema:
-          $ref: '#/definitions/api.crawlMsgForm'
+          $ref: '#/definitions/api.crawlRoutineForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
-      summary: Edit crawl message
+            $ref: '#/definitions/api.Response'
+      summary: Edit crawl routine
+  /api/v1/crawl-routines/start/{ID}:
+    post:
+      parameters:
+      - default: 1
+        description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Start a crawl message
+  /api/v1/crawl-tasks:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: created crawl task
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.crawlTaskForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Adds crawl task
+  /api/v1/create-instance:
+    post:
+      parameters:
+      - description: form
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.chromeForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Create a local chrome instance
+  /api/v1/instances:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Get multiple chrome instances
   /api/v1/livehouses:
     get:
       produces:
@@ -245,11 +367,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: Get all livehouse
     post:
       consumes:
@@ -267,11 +389,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: Add a livehouse
   /api/v1/livehouses/{ID}:
     get:
@@ -288,11 +410,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: get a livehouse
   /api/v1/livehouses/{id}:
     delete:
@@ -309,11 +431,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: delete a livehouse
     put:
       consumes:
@@ -331,10 +453,10 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/http.Response'
+            $ref: '#/definitions/api.Response'
       summary: Edit a livehouse
 swagger: "2.0"

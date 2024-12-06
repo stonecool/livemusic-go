@@ -15,10 +15,10 @@ type livehouseForm struct {
 // AddLivehouse
 // @Summary	Add a livehouse
 // @Accept		json
-// @Param		form	body	api.livehouseForm	true	"created livehouse object"
+// @Param		form	body	livehouseForm	true	"created livehouse object"
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/livehouses [post]
 func AddLivehouse(ctx *gin.Context) {
 	var (
@@ -47,8 +47,8 @@ func AddLivehouse(ctx *gin.Context) {
 // @Summary	get a livehouse
 // @Param		ID	path	int	true	"ID"	default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/livehouses/{ID} [get]
 func GetLivehouse(ctx *gin.Context) {
 	var (
@@ -74,8 +74,8 @@ func GetLivehouse(ctx *gin.Context) {
 // GetLivehouses
 // @Summary	Get all livehouse
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/livehouses [get]
 func GetLivehouses(ctx *gin.Context) {
 	var context = Context{Context: ctx}
@@ -91,10 +91,10 @@ func GetLivehouses(ctx *gin.Context) {
 // EditLivehouse
 // @Summary	Edit a livehouse
 // @Accept		json
-// @Param		form	body	api.livehouseForm	true	"created livehouse object"
+// @Param		form	body	livehouseForm	true	"created livehouse object"
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/livehouses/{id} [put]
 func EditLivehouse(ctx *gin.Context) {
 	var (
@@ -125,8 +125,8 @@ func EditLivehouse(ctx *gin.Context) {
 // @Summary	delete a livehouse
 // @Param		id path int true "ID" default(1)
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/livehouses/{id} [delete]
 func DeleteLivehouse(ctx *gin.Context) {
 	var (

@@ -17,10 +17,10 @@ type crawlTaskForm struct {
 
 // @Summary    Adds crawl task
 // @Accept     json
-// @Param      form    body    api.crawlTaskForm    true    "created crawl task"
+// @Param      form    body    crawlTaskForm    true    "created crawl task"
 // @Produce    json
-// @Success    200    {object}    http.Response
-// @Failure    400    {object}    http.Response
+// @Success    200    {object}    Response
+// @Failure    400    {object}    Response
 // @Router     /api/v1/crawl-tasks     [post]
 func AddCrawlTask(ctx *gin.Context) {
 	var (

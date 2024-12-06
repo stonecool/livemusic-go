@@ -14,8 +14,9 @@ type chromeForm struct {
 // CreateChrome
 // @Summary	Create a local chrome instance
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Param		form	body	chromeForm	true "form"
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/create-instance [post]
 func CreateChrome(ctx *gin.Context) {
 	context := Context{Context: ctx}
@@ -30,10 +31,10 @@ func CreateChrome(ctx *gin.Context) {
 // BindChrome
 // @Summary	Bind a chrome instance
 // @Accept		json
-// @Param		form	body	api.chromeForm	true
+// @Param		form	body	chromeForm	true "form"
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	400	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	400	{object}	Response
 // @Router		/api/v1/bind-instance [post]
 func BindChrome(ctx *gin.Context) {
 	var (
@@ -57,8 +58,8 @@ func BindChrome(ctx *gin.Context) {
 // GetChrome
 // @Summary	Get multiple chrome instances
 // @Produce	json
-// @Success	200	{object}	http.Response
-// @Failure	500	{object}	http.Response
+// @Success	200	{object}	Response
+// @Failure	500	{object}	Response
 // @Router		/api/v1/instances [get]
 func GetChrome(ctx *gin.Context) {
 	var context = Context{Context: ctx}
