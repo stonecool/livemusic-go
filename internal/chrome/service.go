@@ -11,37 +11,28 @@ import (
 	"go.uber.org/zap"
 )
 
-func createChrome(model *types.Model) (types.Chrome, error) {
-	chrome := NewInstance(
-		model.IP,
-		model.Port,
-		model.DebuggerURL,
-		types.ChromeState(model.State),
-	)
-
-	if err := chrome.Initialize(); err != nil {
-		return nil, err
+func toInstance(model *types.Model) types.Chrome {
+	return &instance.Instance{
+		IP:          model.IP,
+		Port:        model.Port,
+		DebuggerURL: model.DebuggerURL,
+		State:       types.ChromeState(model.State),
 	}
-
-	return chrome, nil
 }
 
-func createChromeWithParam(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
-	instance := NewInstance(ip, port, debuggerURL, state)
-	if err := instance.Initialize(); err != nil {
+func createInstance(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
+	newInstance := &instance.Instance{
+		IP:          ip,
+		Port:        port,
+		DebuggerURL: debuggerURL,
+		State:       state,
+	}
+
+	if err := newInstance.Initialize(); err != nil {
 		return nil, err
 	}
 
-	return instance, nil
-}
-
-func GetChrome(id int) (types.Chrome, error) {
-	model, err := storage.Repo.Get(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return createChrome(model)
+	return newInstance, nil
 }
 
 func GetAllChrome() ([]types.Chrome, error) {
@@ -53,7 +44,7 @@ func GetAllChrome() ([]types.Chrome, error) {
 
 	chromes := make([]types.Chrome, len(models))
 	for i, m := range models {
-		chromes[i] = modelToChrome(m)
+		chromes[i] = toInstance(m)
 	}
 
 	return chromes, nil
@@ -63,14 +54,19 @@ func ExistsByIPAndPort(ip string, port int) (bool, error) {
 	return storage.Repo.ExistsByIPAndPort(ip, port)
 }
 
-// CreateTempChrome Create a local chrome instance
-func CreateTempChrome() (types.Chrome, error) {
+// Create Create a local chrome instance
+func Create() (types.Chrome, error) {
 	ip := "127.0.0.1"
+
 	port, err := util.FindAvailablePort(9222)
 	if err != nil {
 		internal.Logger.Error("failed to find available port",
 			zap.Error(err))
 		return nil, err
+	}
+
+	if !util.IsValidIPv4(ip) || !util.IsValidPort(port) {
+		return nil, fmt.Errorf("invalid ip or port")
 	}
 
 	exists, err := ExistsByIPAndPort(ip, port)
@@ -86,7 +82,7 @@ func CreateTempChrome() (types.Chrome, error) {
 		return nil, fmt.Errorf("port:%d occupied", port)
 	}
 
-	internal.Logger.Info("using port for new model instance",
+	internal.Logger.Info("using port for new instance",
 		zap.String("ip", ip),
 		zap.Int("port", port))
 
@@ -106,27 +102,26 @@ func CreateTempChrome() (types.Chrome, error) {
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	model, err := storage.Repo.Create(ip, port, url, types.ChromeStateConnected)
+	chrome, err := createInstance(ip, port, url, types.ChromeStateConnected)
 	if err != nil {
 		return nil, err
 	}
 
-	ins := modelToChrome(model)
-	if err := ins.Initialize(); err != nil {
+	if err := chrome.Initialize(); err != nil {
 		return nil, err
 	}
 
-	return ins, nil
+	return chrome, nil
 }
 
-// BindChrome binds to an existing chrome instance
-func BindChrome(ip string, port int) (types.Chrome, error) {
-	if !util.IsValidIPv4(ip) || !util.IsValidPort(port) {
-		return nil, fmt.Errorf("invalid ip or port")
-	}
-
+// Bind binds to an existing chrome instance
+func Bind(ip string, port int) (types.Chrome, error) {
 	if ip == "localhost" {
 		ip = "127.0.0.1"
+	}
+
+	if !util.IsValidIPv4(ip) || !util.IsValidPort(port) {
+		return nil, fmt.Errorf("invalid ip or port")
 	}
 
 	exists, err := ExistsByIPAndPort(ip, port)
@@ -150,32 +145,15 @@ func BindChrome(ip string, port int) (types.Chrome, error) {
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	model, err := createChromeWithParam(ip, port, url, types.ChromeStateConnected)
+	model, err := storage.Repo.Create(ip, port, url, types.ChromeStateConnected)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := model.Initialize(); err != nil {
+	chrome := toInstance(model)
+	if err := chrome.Initialize(); err != nil {
 		return nil, err
 	}
 
-	return model, nil
-}
-
-func modelToChrome(model *types.Model) types.Chrome {
-	return NewInstance(
-		model.IP,
-		model.Port,
-		model.DebuggerURL,
-		types.ChromeState(model.State),
-	)
-}
-
-func NewInstance(ip string, port int, url string, state types.ChromeState) *instance.Instance {
-	return &instance.Instance{
-		IP:          ip,
-		Port:        port,
-		DebuggerURL: url,
-		State:       state,
-	}
+	return chrome, nil
 }

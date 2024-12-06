@@ -24,8 +24,8 @@ type Instance struct {
 	Port         int
 	DebuggerURL  string
 	State        types.ChromeState
+	mu           sync.RWMutex
 	Accounts     map[string]account.IAccount
-	AccountsMu   sync.RWMutex
 	StateChan    chan types.StateEvent
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc
@@ -59,11 +59,8 @@ func (i *Instance) initialize() error {
 
 func (i *Instance) Close() error {
 	if i.cancelFunc != nil {
-		// 先取消上下文，让所有goroutine优雅退出
+		defer time.Sleep(time.Second)
 		i.cancelFunc()
-
-		// 等待一段时间让goroutine完成清理工作
-		time.Sleep(time.Second)
 
 		// 关闭所有打开的标签页
 		//targets, err := chromedp.Targets(context.Background())
@@ -79,12 +76,12 @@ func (i *Instance) Close() error {
 }
 
 func (i *Instance) IsAvailable() bool {
-	return i.getState() == types.ChromeStateConnected
+	return i.GetState() == types.ChromeStateConnected
 }
 
 func (i *Instance) isAvailable(cat string) bool {
-	i.AccountsMu.RLock()
-	defer i.AccountsMu.RUnlock()
+	i.mu.RLock()
+	defer i.mu.RUnlock()
 	acc, exists := i.Accounts[cat]
 
 	if !exists {
@@ -95,10 +92,14 @@ func (i *Instance) isAvailable(cat string) bool {
 }
 
 func (i *Instance) SetState(state types.ChromeState) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
 	i.State = state
 }
 
 func (i *Instance) GetState() types.ChromeState {
+	i.mu.RLock()
+	defer i.mu.RUnlock()
 	return i.State
 }
 
@@ -112,7 +113,7 @@ func (i *Instance) stateManager() {
 		case evt := <-i.GetStateChan():
 			switch evt.Type {
 			case types.EventGetState:
-				evt.Response <- i.State
+				evt.Response <- i.GetState()
 			default:
 				i.HandleStateTransition(evt)
 			}
@@ -199,7 +200,7 @@ func (i *Instance) heartBeat() {
 	for {
 		select {
 		case <-ticker.C:
-			state := i.getState()
+			state := i.GetState()
 			if state != types.ChromeStateConnected {
 				continue
 			}
@@ -216,8 +217,8 @@ func (i *Instance) heartBeat() {
 }
 
 func (i *Instance) GetAccounts() map[string]account.IAccount {
-	i.AccountsMu.RLock()
-	defer i.AccountsMu.RUnlock()
+	i.mu.RLock()
+	defer i.mu.RUnlock()
 
 	accounts := make(map[string]account.IAccount, len(i.Accounts))
 	for k, v := range i.Accounts {
@@ -226,20 +227,9 @@ func (i *Instance) GetAccounts() map[string]account.IAccount {
 	return accounts
 }
 
-// getState 获取当前状态
-func (i *Instance) getState() types.ChromeState {
-	response := make(chan interface{}, 1)
-	i.StateChan <- types.StateEvent{
-		Type:     types.EventGetState,
-		Response: response,
-	}
-	result := <-response
-	return result.(types.ChromeState)
-}
-
 // NeedsReInitialize 判断是否需要重新初始化
 func (i *Instance) NeedsReInitialize() bool {
-	state := i.getState()
+	state := i.GetState()
 	return state == types.ChromeStateDisconnected
 }
 
@@ -280,8 +270,8 @@ func (i *Instance) cleanupTabs() {
 }
 
 func (i *Instance) ExecuteTask(task task.ITask) error {
-	i.AccountsMu.RLock()
-	defer i.AccountsMu.RUnlock()
+	i.mu.RLock()
+	defer i.mu.RUnlock()
 	acc, exists := i.Accounts[task.GetCategory()]
 
 	if !exists {
@@ -309,8 +299,8 @@ func (i *Instance) ExecuteTask(task task.ITask) error {
 }
 
 func (i *Instance) SetAccount(category string, acc account.IAccount) {
-	i.AccountsMu.Lock()
-	defer i.AccountsMu.Unlock()
+	i.mu.Lock()
+	defer i.mu.Unlock()
 
 	i.Accounts[category] = acc
 }

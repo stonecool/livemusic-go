@@ -59,7 +59,7 @@ func TestInstance_IsAvailable(t *testing.T) {
 
 			instance.initialize()
 
-			assert.Equal(t, tt.expected, instance.getState() == types.ChromeStateConnected)
+			assert.Equal(t, tt.expected, instance.GetState() == types.ChromeStateConnected)
 		})
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type chromeInstanceForm struct {
+type chromeForm struct {
 	Ip   string `json:"ip" valid:"Required;MaxSize(16)"`
 	Port int    `json:"port" valid:"Required;Min(9222);Max(65535)"`
 }
@@ -20,7 +20,7 @@ type chromeInstanceForm struct {
 func CreateChrome(ctx *gin.Context) {
 	context := Context{Context: ctx}
 
-	if ins, err := chrome.CreateTempChrome(); err != nil {
+	if ins, err := chrome.Create(); err != nil {
 		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
 		context.Response(http.StatusCreated, Success, ins)
@@ -30,7 +30,7 @@ func CreateChrome(ctx *gin.Context) {
 // BindChrome
 // @Summary	Bind a chrome instance
 // @Accept		json
-// @Param		form	body	api.chromeInstanceForm	true
+// @Param		form	body	api.chromeForm	true
 // @Produce	json
 // @Success	200	{object}	http.Response
 // @Failure	400	{object}	http.Response
@@ -38,7 +38,7 @@ func CreateChrome(ctx *gin.Context) {
 func BindChrome(ctx *gin.Context) {
 	var (
 		context = Context{Context: ctx}
-		form    chromeInstanceForm
+		form    chromeForm
 	)
 
 	httpCode, errCode := BindAndValid(ctx, &form)
@@ -47,7 +47,7 @@ func BindChrome(ctx *gin.Context) {
 		return
 	}
 
-	if ins, err := chrome.BindChrome(form.Ip, form.Port); err != nil {
+	if ins, err := chrome.Bind(form.Ip, form.Port); err != nil {
 		context.Response(http.StatusBadRequest, Error, nil)
 	} else {
 		context.Response(http.StatusCreated, Success, ins)
