@@ -152,17 +152,10 @@ func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 	evt.Response <- err
 }
 
-func (i *Instance) HandleEvent(event types.EventType) error {
-	response := make(chan interface{}, 1)
+func (i *Instance) HandleEvent(event types.EventType) {
 	i.GetStateChan() <- types.StateEvent{
-		Type:     event,
-		Response: response,
+		Type: event,
 	}
-	result := <-response
-	if err, ok := result.(error); ok {
-		return err
-	}
-	return nil
 }
 
 func (i *Instance) GetNewContext() (context.Context, context.CancelFunc) {
