@@ -15,7 +15,60 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/bind-instance": {
+        "/api/v1/chromes": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "List all browser instances",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create a new browser instance",
+                "parameters": [
+                    {
+                        "description": "Instance configuration",
+                        "name": "form",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.instanceForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/chromes/bind": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -23,16 +76,47 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Bind a chrome instance",
+                "summary": "Bind an existing browser instance",
                 "parameters": [
                     {
-                        "description": "form",
+                        "description": "Instance configuration",
                         "name": "form",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.chromeForm"
+                            "$ref": "#/definitions/api.instanceForm"
                         }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/chromes/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get a browser instance by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Instance ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -42,8 +126,43 @@ const docTemplate = `{
                             "$ref": "#/definitions/api.Response"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete a browser instance",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Instance ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
@@ -431,61 +550,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/create-instance": {
-            "post": {
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Create a local chrome instance",
-                "parameters": [
-                    {
-                        "description": "form",
-                        "name": "form",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.chromeForm"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/instances": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "summary": "Get multiple chrome instances",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/livehouses": {
             "get": {
                 "produces": [
@@ -654,17 +718,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.chromeForm": {
-            "type": "object",
-            "properties": {
-                "ip": {
-                    "type": "string"
-                },
-                "port": {
-                    "type": "integer"
-                }
-            }
-        },
         "api.crawlAccountForm": {
             "type": "object",
             "properties": {
@@ -707,6 +760,17 @@ const docTemplate = `{
                 },
                 "target_account_id": {
                     "type": "string"
+                }
+            }
+        },
+        "api.instanceForm": {
+            "type": "object",
+            "properties": {
+                "ip": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
                 }
             }
         },

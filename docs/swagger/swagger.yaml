@@ -7,13 +7,6 @@ definitions:
       message:
         type: string
     type: object
-  api.chromeForm:
-    properties:
-      ip:
-        type: string
-      port:
-        type: integer
-    type: object
   api.crawlAccountForm:
     properties:
       account_type:
@@ -43,6 +36,13 @@ definitions:
       target_account_id:
         type: string
     type: object
+  api.instanceForm:
+    properties:
+      ip:
+        type: string
+      port:
+        type: integer
+    type: object
   api.livehouseForm:
     properties:
       ID:
@@ -53,17 +53,8 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/v1/bind-instance:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: form
-        in: body
-        name: form
-        required: true
-        schema:
-          $ref: '#/definitions/api.chromeForm'
+  /api/v1/chromes:
+    get:
       produces:
       - application/json
       responses:
@@ -71,11 +62,97 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: List all browser instances
+    post:
+      parameters:
+      - description: Instance configuration
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.instanceForm'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Response'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/api.Response'
-      summary: Bind a chrome instance
+      summary: Create a new browser instance
+  /api/v1/chromes/{id}:
+    delete:
+      parameters:
+      - description: Instance ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/api.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Delete a browser instance
+    get:
+      parameters:
+      - description: Instance ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Get a browser instance by ID
+  /api/v1/chromes/bind:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Instance configuration
+        in: body
+        name: form
+        required: true
+        schema:
+          $ref: '#/definitions/api.instanceForm'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: Bind an existing browser instance
   /api/v1/crawl-accounts:
     get:
       produces:
@@ -324,41 +401,6 @@ paths:
           schema:
             $ref: '#/definitions/api.Response'
       summary: Adds crawl task
-  /api/v1/create-instance:
-    post:
-      parameters:
-      - description: form
-        in: body
-        name: form
-        required: true
-        schema:
-          $ref: '#/definitions/api.chromeForm'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api.Response'
-      summary: Create a local chrome instance
-  /api/v1/instances:
-    get:
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api.Response'
-      summary: Get multiple chrome instances
   /api/v1/livehouses:
     get:
       produces:
