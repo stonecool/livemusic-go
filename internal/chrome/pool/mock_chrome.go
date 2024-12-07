@@ -38,12 +38,12 @@ func (m *MockChrome) IsAvailable() bool {
 	return args.Bool(0)
 }
 
-func (m *MockChrome) GetState() types.ChromeState {
+func (m *MockChrome) GetState() types.InstanceState {
 	args := m.Called()
-	return args.Get(0).(types.ChromeState)
+	return args.Get(0).(types.InstanceState)
 }
 
-func (m *MockChrome) SetState(state types.ChromeState) {
+func (m *MockChrome) SetState(state types.InstanceState) {
 	m.Called(state)
 }
 

@@ -20,7 +20,7 @@ func NewMockRepository() *MockRepository {
 	}
 }
 
-func (r *MockRepository) Create(ip string, port int, debuggerURL string, state types.ChromeState) (*types.Model, error) {
+func (r *MockRepository) Create(ip string, port int, debuggerURL string, state types.InstanceState) (*types.Model, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

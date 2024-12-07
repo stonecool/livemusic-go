@@ -26,7 +26,7 @@ func newRepositoryDB(db *gorm.DB) Repository {
 	}
 }
 
-func (r *repositoryDB) Create(ip string, port int, debuggerURL string, state types.ChromeState) (*types.Model, error) {
+func (r *repositoryDB) Create(ip string, port int, debuggerURL string, state types.InstanceState) (*types.Model, error) {
 	model := &types.Model{
 		IP:          ip,
 		Port:        port,

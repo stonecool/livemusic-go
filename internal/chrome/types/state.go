@@ -1,46 +1,51 @@
 package types
 
-// Chrome 实例状态
-type ChromeState uint8
+// InstanceState represents the state of a Chrome instance
+type InstanceState uint8
 
 const (
-	ChromeStateConnected ChromeState = iota
-	ChromeStateDisconnected
-	ChromeStateOffline
+	InstanceStateAvailable   InstanceState = iota // 正常可用状态
+	InstanceStateUnstable                         // 临时不可用状态（单次心跳失败）
+	InstanceStateUnavailable                      // 不可用状态（连续三次心跳失败）
 )
 
-// String 返回状态的字符串表示
-func (s ChromeState) String() string {
+// String returns the string representation of the state
+func (s InstanceState) String() string {
 	switch s {
-	case ChromeStateConnected:
-		return "Connected"
-	case ChromeStateDisconnected:
-		return "Disconnected"
-	case ChromeStateOffline:
-		return "Offline"
+	case InstanceStateAvailable:
+		return "Available"
+	case InstanceStateUnstable:
+		return "Unstable"
+	case InstanceStateUnavailable:
+		return "Unavailable"
 	default:
 		return "Unknown"
 	}
 }
 
-// 建议添加状态转换管理器接口
+// StateManager interface for managing Chrome instance states
 type StateManager interface {
-	GetState() ChromeState
-	SetState(state ChromeState)
+	GetState() InstanceState
+	SetState(state InstanceState)
 	GetStateChan() chan StateEvent
 	HandleStateTransition(evt StateEvent)
 	HandleEvent(event EventType) error
 }
 
-// 添加状态转换规则定义
-var validTransitions = map[ChromeState][]EventType{
-	ChromeStateConnected:    {EventHealthCheckFail},
-	ChromeStateDisconnected: {},
-	ChromeStateOffline:      {},
+// validTransitions defines valid state transitions based on events
+var validTransitions = map[InstanceState][]EventType{
+	InstanceStateAvailable: {EventHealthCheckFail},
+	InstanceStateUnstable: {
+		EventHealthCheckSuccess, // 恢复到可用状态
+		EventHealthCheckFail,    // 累计失败次数增加
+	},
+	InstanceStateUnavailable: {
+		EventHealthCheckSuccess, // 允许从不可用恢复到可用状态
+	},
 }
 
-// 优化状态转换验证
-func (s ChromeState) IsValidTransition(event EventType) bool {
+// IsValidTransition checks if the state transition is valid for the given event
+func (s InstanceState) IsValidTransition(event EventType) bool {
 	validEvents, exists := validTransitions[s]
 	if !exists {
 		return false

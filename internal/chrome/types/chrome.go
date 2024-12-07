@@ -19,8 +19,8 @@ type Chrome interface {
 	IsAvailable() bool
 
 	// 状态管理
-	GetState() ChromeState
-	SetState(state ChromeState)
+	GetState() InstanceState
+	SetState(state InstanceState)
 	GetStateChan() chan StateEvent
 
 	// 账号管理

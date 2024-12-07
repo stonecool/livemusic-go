@@ -102,7 +102,7 @@ func TestPool_GetChromesByCategory(t *testing.T) {
 type mockChrome struct {
 	addr      string
 	accounts  map[string]account.IAccount
-	state     types.ChromeState
+	state     types.InstanceState
 	stateChan chan types.StateEvent
 }
 
@@ -116,11 +116,11 @@ func (m *mockChrome) ExecuteTask(task task.ITask) error { return nil }
 func (m *mockChrome) Initialize() error                 { return nil }
 func (m *mockChrome) Close() error                      { return nil }
 func (m *mockChrome) IsAvailable() bool                 { return true }
-func (m *mockChrome) GetState() types.ChromeState {
+func (m *mockChrome) GetState() types.InstanceState {
 	return types.ChromeStateConnected
 }
 
-func (m *mockChrome) SetState(state types.ChromeState) {
+func (m *mockChrome) SetState(state types.InstanceState) {
 	m.state = state
 }
 

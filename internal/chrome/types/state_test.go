@@ -9,7 +9,7 @@ import (
 func TestChromeState_String(t *testing.T) {
 	tests := []struct {
 		name  string
-		state ChromeState
+		state InstanceState
 		want  string
 	}{
 		{
@@ -29,7 +29,7 @@ func TestChromeState_String(t *testing.T) {
 		},
 		{
 			name:  "unknown state",
-			state: ChromeState(99),
+			state: InstanceState(99),
 			want:  "Unknown",
 		},
 	}
@@ -44,7 +44,7 @@ func TestChromeState_String(t *testing.T) {
 func TestChromeState_IsValidTransition(t *testing.T) {
 	tests := []struct {
 		name      string
-		state     ChromeState
+		state     InstanceState
 		event     EventType
 		wantValid bool
 	}{
@@ -56,7 +56,7 @@ func TestChromeState_IsValidTransition(t *testing.T) {
 		},
 		{
 			name:      "unknown state",
-			state:     ChromeState(99),
+			state:     InstanceState(99),
 			event:     EventHealthCheckFail,
 			wantValid: false,
 		},

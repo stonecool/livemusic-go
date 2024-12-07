@@ -23,7 +23,7 @@ type Instance struct {
 	IP           string
 	Port         int
 	DebuggerURL  string
-	State        types.ChromeState
+	State        types.InstanceState
 	mu           sync.RWMutex
 	Accounts     map[string]account.IAccount
 	StateChan    chan types.StateEvent
@@ -76,7 +76,7 @@ func (i *Instance) Close() error {
 }
 
 func (i *Instance) IsAvailable() bool {
-	return i.GetState() == types.ChromeStateConnected
+	return i.GetState() == types.InstanceStateAvailable
 }
 
 func (i *Instance) isAvailable(cat string) bool {
@@ -91,13 +91,13 @@ func (i *Instance) isAvailable(cat string) bool {
 	return acc.IsAvailable()
 }
 
-func (i *Instance) SetState(state types.ChromeState) {
+func (i *Instance) SetState(state types.InstanceState) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 	i.State = state
 }
 
-func (i *Instance) GetState() types.ChromeState {
+func (i *Instance) GetState() types.InstanceState {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 	return i.State
@@ -120,7 +120,7 @@ func (i *Instance) stateManager() {
 
 func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 	oldState := i.GetState()
-	var newState types.ChromeState
+	var newState types.InstanceState
 	var err error
 
 	if !oldState.IsValidTransition(evt.Type) {
@@ -131,22 +131,29 @@ func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 	}
 
 	switch evt.Type {
+	case types.EventHealthCheckSuccess:
+		newState = types.InstanceStateAvailable
 	case types.EventHealthCheckFail:
-		newState = types.ChromeStateDisconnected
-		//case eventShutdown:
-		//	newState = stateOffline
+		switch oldState {
+		case types.InstanceStateAvailable:
+			newState = types.InstanceStateUnstable
+		case types.InstanceStateUnstable:
+			// 检查失败次数
+			failCount := evt.Data.(int)
+			if failCount >= 3 {
+				newState = types.InstanceStateUnavailable
+			} else {
+				newState = types.InstanceStateUnstable
+			}
+		}
 	}
 
 	if oldState != newState {
 		i.SetState(newState)
-
-		//if err := chrome.UpdateChrome(c); err != nil {
-		//	internal.Logger.Error("failed to update chrome state",
-		//		zap.Error(err),
-		//		zap.Int("chromeID", c.GetID()),
-		//		zap.String("oldState", oldState.String()),
-		//		zap.String("newState", newState.String()))
-		//}
+		// 如果变为不可用状态,从实例池中移除
+		if newState == types.InstanceStateUnavailable {
+			// TODO: 通知实例池移除该实例
+		}
 	}
 
 	evt.Response <- err
@@ -185,17 +192,24 @@ func (i *Instance) heartBeat() {
 	ticker := time.NewTicker(i.Opts.HeartbeatInterval)
 	defer ticker.Stop()
 
+	failCount := 0
+
 	for {
 		select {
 		case <-ticker.C:
-			state := i.GetState()
-			if state != types.ChromeStateConnected {
-				continue
-			}
-
 			ok, _ := util.RetryCheckChromeHealth(i.GetAddr(), 1, 0)
 			if !ok {
+				failCount++
 				i.HandleEvent(types.EventHealthCheckFail)
+				i.GetStateChan() <- types.StateEvent{
+					Type: types.EventHealthCheckFail,
+					Data: failCount,
+				}
+			} else {
+				failCount = 0
+				i.GetStateChan() <- types.StateEvent{
+					Type: types.EventHealthCheckSuccess,
+				}
 			}
 
 		case <-i.allocatorCtx.Done():
@@ -218,7 +232,7 @@ func (i *Instance) GetAccounts() map[string]account.IAccount {
 // NeedsReInitialize 判断是否需要重新初始化
 func (i *Instance) NeedsReInitialize() bool {
 	state := i.GetState()
-	return state == types.ChromeStateDisconnected
+	return state == types.InstanceStateUnavailable
 }
 
 func (i *Instance) cleanupTabs() {

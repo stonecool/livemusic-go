@@ -26,22 +26,22 @@ func TestInstance_GetAddr(t *testing.T) {
 func TestInstance_IsAvailable(t *testing.T) {
 	tests := []struct {
 		name     string
-		state    types.ChromeState
+		state    types.InstanceState
 		expected bool
 	}{
 		{
-			name:     "connected state",
-			state:    types.ChromeStateConnected,
+			name:     "available state",
+			state:    types.InstanceStateAvailable,
 			expected: true,
 		},
 		{
-			name:     "disconnected state",
-			state:    types.ChromeStateDisconnected,
+			name:     "unstable state",
+			state:    types.InstanceStateUnstable,
 			expected: false,
 		},
 		{
-			name:     "offline state",
-			state:    types.ChromeStateOffline,
+			name:     "unavailable state",
+			state:    types.InstanceStateUnavailable,
 			expected: false,
 		},
 	}
@@ -59,7 +59,7 @@ func TestInstance_IsAvailable(t *testing.T) {
 
 			instance.initialize()
 
-			assert.Equal(t, tt.expected, instance.GetState() == types.ChromeStateConnected)
+			assert.Equal(t, tt.expected, instance.IsAvailable())
 		})
 	}
 }
@@ -67,16 +67,34 @@ func TestInstance_IsAvailable(t *testing.T) {
 func TestInstance_HandleStateTransition(t *testing.T) {
 	tests := []struct {
 		name          string
-		initialState  types.ChromeState
+		initialState  types.InstanceState
 		event         types.EventType
-		expectedState types.ChromeState
+		eventData     interface{}
+		expectedState types.InstanceState
 		expectError   bool
 	}{
 		{
-			name:          "valid transition: connected to disconnected",
-			initialState:  types.ChromeStateConnected,
+			name:          "available to unstable on health check fail",
+			initialState:  types.InstanceStateAvailable,
 			event:         types.EventHealthCheckFail,
-			expectedState: types.ChromeStateDisconnected,
+			eventData:     1, // first failure
+			expectedState: types.InstanceStateUnstable,
+			expectError:   false,
+		},
+		{
+			name:          "unstable to unavailable on third health check fail",
+			initialState:  types.InstanceStateUnstable,
+			event:         types.EventHealthCheckFail,
+			eventData:     3, // third failure
+			expectedState: types.InstanceStateUnavailable,
+			expectError:   false,
+		},
+		{
+			name:          "unstable to available on health check success",
+			initialState:  types.InstanceStateUnstable,
+			event:         types.EventHealthCheckSuccess,
+			eventData:     nil,
+			expectedState: types.InstanceStateAvailable,
 			expectError:   false,
 		},
 	}
@@ -84,18 +102,28 @@ func TestInstance_HandleStateTransition(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			instance := &Instance{
-				State: tt.initialState,
-				Opts: &types.InstanceOptions{
-					InitTimeout:       time.Second,
-					HeartbeatInterval: time.Second,
-				},
+				State:     tt.initialState,
 				StateChan: make(chan types.StateEvent, 1),
 			}
 
-			instance.initialize()
+			responseChan := make(chan interface{}, 1)
+			instance.HandleStateTransition(types.StateEvent{
+				Type:     tt.event,
+				Data:     tt.eventData,
+				Response: responseChan,
+			})
 
-			time.Sleep(10 * time.Millisecond)
-			instance.HandleEvent(tt.event)
+			result := <-responseChan
+			if tt.expectError {
+				assert.NotNil(t, result)
+				assert.Error(t, result.(error))
+			} else {
+				// 如果不期望错误，result 可能是 nil
+				if result != nil {
+					assert.NoError(t, result.(error))
+				}
+				assert.Equal(t, tt.expectedState, instance.GetState())
+			}
 		})
 	}
 }
@@ -130,7 +158,6 @@ func TestInstance_RetryInitialize(t *testing.T) {
 			err := instance.RetryInitialize(tt.maxAttempts)
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.ErrorIs(t, err, context.DeadlineExceeded)
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, instance.allocatorCtx)

@@ -16,11 +16,11 @@ func toInstance(model *types.Model) types.Chrome {
 		IP:          model.IP,
 		Port:        model.Port,
 		DebuggerURL: model.DebuggerURL,
-		State:       types.ChromeState(model.State),
+		State:       types.InstanceState(model.State),
 	}
 }
 
-func createInstance(ip string, port int, debuggerURL string, state types.ChromeState) (types.Chrome, error) {
+func createInstance(ip string, port int, debuggerURL string, state types.InstanceState) (types.Chrome, error) {
 	newInstance := &instance.Instance{
 		IP:          ip,
 		Port:        port,
@@ -101,7 +101,7 @@ func Create() (types.Chrome, error) {
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	chrome, err := createInstance(ip, port, url, types.ChromeStateConnected)
+	chrome, err := createInstance(ip, port, url, types.InstanceStateAvailable)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func Bind(ip string, port int) (types.Chrome, error) {
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	model, err := storage.Repo.Create(ip, port, url, types.ChromeStateConnected)
+	model, err := storage.Repo.Create(ip, port, url, types.InstanceStateAvailable)
 	if err != nil {
 		return nil, err
 	}
