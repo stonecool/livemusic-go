@@ -68,13 +68,6 @@ paths:
             $ref: '#/definitions/api.Response'
       summary: List all browser instances
     post:
-      parameters:
-      - description: Instance configuration
-        in: body
-        name: form
-        required: true
-        schema:
-          $ref: '#/definitions/api.instanceForm'
       produces:
       - application/json
       responses:
@@ -86,7 +79,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/api.Response'
-      summary: Create a new browser instance
+      summary: Create a local new chrome
   /api/v1/chromes/{id}:
     delete:
       parameters:
@@ -152,7 +145,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/api.Response'
-      summary: Bind an existing browser instance
+      summary: Bind an existing chrome
   /api/v1/crawl-accounts:
     get:
       produces:

@@ -40,18 +40,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Create a new browser instance",
-                "parameters": [
-                    {
-                        "description": "Instance configuration",
-                        "name": "form",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.instanceForm"
-                        }
-                    }
-                ],
+                "summary": "Create a local new chrome",
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -76,7 +65,7 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Bind an existing browser instance",
+                "summary": "Bind an existing chrome",
                 "parameters": [
                     {
                         "description": "Instance configuration",

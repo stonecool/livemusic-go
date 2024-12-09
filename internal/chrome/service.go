@@ -2,6 +2,7 @@ package chrome
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/chrome/instance"
@@ -26,6 +27,10 @@ func createInstance(ip string, port int, debuggerURL string, state types.Instanc
 		Port:        port,
 		DebuggerURL: debuggerURL,
 		State:       state,
+		Opts: &types.InstanceOptions{
+			InitTimeout:       time.Second,
+			HeartbeatInterval: time.Second,
+		},
 	}
 
 	if err := newInstance.Initialize(); err != nil {

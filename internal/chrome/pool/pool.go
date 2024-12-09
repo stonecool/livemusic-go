@@ -36,7 +36,6 @@ func GetPool() *pool {
 	return GlobalPool
 }
 
-// AddChrome 添加新的实例到池
 func (p *pool) AddChrome(chrome types.Chrome) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -46,13 +45,13 @@ func (p *pool) AddChrome(chrome types.Chrome) error {
 	}
 
 	p.chromes[chrome.GetAddr()] = chrome
-	for _, account := range chrome.GetAccounts() {
-		cat := account.GetCategory()
-		if _, exists := p.categories[cat]; !exists {
-			p.categories[cat] = newCategory(cat)
-		}
-		p.categories[cat].AddChrome(chrome)
-	}
+	//for _, account := range chrome.GetAccounts() {
+	//	cat := account.GetCategory()
+	//	if _, exists := p.categories[cat]; !exists {
+	//		p.categories[cat] = newCategory(cat)
+	//	}
+	//	p.categories[cat].AddChrome(chrome)
+	//}
 
 	return nil
 }

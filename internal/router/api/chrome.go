@@ -12,10 +12,9 @@ type instanceForm struct {
 	Port int    `json:"port" valid:"Required;Min(9222);Max(65535)"`
 }
 
-// CreateInstance
-// @Summary Create a new browser instance
+// CreateChrome
+// @Summary Create a local new chrome
 // @Produce json
-// @Param   form    body    instanceForm    true "Instance configuration"
 // @Success 201 {object} Response
 // @Failure 400 {object} Response
 // @Router  /api/v1/chromes [post]
@@ -29,8 +28,8 @@ func CreateChrome(ctx *gin.Context) {
 	}
 }
 
-// BindInstance
-// @Summary Bind an existing browser instance
+// BindChrome
+// @Summary Bind an existing chrome
 // @Accept  json
 // @Param   form    body    instanceForm    true "Instance configuration"
 // @Produce json

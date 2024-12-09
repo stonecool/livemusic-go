@@ -52,3 +52,7 @@ go test -v .\internal\chrome\... -v -cover 三个点，所有目录和子目录
   │
   └── service/               # 业务服务层
       └── crawler.go         # 协调不同领域的服务
+
+启动chrome后，再执行可能有问题
+http://127.0.0.1:9222/json
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222

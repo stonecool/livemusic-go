@@ -10,7 +10,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -40,33 +39,13 @@ func checkPortAvailable(port int) bool {
 }
 
 func FindAvailablePort(startPort int) (int, error) {
-	var wg sync.WaitGroup
-	portChan := make(chan int, 1)
-
 	for port := startPort; port < 65535; port++ {
-		wg.Add(1)
-		go func(p int) {
-			defer wg.Done()
-			if checkPortAvailable(p) {
-				select {
-				case portChan <- p:
-				default:
-				}
-			}
-		}(port)
+		if checkPortAvailable(port) {
+			return port, nil
+		}
 	}
 
-	go func() {
-		wg.Wait()
-		close(portChan)
-	}()
-
-	select {
-	case port := <-portChan:
-		return port, nil
-	case <-time.After(10 * time.Second):
-		return 0, fmt.Errorf("no available port found")
-	}
+	return 0, fmt.Errorf("no available port found")
 }
 
 func StartChromeOnPort(port int) error {
@@ -94,9 +73,8 @@ func StartChromeOnPort(port int) error {
 	return nil
 }
 
-// checkChromeHealth 通过远程调试端口检查 Chrome 实例的健康状态
 func checkChromeHealth(addr string) (bool, string) {
-	url := fmt.Sprintf("http://%s/json", addr)
+	url := fmt.Sprintf("http://%s/json/version", addr)
 	resp, err := http.Get(url)
 	if err != nil {
 		return false, ""
