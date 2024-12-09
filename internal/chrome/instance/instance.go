@@ -30,6 +30,15 @@ type Instance struct {
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc
 	Opts         *types.InstanceOptions
+	Type         types.InstanceType
+}
+
+func (i *Instance) GetType() types.InstanceType {
+	return i.Type
+}
+
+func (i *Instance) SetType(instanceType types.InstanceType) {
+	i.Type = instanceType
 }
 
 func (i *Instance) GetID() int {

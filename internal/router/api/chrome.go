@@ -93,12 +93,7 @@ func GetChrome(ctx *gin.Context) {
 // @Router  /api/v1/chromes [get]
 func ListChromes(ctx *gin.Context) {
 	var context = Context{Context: ctx}
-
-	if instances, err := chrome.GetAll(); err != nil {
-		context.Response(http.StatusInternalServerError, Error, nil)
-	} else {
-		context.Response(http.StatusOK, Success, instances)
-	}
+	context.Response(http.StatusOK, Success, chrome.GetAll())
 }
 
 // DeleteChrome

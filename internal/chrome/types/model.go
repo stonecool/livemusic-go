@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )

@@ -134,3 +134,7 @@ func (p *pool) DispatchTask(category string, message *message.AsyncMessage) erro
 
 	return fmt.Errorf("no available account found for category: %s", category)
 }
+
+func (p *pool) GetAllChromes() map[string]types.Chrome {
+	return p.chromes
+}

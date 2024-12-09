@@ -2,6 +2,7 @@ package chrome
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/chrome/pool"
 	"time"
 
 	"github.com/stonecool/livemusic-go/internal"
@@ -18,10 +19,11 @@ func toInstance(model *types.Model) types.Chrome {
 		Port:        model.Port,
 		DebuggerURL: model.DebuggerURL,
 		State:       types.InstanceState(model.State),
+		Type:        types.InstanceTypePersistent,
 	}
 }
 
-func createInstance(ip string, port int, debuggerURL string, state types.InstanceState) (types.Chrome, error) {
+func createInstance(ip string, port int, debuggerURL string, state types.InstanceState, instanceType types.InstanceType) (types.Chrome, error) {
 	newInstance := &instance.Instance{
 		IP:          ip,
 		Port:        port,
@@ -31,6 +33,7 @@ func createInstance(ip string, port int, debuggerURL string, state types.Instanc
 			InitTimeout:       time.Second,
 			HeartbeatInterval: time.Second,
 		},
+		Type: instanceType,
 	}
 
 	if err := newInstance.Initialize(); err != nil {
@@ -40,18 +43,31 @@ func createInstance(ip string, port int, debuggerURL string, state types.Instanc
 	return newInstance, nil
 }
 
-func GetAll() ([]types.Chrome, error) {
+func GetAll() []types.Chrome {
 	models, err := storage.Repo.GetAll()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all instances: %w", err)
+		internal.Logger.Error("failed to get all instances",
+			zap.Error(err))
 	}
 
-	chromes := make([]types.Chrome, len(models))
-	for i, m := range models {
-		chromes[i] = toInstance(m)
+	chromes := make(map[string]types.Chrome)
+	for _, m := range models {
+		ins := toInstance(m)
+		chromes[ins.GetAddr()] = toInstance(m)
 	}
 
-	return chromes, nil
+	for _, ins := range pool.GetPool().GetAllChromes() {
+		if _, ok := chromes[ins.GetAddr()]; !ok {
+			chromes[ins.GetAddr()] = ins
+		}
+	}
+
+	list := make([]types.Chrome, len(chromes))
+	for _, ins := range chromes {
+		list = append(list, ins)
+	}
+
+	return list
 }
 
 func ExistsByIPAndPort(ip string, port int) (bool, error) {
@@ -106,7 +122,7 @@ func Create() (types.Chrome, error) {
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	chrome, err := createInstance(ip, port, url, types.InstanceStateAvailable)
+	chrome, err := createInstance(ip, port, url, types.InstanceStateAvailable, types.InstanceTypeTemporary)
 	if err != nil {
 		return nil, err
 	}
