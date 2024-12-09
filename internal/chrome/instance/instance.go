@@ -68,18 +68,8 @@ func (i *Instance) initialize() error {
 
 func (i *Instance) Close() error {
 	if i.cancelFunc != nil {
-		defer time.Sleep(time.Second)
 		i.cancelFunc()
-
-		// 关闭所有打开的标签页
-		//targets, err := chromedp.Targets(context.Background())
-		//if err == nil {
-		//	for _, t := range targets {
-		//		if t.Type == "page" {
-		//			chromedp.CloseTarget(context.Background(), t.TargetID)
-		//		}
-		//	}
-		//}
+		time.Sleep(time.Second)
 	}
 	return nil
 }
@@ -135,6 +125,10 @@ func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 	if !oldState.IsValidTransition(evt.Type) {
 		err = fmt.Errorf("invalid state transition from %s with event %v",
 			oldState.String(), evt.Type)
+		internal.Logger.Error("invalid state transition",
+			zap.String("from", oldState.String()),
+			zap.String("event", evt.Type.String()),
+			zap.Int("chromeID", i.ID))
 		evt.Response <- err
 		return
 	}
@@ -142,27 +136,36 @@ func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 	switch evt.Type {
 	case types.EventHealthCheckSuccess:
 		newState = types.InstanceStateAvailable
+		internal.Logger.Info("instance health check success",
+			zap.Int("chromeID", i.ID))
 	case types.EventHealthCheckFail:
 		switch oldState {
 		case types.InstanceStateAvailable:
 			newState = types.InstanceStateUnstable
+			internal.Logger.Warn("instance became unstable",
+				zap.Int("chromeID", i.ID))
 		case types.InstanceStateUnstable:
-			// 检查失败次数
 			failCount := evt.Data.(int)
 			if failCount >= 3 {
 				newState = types.InstanceStateUnavailable
+				internal.Logger.Error("instance became unavailable",
+					zap.Int("chromeID", i.ID),
+					zap.Int("failCount", failCount))
 			} else {
 				newState = types.InstanceStateUnstable
+				internal.Logger.Warn("instance health check failed",
+					zap.Int("chromeID", i.ID),
+					zap.Int("failCount", failCount))
 			}
 		}
 	}
 
 	if oldState != newState {
 		i.SetState(newState)
-		// 如果变为不可用状态,从实例池中移除
-		if newState == types.InstanceStateUnavailable {
-			// TODO: 通知实例池移除该实例
-		}
+		internal.Logger.Info("instance state changed",
+			zap.Int("chromeID", i.ID),
+			zap.String("from", oldState.String()),
+			zap.String("to", newState.String()))
 	}
 
 	evt.Response <- err

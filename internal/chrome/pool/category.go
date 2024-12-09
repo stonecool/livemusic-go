@@ -1,10 +1,11 @@
 package pool
 
 import (
+	"sync"
+
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"go.uber.org/zap"
-	"sync"
 )
 
 type category struct {
@@ -27,7 +28,8 @@ func (c *category) AddChrome(chrome types.Chrome) {
 	if _, ok := c.chromes[chrome.GetAddr()]; ok {
 		internal.Logger.Warn("chrome already exists in category",
 			zap.String("category", c.name),
-			zap.Int("chromeID", chrome.GetID()))
+			zap.Int("chromeID", chrome.GetID()),
+			zap.String("addr", chrome.GetAddr()))
 		return
 	}
 

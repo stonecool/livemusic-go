@@ -2,8 +2,9 @@ package chrome
 
 import (
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/chrome/pool"
 	"time"
+
+	"github.com/stonecool/livemusic-go/internal/chrome/pool"
 
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/chrome/instance"
@@ -48,12 +49,13 @@ func GetAll() []types.Chrome {
 	if err != nil {
 		internal.Logger.Error("failed to get all instances",
 			zap.Error(err))
+		return nil
 	}
 
 	chromes := make(map[string]types.Chrome)
 	for _, m := range models {
 		ins := toInstance(m)
-		chromes[ins.GetAddr()] = toInstance(m)
+		chromes[ins.GetAddr()] = ins
 	}
 
 	for _, ins := range pool.GetPool().GetAllChromes() {
@@ -62,7 +64,7 @@ func GetAll() []types.Chrome {
 		}
 	}
 
-	list := make([]types.Chrome, len(chromes))
+	list := make([]types.Chrome, 0, len(chromes))
 	for _, ins := range chromes {
 		list = append(list, ins)
 	}
@@ -108,7 +110,7 @@ func Create() (types.Chrome, error) {
 
 	err = util.StartChromeOnPort(port)
 	if err != nil {
-		internal.Logger.Error("failed to start model",
+		internal.Logger.Error("failed to start chrome",
 			zap.Error(err),
 			zap.Int("port", port))
 		return nil, err
@@ -116,7 +118,7 @@ func Create() (types.Chrome, error) {
 
 	ok, url := util.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
 	if !ok {
-		internal.Logger.Error("model health check failed",
+		internal.Logger.Error("chrome health check failed",
 			zap.String("ip", ip),
 			zap.Int("port", port))
 		return nil, fmt.Errorf("health check failed")
@@ -124,10 +126,18 @@ func Create() (types.Chrome, error) {
 
 	chrome, err := createInstance(ip, port, url, types.InstanceStateAvailable, types.InstanceTypeTemporary)
 	if err != nil {
+		internal.Logger.Error("failed to create instance",
+			zap.Error(err),
+			zap.String("ip", ip),
+			zap.Int("port", port))
 		return nil, err
 	}
 
 	if err := chrome.Initialize(); err != nil {
+		internal.Logger.Error("failed to initialize instance",
+			zap.Error(err),
+			zap.String("ip", ip),
+			zap.Int("port", port))
 		return nil, err
 	}
 

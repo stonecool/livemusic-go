@@ -3,7 +3,7 @@ package pool
 import (
 	"context"
 	"fmt"
-	"log"
+	"github.com/stonecool/livemusic-go/internal"
 	"sync"
 	"time"
 
@@ -12,6 +12,7 @@ import (
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
 	"github.com/stonecool/livemusic-go/internal/message"
+	"go.uber.org/zap"
 )
 
 var GlobalPool *pool
@@ -54,20 +55,27 @@ func (p *pool) Login(chrome types.Chrome, cat string) {
 
 	instance, exists := p.chromes[chrome.GetAddr()]
 	if !exists {
-		fmt.Printf("instance:%d not exists in pool", chrome.GetID())
+		internal.Logger.Error("instance not exists in pool",
+			zap.Int("chromeID", chrome.GetID()),
+			zap.String("addr", chrome.GetAddr()))
 		return
 	}
 
 	category, ok := p.categories[cat]
 	if ok {
 		if category.ContainChrome(chrome.GetAddr()) {
-			fmt.Printf("instance:%d already in cat:%s", chrome.GetID(), cat)
+			internal.Logger.Warn("instance already in category",
+				zap.Int("chromeID", chrome.GetID()),
+				zap.String("category", cat))
 			return
 		}
 	}
 
 	acc, err := account.GetAccount(chrome.GetID())
 	if err != nil {
+		internal.Logger.Error("failed to get account",
+			zap.Error(err),
+			zap.Int("chromeID", chrome.GetID()))
 		return
 	}
 
@@ -77,8 +85,6 @@ func (p *pool) Login(chrome types.Chrome, cat string) {
 	ctx, cancel = context.WithTimeout(ctx, 150*time.Second)
 	defer cancel()
 
-	//ctx, cancel = chromedp.NewContext(ctx, chromedp.WithDebugf(log.Printf))
-
 	err = chromedp.Run(ctx,
 		util.GetQRCode(acc),
 		acc.WaitLogin(),
@@ -87,13 +93,14 @@ func (p *pool) Login(chrome types.Chrome, cat string) {
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		internal.Logger.Error("failed to run chrome commands",
+			zap.Error(err),
+			zap.Int("chromeID", chrome.GetID()),
+			zap.String("category", cat))
 		return
 	}
 
 	category.AddChrome(instance)
-
-	return
 }
 
 func (p *pool) GetChromesByCategory(cat string) []types.Chrome {

@@ -11,6 +11,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/stonecool/livemusic-go/internal"
+	"go.uber.org/zap"
 )
 
 func checkPortAvailable(port int) bool {
@@ -63,12 +66,15 @@ func StartChromeOnPort(port int) error {
 	}
 
 	if err := cmd.Start(); err != nil {
-		fmt.Printf("Failed to start Google Chrome: %v\n", err)
+		internal.Logger.Error("failed to start Google Chrome",
+			zap.Error(err),
+			zap.Int("port", port))
 		return err
 	}
 
 	time.Sleep(5)
-	fmt.Println("Google Chrome started successfully")
+	internal.Logger.Info("Google Chrome started successfully",
+		zap.Int("port", port))
 
 	return nil
 }
