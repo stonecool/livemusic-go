@@ -14,7 +14,6 @@ import (
 	"github.com/stonecool/livemusic-go/internal/message"
 )
 
-// 全局唯一的实例池
 var GlobalPool *pool
 
 type pool struct {
@@ -45,13 +44,6 @@ func (p *pool) AddChrome(chrome types.Chrome) error {
 	}
 
 	p.chromes[chrome.GetAddr()] = chrome
-	//for _, account := range chrome.GetAccounts() {
-	//	cat := account.GetCategory()
-	//	if _, exists := p.categories[cat]; !exists {
-	//		p.categories[cat] = newCategory(cat)
-	//	}
-	//	p.categories[cat].AddChrome(chrome)
-	//}
 
 	return nil
 }

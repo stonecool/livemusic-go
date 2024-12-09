@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/stonecool/livemusic-go/internal/account"
-	"github.com/stonecool/livemusic-go/internal/chrome/pool"
 	"github.com/stonecool/livemusic-go/internal/client"
 	"github.com/unknwon/com"
 	"log"
@@ -145,6 +144,4 @@ func CrawlAccountWebSocket(ctx *gin.Context) {
 // @Failure	500	{object}	Response
 // @Router		/api/v1/crawl-accounts/ws/{ID} [get]
 func CrawlAccountLogin(ctx *gin.Context) {
-	pool.GetPool().Login(nil, "")
-
 }
