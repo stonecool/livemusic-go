@@ -4,9 +4,9 @@ package types
 type InstanceState uint8
 
 const (
-	InstanceStateAvailable   InstanceState = iota // 正常可用状态
-	InstanceStateUnstable                         // 临时不可用状态（单次心跳失败）
-	InstanceStateUnavailable                      // 不可用状态（连续三次心跳失败）
+	InstanceStateAvailable InstanceState = iota
+	InstanceStateUnstable
+	InstanceStateUnavailable
 )
 
 // String returns the string representation of the state
@@ -34,7 +34,10 @@ type StateManager interface {
 
 // validTransitions defines valid state transitions based on events
 var validTransitions = map[InstanceState][]EventType{
-	InstanceStateAvailable: {EventHealthCheckFail},
+	InstanceStateAvailable: {
+		EventHealthCheckSuccess,
+		EventHealthCheckFail,
+	},
 	InstanceStateUnstable: {
 		EventHealthCheckSuccess, // 恢复到可用状态
 		EventHealthCheckFail,    // 累计失败次数增加

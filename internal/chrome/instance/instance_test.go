@@ -2,12 +2,10 @@ package instance
 
 import (
 	"context"
-	"testing"
-	"time"
-
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestInstance_GetID(t *testing.T) {
@@ -21,47 +19,6 @@ func TestInstance_GetAddr(t *testing.T) {
 		Port: 9222,
 	}
 	assert.Equal(t, "127.0.0.1:9222", instance.GetAddr())
-}
-
-func TestInstance_IsAvailable(t *testing.T) {
-	tests := []struct {
-		name     string
-		state    types.InstanceState
-		expected bool
-	}{
-		{
-			name:     "available state",
-			state:    types.InstanceStateAvailable,
-			expected: true,
-		},
-		{
-			name:     "unstable state",
-			state:    types.InstanceStateUnstable,
-			expected: false,
-		},
-		{
-			name:     "unavailable state",
-			state:    types.InstanceStateUnavailable,
-			expected: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			instance := &Instance{
-				State: tt.state,
-				Opts: &types.InstanceOptions{
-					InitTimeout:       time.Second,
-					HeartbeatInterval: time.Second,
-				},
-				StateChan: make(chan types.StateEvent, 1),
-			}
-
-			instance.initialize()
-
-			assert.Equal(t, tt.expected, instance.IsAvailable())
-		})
-	}
 }
 
 func TestInstance_HandleStateTransition(t *testing.T) {
@@ -123,49 +80,6 @@ func TestInstance_HandleStateTransition(t *testing.T) {
 					assert.NoError(t, result.(error))
 				}
 				assert.Equal(t, tt.expectedState, instance.GetState())
-			}
-		})
-	}
-}
-
-func TestInstance_RetryInitialize(t *testing.T) {
-	tests := []struct {
-		name        string
-		maxAttempts int
-		opts        *types.InstanceOptions
-		expectError bool
-	}{
-		{
-			name:        "successful initialization",
-			maxAttempts: 3,
-			opts: &types.InstanceOptions{
-				InitTimeout:       time.Second,
-				HeartbeatInterval: time.Second,
-			},
-			expectError: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			instance := &Instance{
-				IP:        "127.0.0.1",
-				Port:      9222,
-				Opts:      tt.opts,
-				StateChan: make(chan types.StateEvent, 1),
-			}
-
-			err := instance.RetryInitialize(tt.maxAttempts)
-			if tt.expectError {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				assert.NotNil(t, instance.allocatorCtx)
-				assert.NotNil(t, instance.cancelFunc)
-			}
-
-			if instance.cancelFunc != nil {
-				instance.cancelFunc()
 			}
 		})
 	}

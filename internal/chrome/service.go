@@ -24,7 +24,7 @@ func toInstance(model *types.Model) types.Chrome {
 	}
 }
 
-func createInstance(ip string, port int, debuggerURL string, state types.InstanceState, instanceType types.InstanceType) (types.Chrome, error) {
+func createInstance(ip string, port int, debuggerURL string, state types.InstanceState) (types.Chrome, error) {
 	newInstance := &instance.Instance{
 		IP:          ip,
 		Port:        port,
@@ -32,14 +32,13 @@ func createInstance(ip string, port int, debuggerURL string, state types.Instanc
 		State:       state,
 		Opts: &types.InstanceOptions{
 			InitTimeout:       time.Second,
-			HeartbeatInterval: time.Second,
+			HeartbeatInterval: time.Second * 5,
 		},
-		Type: instanceType,
+		Type:      types.InstanceTypeTemporary,
+		StateChan: make(chan types.StateEvent, 2),
 	}
 
-	if err := newInstance.Initialize(); err != nil {
-		return nil, err
-	}
+	newInstance.Initialize()
 
 	return newInstance, nil
 }
@@ -78,8 +77,6 @@ func ExistsByIPAndPort(ip string, port int) (bool, error) {
 
 // Create Create a local chrome instance
 func Create() (types.Chrome, error) {
-	ip := "127.0.0.1"
-
 	port, err := util.FindAvailablePort(9222)
 	if err != nil {
 		internal.Logger.Error("failed to find available port",
@@ -87,10 +84,11 @@ func Create() (types.Chrome, error) {
 		return nil, err
 	}
 
-	if !util.IsValidIPv4(ip) || !util.IsValidPort(port) {
+	if !util.IsValidPort(port) {
 		return nil, fmt.Errorf("invalid ip or port")
 	}
 
+	ip := "127.0.0.1"
 	exists, err := ExistsByIPAndPort(ip, port)
 	if err != nil {
 		internal.Logger.Error("failed to check port existence",
@@ -124,7 +122,7 @@ func Create() (types.Chrome, error) {
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	chrome, err := createInstance(ip, port, url, types.InstanceStateAvailable, types.InstanceTypeTemporary)
+	chrome, err := createInstance(ip, port, url, types.InstanceStateAvailable)
 	if err != nil {
 		internal.Logger.Error("failed to create instance",
 			zap.Error(err),
@@ -133,13 +131,7 @@ func Create() (types.Chrome, error) {
 		return nil, err
 	}
 
-	if err := chrome.Initialize(); err != nil {
-		internal.Logger.Error("failed to initialize instance",
-			zap.Error(err),
-			zap.String("ip", ip),
-			zap.Int("port", port))
-		return nil, err
-	}
+	pool.GetPool().AddChrome(chrome)
 
 	return chrome, nil
 }
@@ -181,9 +173,7 @@ func Bind(ip string, port int) (types.Chrome, error) {
 	}
 
 	chrome := toInstance(model)
-	if err := chrome.Initialize(); err != nil {
-		return nil, err
-	}
+	chrome.Initialize()
 
 	return chrome, nil
 }

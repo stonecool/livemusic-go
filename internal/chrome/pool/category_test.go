@@ -17,7 +17,7 @@ func TestCategory_AddChrome(t *testing.T) {
 	mockChrome.On("Close").Return(nil)
 	mockChrome.On("IsAvailable").Return(true)
 	mockChrome.On("GetState").Return(types.ChromeStateConnected)
-	mockChrome.On("GetStateChan").Return(make(chan types.StateEvent))
+	mockChrome.On("getStateChan").Return(make(chan types.StateEvent))
 
 	// Test adding new chrome
 	cat.AddChrome(mockChrome)

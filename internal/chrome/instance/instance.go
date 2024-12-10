@@ -49,23 +49,6 @@ func (i *Instance) GetAddr() string {
 	return fmt.Sprintf("%s:%d", i.IP, i.Port)
 }
 
-func (i *Instance) initialize() error {
-	ctx, cancel := context.WithTimeout(context.Background(), i.Opts.InitTimeout)
-	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
-
-	i.allocatorCtx = allocatorCtx
-	i.cancelFunc = func() {
-		allocatorCancel()
-		cancel()
-	}
-
-	go i.stateManager()
-	go i.heartBeat()
-	go i.cleanupTabs()
-
-	return nil
-}
-
 func (i *Instance) Close() error {
 	if i.cancelFunc != nil {
 		i.cancelFunc()
@@ -102,17 +85,17 @@ func (i *Instance) GetState() types.InstanceState {
 	return i.State
 }
 
-func (i *Instance) GetStateChan() chan types.StateEvent {
+func (i *Instance) getStateChan() chan types.StateEvent {
 	return i.StateChan
 }
 
 func (i *Instance) stateManager() {
 	for {
 		select {
-		case evt := <-i.GetStateChan():
+		case evt := <-i.getStateChan():
 			i.HandleStateTransition(evt)
-		case <-i.allocatorCtx.Done():
-			return
+			//case <-i.allocatorCtx.Done():
+			//	return
 		}
 	}
 }
@@ -168,11 +151,11 @@ func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 			zap.String("to", newState.String()))
 	}
 
-	evt.Response <- err
+	//evt.Response <- err
 }
 
 func (i *Instance) HandleEvent(event types.EventType) {
-	i.GetStateChan() <- types.StateEvent{
+	i.getStateChan() <- types.StateEvent{
 		Type: event,
 	}
 }
@@ -181,47 +164,23 @@ func (i *Instance) GetNewContext() (context.Context, context.CancelFunc) {
 	return chromedp.NewContext(i.allocatorCtx)
 }
 
-func (i *Instance) RetryInitialize(maxAttempts int) error {
-	var lastErr error
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		if err := i.initialize(); err == nil {
-			return nil
-		} else {
-			lastErr = err
-			internal.Logger.Warn("initialization attempt failed",
-				zap.Int("attempt", attempt),
-				zap.Int("maxAttempts", maxAttempts),
-				zap.Error(err),
-				zap.Int("id", i.ID))
-			time.Sleep(time.Second * time.Duration(attempt))
-		}
-	}
-	return fmt.Errorf("failed after %d attempts: %w", maxAttempts, lastErr)
-}
-
 // 心跳检查
 func (i *Instance) heartBeat() {
 	ticker := time.NewTicker(i.Opts.HeartbeatInterval)
 	defer ticker.Stop()
 
-	failCount := 0
-
 	for {
 		select {
 		case <-ticker.C:
+			if i.GetState() == types.InstanceStateUnavailable {
+				return
+			}
+
 			ok, _ := util.RetryCheckChromeHealth(i.GetAddr(), 1, 0)
 			if !ok {
-				failCount++
 				i.HandleEvent(types.EventHealthCheckFail)
-				i.GetStateChan() <- types.StateEvent{
-					Type: types.EventHealthCheckFail,
-					Data: failCount,
-				}
 			} else {
-				failCount = 0
-				i.GetStateChan() <- types.StateEvent{
-					Type: types.EventHealthCheckSuccess,
-				}
+				i.HandleEvent(types.EventHealthCheckSuccess)
 			}
 
 		case <-i.allocatorCtx.Done():
@@ -330,13 +289,6 @@ func (i *Instance) checkZombieProcess() {
 				internal.Logger.Warn("chrome instance appears to be zombie",
 					zap.Int("chromeID", i.ID),
 					zap.String("addr", i.GetAddr()))
-
-				// 尝试重新初始化
-				if err := i.RetryInitialize(3); err != nil {
-					internal.Logger.Error("failed to reinitialize zombie chrome",
-						zap.Error(err),
-						zap.Int("chromeID", i.ID))
-				}
 			}
 		case <-i.allocatorCtx.Done():
 			return
@@ -344,9 +296,18 @@ func (i *Instance) checkZombieProcess() {
 	}
 }
 
-// 实现 Initialize 接口方法
-func (i *Instance) Initialize() error {
-	return i.RetryInitialize(3)
+func (i *Instance) Initialize() {
+	ctx, cancel := context.WithTimeout(context.Background(), i.Opts.InitTimeout*100000)
+	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
+
+	i.allocatorCtx = allocatorCtx
+	i.cancelFunc = func() {
+		allocatorCancel()
+		cancel()
+	}
+
+	go i.stateManager()
+	go i.heartBeat()
 }
 
 func (i *Instance) GetModelData() *types.Model {

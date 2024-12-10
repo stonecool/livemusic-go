@@ -34,14 +34,13 @@ type Chrome interface {
 	SetType(InstanceType)
 
 	// 生命周期管理
-	Initialize() error
+	Initialize()
 	Close() error
 	IsAvailable() bool
 
 	// 状态管理
 	GetState() InstanceState
 	SetState(InstanceState)
-	GetStateChan() chan StateEvent
 
 	// 账号管理
 	GetAccounts() map[string]account.IAccount
