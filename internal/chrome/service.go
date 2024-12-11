@@ -14,33 +14,29 @@ import (
 	"go.uber.org/zap"
 )
 
-func toInstance(model *types.Model) types.Chrome {
-	return &instance.Instance{
+func newInstance(model *types.Model, instanceType types.InstanceType, init bool) types.Chrome {
+	ins := &instance.Instance{
 		IP:          model.IP,
 		Port:        model.Port,
 		DebuggerURL: model.DebuggerURL,
 		State:       types.InstanceState(model.State),
-		Type:        types.InstanceTypePersistent,
-	}
-}
-
-func createInstance(ip string, port int, debuggerURL string, state types.InstanceState) (types.Chrome, error) {
-	newInstance := &instance.Instance{
-		IP:          ip,
-		Port:        port,
-		DebuggerURL: debuggerURL,
-		State:       state,
+		Type:        instanceType,
 		Opts: &types.InstanceOptions{
 			InitTimeout:       time.Second,
 			HeartbeatInterval: time.Second * 5,
 		},
-		Type:      types.InstanceTypeTemporary,
-		StateChan: make(chan types.StateEvent, 2),
+		StateChan: make(chan types.StateEvent, 1),
 	}
 
-	newInstance.Initialize()
+	if init {
+		ins.Initialize()
 
-	return newInstance, nil
+		if err := pool.GetPool().AddChrome(ins); err != nil {
+			ins.Close()
+		}
+	}
+
+	return ins
 }
 
 func GetAll() []types.Chrome {
@@ -53,7 +49,7 @@ func GetAll() []types.Chrome {
 
 	chromes := make(map[string]types.Chrome)
 	for _, m := range models {
-		ins := toInstance(m)
+		ins := newInstance(m, types.InstanceTypePersistent, false)
 		chromes[ins.GetAddr()] = ins
 	}
 
@@ -122,16 +118,13 @@ func Create() (types.Chrome, error) {
 		return nil, fmt.Errorf("health check failed")
 	}
 
-	chrome, err := createInstance(ip, port, url, types.InstanceStateAvailable)
-	if err != nil {
-		internal.Logger.Error("failed to create instance",
-			zap.Error(err),
-			zap.String("ip", ip),
-			zap.Int("port", port))
-		return nil, err
+	mockModel := &types.Model{
+		IP:          ip,
+		Port:        port,
+		DebuggerURL: url,
+		State:       int(types.InstanceStateAvailable),
 	}
-
-	pool.GetPool().AddChrome(chrome)
+	chrome := newInstance(mockModel, types.InstanceTypeTemporary, true)
 
 	return chrome, nil
 }
@@ -172,8 +165,7 @@ func Bind(ip string, port int) (types.Chrome, error) {
 		return nil, err
 	}
 
-	chrome := toInstance(model)
-	chrome.Initialize()
+	chrome := newInstance(model, types.InstanceTypePersistent, true)
 
 	return chrome, nil
 }

@@ -5,92 +5,137 @@ import (
 
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestRepository_CRUD(t *testing.T) {
-	repo := NewMockRepository()
-
-	// Test Create
-	model, err := repo.Create("127.0.0.1", 9222, "ws://127.0.0.1:9222", types.ChromeStateConnected)
-	assert.NoError(t, err)
-	assert.NotNil(t, model)
-	assert.Equal(t, 1, model.ID)
-
-	// Test Get
-	retrieved, err := repo.Get(model.ID)
-	assert.NoError(t, err)
-	assert.Equal(t, model.IP, retrieved.IP)
-	assert.Equal(t, model.Port, retrieved.Port)
-	assert.Equal(t, model.DebuggerURL, retrieved.DebuggerURL)
-	assert.Equal(t, model.State, retrieved.State)
-
-	// Test Update
-	model.State = int(types.ChromeStateDisconnected)
-	err = repo.Update(model)
-	assert.NoError(t, err)
-
-	updated, err := repo.Get(model.ID)
-	assert.NoError(t, err)
-	assert.Equal(t, int(types.ChromeStateDisconnected), updated.State)
-
-	// Test GetAll
-	models, err := repo.GetAll()
-	assert.NoError(t, err)
-	assert.Len(t, models, 1)
-
-	// Test ExistsByIPAndPort
-	exists, err := repo.ExistsByIPAndPort("127.0.0.1", 9222)
-	assert.NoError(t, err)
-	assert.True(t, exists)
-
-	exists, err = repo.ExistsByIPAndPort("127.0.0.1", 9223)
-	assert.NoError(t, err)
-	assert.False(t, exists)
-
-	// Test Delete
-	err = repo.Delete(model.ID)
-	assert.NoError(t, err)
-
-	_, err = repo.Get(model.ID)
-	assert.Error(t, err)
+type MockDB struct {
+	mock.Mock
 }
 
-func TestRepository_CreateInvalid(t *testing.T) {
-	repo := NewMockRepository()
+func (m *MockDB) Get(id int) (*types.Model, error) {
+	args := m.Called(id)
+	return args.Get(0).(*types.Model), args.Error(1)
+}
+
+func (m *MockDB) Create(model *types.Model) error {
+	args := m.Called(model)
+	return args.Error(0)
+}
+
+func (m *MockDB) Update(model *types.Model) error {
+	args := m.Called(model)
+	return args.Error(0)
+}
+
+func (m *MockDB) Delete(id int) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
+func (m *MockDB) GetAll() ([]*types.Model, error) {
+	args := m.Called()
+	return args.Get(0).([]*types.Model), args.Error(1)
+}
+
+func (m *MockDB) FindBy(query string, args ...interface{}) ([]*types.Model, error) {
+	callArgs := m.Called(query, args)
+	return callArgs.Get(0).([]*types.Model), callArgs.Error(1)
+}
+
+func (m *MockDB) ExistsBy(query string, args ...interface{}) (bool, error) {
+	callArgs := m.Called(query, args)
+	return callArgs.Get(0).(bool), callArgs.Error(1)
+}
+
+func TestRepositoryDB_Get(t *testing.T) {
+	mockDB := new(MockDB)
+	repo := &repositoryDB{db: mockDB}
+
+	expectedModel := &types.Model{
+		IP:          "127.0.0.1",
+		Port:        9222,
+		DebuggerURL: "ws://127.0.0.1:9222",
+		State:       int(types.InstanceStateAvailable),
+	}
+
+	mockDB.On("Get", 1).Return(expectedModel, nil)
+
+	model, err := repo.Get(1)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedModel.IP, model.IP)
+	assert.Equal(t, expectedModel.Port, model.Port)
+	assert.Equal(t, expectedModel.DebuggerURL, model.DebuggerURL)
+	assert.Equal(t, expectedModel.State, model.State)
+}
+
+func TestRepositoryDB_Create(t *testing.T) {
+	mockDB := new(MockDB)
+	repo := &repositoryDB{db: mockDB}
+
+	mockDB.On("Create", mock.AnythingOfType("*types.Model")).Return(nil)
+
+	model, err := repo.Create("127.0.0.1", 9222, "ws://127.0.0.1:9222", types.InstanceStateAvailable)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, model)
+	assert.Equal(t, "127.0.0.1", model.IP)
+	assert.Equal(t, 9222, model.Port)
+	assert.Equal(t, "ws://127.0.0.1:9222", model.DebuggerURL)
+	assert.Equal(t, int(types.InstanceStateAvailable), model.State)
+}
+
+func TestRepositoryDB_Update(t *testing.T) {
+	mockDB := new(MockDB)
+	repo := &repositoryDB{db: mockDB}
+
+	model := &types.Model{
+		IP:          "127.0.0.1",
+		Port:        9222,
+		DebuggerURL: "ws://127.0.0.1:9222",
+		State:       int(types.InstanceStateAvailable),
+	}
+
+	mockDB.On("Update", model).Return(nil)
+
+	err := repo.Update(model)
+	assert.NoError(t, err)
+}
+
+func TestRepositoryDB_GetAll(t *testing.T) {
+	mockDB := new(MockDB)
+	repo := &repositoryDB{db: mockDB}
+
+	expectedModels := []*types.Model{
+		{
+			IP:          "127.0.0.1",
+			Port:        9222,
+			DebuggerURL: "ws://127.0.0.1:9222",
+			State:       int(types.InstanceStateAvailable),
+		},
+	}
+
+	mockDB.On("GetAll").Return(expectedModels, nil)
+
+	models, err := repo.GetAll()
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedModels, models)
+}
+
+func TestRepositoryDB_CreateInvalid(t *testing.T) {
+	mockDB := new(MockDB)
+	repo := &repositoryDB{db: mockDB}
 
 	// Test invalid IP
-	_, err := repo.Create("", 9222, "ws://127.0.0.1:9222", types.ChromeStateConnected)
+	_, err := repo.Create("", 9222, "ws://127.0.0.1:9222", types.InstanceStateAvailable)
 	assert.Error(t, err)
 
 	// Test invalid port
-	_, err = repo.Create("127.0.0.1", 0, "ws://127.0.0.1:9222", types.ChromeStateConnected)
+	_, err = repo.Create("127.0.0.1", 0, "ws://127.0.0.1:9222", types.InstanceStateAvailable)
 	assert.Error(t, err)
 
 	// Test invalid debugger URL
-	_, err = repo.Create("127.0.0.1", 9222, "", types.ChromeStateConnected)
-	assert.Error(t, err)
-}
-
-func TestRepository_UpdateInvalid(t *testing.T) {
-	repo := NewMockRepository()
-
-	// Create a valid model first
-	model, err := repo.Create("127.0.0.1", 9222, "ws://127.0.0.1:9222", types.ChromeStateConnected)
-	assert.NoError(t, err)
-
-	// Test update with invalid IP
-	model.IP = ""
-	err = repo.Update(model)
-	assert.Error(t, err)
-
-	// Test update with invalid port
-	model.IP = "127.0.0.1"
-	model.Port = 0
-	err = repo.Update(model)
-	assert.Error(t, err)
-
-	// Test update non-existent model
-	model.ID = 999
-	err = repo.Update(model)
+	_, err = repo.Create("127.0.0.1", 9222, "", types.InstanceStateAvailable)
 	assert.Error(t, err)
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
-	"github.com/stonecool/livemusic-go/internal/database"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"go.uber.org/zap"
 )
@@ -33,14 +32,6 @@ type Instance struct {
 	Type         types.InstanceType
 }
 
-func (i *Instance) GetType() types.InstanceType {
-	return i.Type
-}
-
-func (i *Instance) SetType(instanceType types.InstanceType) {
-	i.Type = instanceType
-}
-
 func (i *Instance) GetID() int {
 	return i.ID
 }
@@ -49,12 +40,18 @@ func (i *Instance) GetAddr() string {
 	return fmt.Sprintf("%s:%d", i.IP, i.Port)
 }
 
-func (i *Instance) Close() error {
-	if i.cancelFunc != nil {
-		i.cancelFunc()
-		time.Sleep(time.Second)
+func (i *Instance) Initialize() {
+	ctx, cancel := context.WithTimeout(context.Background(), i.Opts.InitTimeout*100000)
+	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
+
+	i.allocatorCtx = allocatorCtx
+	i.cancelFunc = func() {
+		allocatorCancel()
+		cancel()
 	}
-	return nil
+
+	go i.stateManager()
+	go i.heartBeat()
 }
 
 func (i *Instance) IsAvailable() bool {
@@ -73,29 +70,44 @@ func (i *Instance) isAvailable(cat string) bool {
 	return acc.IsAvailable()
 }
 
-func (i *Instance) SetState(state types.InstanceState) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-	i.State = state
+func (i *Instance) Close() {
+	if i.cancelFunc == nil {
+		return
+	}
+
+	i.cancelFunc()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	select {
+	case <-i.allocatorCtx.Done():
+	case <-ctx.Done():
+		internal.Logger.Warn("chrome instance close timeout",
+			zap.Int("chromeID", i.ID))
+	}
 }
 
 func (i *Instance) GetState() types.InstanceState {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
+
 	return i.State
 }
 
-func (i *Instance) getStateChan() chan types.StateEvent {
-	return i.StateChan
+func (i *Instance) SetState(state types.InstanceState) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	i.State = state
 }
 
 func (i *Instance) stateManager() {
 	for {
 		select {
-		case evt := <-i.getStateChan():
+		case evt := <-i.StateChan:
 			i.HandleStateTransition(evt)
-			//case <-i.allocatorCtx.Done():
-			//	return
+		case <-i.allocatorCtx.Done():
+			return
 		}
 	}
 }
@@ -106,12 +118,9 @@ func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 	var err error
 
 	if !oldState.IsValidTransition(evt.Type) {
-		err = fmt.Errorf("invalid state transition from %s with event %v",
-			oldState.String(), evt.Type)
-		internal.Logger.Error("invalid state transition",
-			zap.String("from", oldState.String()),
-			zap.String("event", evt.Type.String()),
-			zap.Int("chromeID", i.ID))
+		err = fmt.Errorf("instance :%s invalid state transition from %s with event %v",
+			i.GetAddr(), oldState.String(), evt.Type)
+		internal.Logger.Error(err.Error())
 		evt.Response <- err
 		return
 	}
@@ -121,14 +130,17 @@ func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 		newState = types.InstanceStateAvailable
 		internal.Logger.Info("instance health check success",
 			zap.Int("chromeID", i.ID))
+
 	case types.EventHealthCheckFail:
+		failCount := evt.Data.(int) // 从事件数据中获取失败次数
 		switch oldState {
 		case types.InstanceStateAvailable:
 			newState = types.InstanceStateUnstable
 			internal.Logger.Warn("instance became unstable",
-				zap.Int("chromeID", i.ID))
+				zap.Int("chromeID", i.ID),
+				zap.Int("failCount", failCount))
+
 		case types.InstanceStateUnstable:
-			failCount := evt.Data.(int)
 			if failCount >= 3 {
 				newState = types.InstanceStateUnavailable
 				internal.Logger.Error("instance became unavailable",
@@ -151,13 +163,21 @@ func (i *Instance) HandleStateTransition(evt types.StateEvent) {
 			zap.String("to", newState.String()))
 	}
 
-	//evt.Response <- err
+	if evt.Response != nil {
+		evt.Response <- err
+	}
 }
 
-func (i *Instance) HandleEvent(event types.EventType) {
-	i.getStateChan() <- types.StateEvent{
+func (i *Instance) handleEvent(event types.EventType, data ...interface{}) {
+	evt := types.StateEvent{
 		Type: event,
 	}
+
+	if len(data) > 0 {
+		evt.Data = data[0]
+	}
+
+	i.StateChan <- evt
 }
 
 func (i *Instance) GetNewContext() (context.Context, context.CancelFunc) {
@@ -169,18 +189,18 @@ func (i *Instance) heartBeat() {
 	ticker := time.NewTicker(i.Opts.HeartbeatInterval)
 	defer ticker.Stop()
 
+	failCount := 0 // 在心跳方法中维护计数器
+
 	for {
 		select {
 		case <-ticker.C:
-			if i.GetState() == types.InstanceStateUnavailable {
-				return
-			}
-
 			ok, _ := util.RetryCheckChromeHealth(i.GetAddr(), 1, 0)
 			if !ok {
-				i.HandleEvent(types.EventHealthCheckFail)
+				failCount++
+				i.handleEvent(types.EventHealthCheckFail, failCount)
 			} else {
-				i.HandleEvent(types.EventHealthCheckSuccess)
+				failCount = 0 // 成功时重置计数器
+				i.handleEvent(types.EventHealthCheckSuccess)
 			}
 
 		case <-i.allocatorCtx.Done():
@@ -198,12 +218,6 @@ func (i *Instance) GetAccounts() map[string]account.IAccount {
 		accounts[k] = v
 	}
 	return accounts
-}
-
-// NeedsReInitialize 判断是否需要重新初始化
-func (i *Instance) NeedsReInitialize() bool {
-	state := i.GetState()
-	return state == types.InstanceStateUnavailable
 }
 
 func (i *Instance) cleanupTabs() {
@@ -293,31 +307,5 @@ func (i *Instance) checkZombieProcess() {
 		case <-i.allocatorCtx.Done():
 			return
 		}
-	}
-}
-
-func (i *Instance) Initialize() {
-	ctx, cancel := context.WithTimeout(context.Background(), i.Opts.InitTimeout*100000)
-	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
-
-	i.allocatorCtx = allocatorCtx
-	i.cancelFunc = func() {
-		allocatorCancel()
-		cancel()
-	}
-
-	go i.stateManager()
-	go i.heartBeat()
-}
-
-func (i *Instance) GetModelData() *types.Model {
-	return &types.Model{
-		BaseModel: database.BaseModel{
-			ID: i.ID,
-		},
-		IP:          i.IP,
-		Port:        i.Port,
-		DebuggerURL: i.DebuggerURL,
-		State:       int(i.State),
 	}
 }

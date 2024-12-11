@@ -2,10 +2,12 @@ package instance
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestInstance_GetID(t *testing.T) {
@@ -31,6 +33,13 @@ func TestInstance_HandleStateTransition(t *testing.T) {
 		expectError   bool
 	}{
 		{
+			name:          "invalid to available not allowed",
+			initialState:  types.InstanceStateInvalid,
+			event:         types.EventHealthCheckSuccess,
+			expectedState: types.InstanceStateInvalid,
+			expectError:   true,
+		},
+		{
 			name:          "available to unstable on health check fail",
 			initialState:  types.InstanceStateAvailable,
 			event:         types.EventHealthCheckFail,
@@ -50,7 +59,6 @@ func TestInstance_HandleStateTransition(t *testing.T) {
 			name:          "unstable to available on health check success",
 			initialState:  types.InstanceStateUnstable,
 			event:         types.EventHealthCheckSuccess,
-			eventData:     nil,
 			expectedState: types.InstanceStateAvailable,
 			expectError:   false,
 		},
@@ -59,46 +67,83 @@ func TestInstance_HandleStateTransition(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			instance := &Instance{
+				ID:        1,
 				State:     tt.initialState,
 				StateChan: make(chan types.StateEvent, 1),
 			}
 
-			responseChan := make(chan interface{}, 1)
-			instance.HandleStateTransition(types.StateEvent{
+			// 发送事件
+			evt := types.StateEvent{
 				Type:     tt.event,
 				Data:     tt.eventData,
-				Response: responseChan,
-			})
+				Response: make(chan interface{}, 1),
+			}
 
-			result := <-responseChan
-			if tt.expectError {
-				assert.NotNil(t, result)
-				assert.Error(t, result.(error))
-			} else {
-				// 如果不期望错误，result 可能是 nil
-				if result != nil {
-					assert.NoError(t, result.(error))
+			// 直接调用 HandleStateTransition
+			instance.HandleStateTransition(evt)
+
+			// 等待响应
+			select {
+			case result := <-evt.Response:
+				if tt.expectError {
+					// 检查是否是 error 类型
+					if err, ok := result.(error); ok {
+						assert.Error(t, err)
+					} else {
+						t.Error("expected error response, got:", result)
+					}
+				} else {
+					// 如果期望成功，result 可能是 nil 或其他非错误值
+					if err, ok := result.(error); ok {
+						assert.NoError(t, err)
+					}
+					assert.Equal(t, tt.expectedState, instance.GetState())
 				}
-				assert.Equal(t, tt.expectedState, instance.GetState())
+			case <-time.After(time.Second):
+				t.Error("test timed out")
 			}
 		})
 	}
 }
 
-func TestInstance_Close(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+func TestInstance_Initialize(t *testing.T) {
 	instance := &Instance{
-		allocatorCtx: ctx,
-		cancelFunc:   cancel,
+		ID:        1,
+		StateChan: make(chan types.StateEvent),
+		Opts: &types.InstanceOptions{
+			InitTimeout:       time.Second,
+			HeartbeatInterval: time.Second,
+		},
 	}
 
-	err := instance.Close()
-	assert.NoError(t, err)
+	instance.Initialize()
+	assert.NotNil(t, instance.allocatorCtx)
+	assert.NotNil(t, instance.cancelFunc)
 
+	// Cleanup
+	instance.Close()
+}
+
+func TestInstance_Close(t *testing.T) {
+	instance := &Instance{
+		ID:        1,
+		StateChan: make(chan types.StateEvent),
+	}
+
+	// Test close without initialization
+	instance.Close() // Should not panic
+
+	// Test close after initialization
+	ctx, cancel := context.WithCancel(context.Background())
+	instance.allocatorCtx = ctx
+	instance.cancelFunc = cancel
+
+	instance.Close()
 	select {
 	case <-instance.allocatorCtx.Done():
+		// Success
 	default:
-		t.Error("Context was not cancelled")
+		t.Error("context was not cancelled")
 	}
 }
 

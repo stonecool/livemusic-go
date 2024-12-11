@@ -4,14 +4,17 @@ package types
 type InstanceState uint8
 
 const (
-	InstanceStateAvailable InstanceState = iota
-	InstanceStateUnstable
-	InstanceStateUnavailable
+	InstanceStateInvalid     InstanceState = iota // 非法状态，用作零值
+	InstanceStateAvailable                        // 正常可用状态
+	InstanceStateUnstable                         // 临时不可用状态（单次心跳失败）
+	InstanceStateUnavailable                      // 不可用状态（多次心跳失败）
 )
 
 // String returns the string representation of the state
 func (s InstanceState) String() string {
 	switch s {
+	case InstanceStateInvalid:
+		return "Invalid"
 	case InstanceStateAvailable:
 		return "Available"
 	case InstanceStateUnstable:
@@ -45,6 +48,8 @@ var validTransitions = map[InstanceState][]EventType{
 	InstanceStateUnavailable: {
 		EventHealthCheckSuccess, // 允许从不可用恢复到可用状态
 	},
+	// 非法状态不允许任何转换
+	InstanceStateInvalid: {},
 }
 
 // IsValidTransition checks if the state transition is valid for the given event

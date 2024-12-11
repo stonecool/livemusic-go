@@ -3,9 +3,10 @@ package pool
 import (
 	"context"
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal"
 	"sync"
 	"time"
+
+	"github.com/stonecool/livemusic-go/internal"
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/account"
@@ -41,11 +42,12 @@ func (p *pool) AddChrome(chrome types.Chrome) error {
 	defer p.mu.Unlock()
 
 	if _, exists := p.chromes[chrome.GetAddr()]; exists {
-		return fmt.Errorf("instance on:%s exists", chrome.GetAddr())
+		err := fmt.Errorf("instance%s exists in pool", chrome.GetAddr())
+		internal.Logger.Error(err.Error())
+		return err
 	}
 
 	p.chromes[chrome.GetAddr()] = chrome
-
 	return nil
 }
 
@@ -136,4 +138,11 @@ func (p *pool) DispatchTask(category string, message *message.AsyncMessage) erro
 
 func (p *pool) GetAllChromes() map[string]types.Chrome {
 	return p.chromes
+}
+
+func (p *pool) GetChrome(addr string) types.Chrome {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	return p.chromes[addr]
 }
