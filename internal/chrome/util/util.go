@@ -155,3 +155,7 @@ func IsValidIPv4(ip string) bool {
 func IsValidPort(port int) bool {
 	return port >= 0 && port <= 65535
 }
+
+func GetAddr(ip string, port int) string {
+	return fmt.Sprintf("%s:%d", ip, port)
+}

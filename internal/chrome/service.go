@@ -98,6 +98,11 @@ func Create() (types.Chrome, error) {
 		return nil, fmt.Errorf("port:%d occupied", port)
 	}
 
+	addr := util.GetAddr(ip, port)
+	if pool.GlobalPool.GetChrome(addr) != nil {
+		return nil, fmt.Errorf("instance:%s in pool", addr)
+	}
+
 	internal.Logger.Info("using port for new instance",
 		zap.String("ip", ip),
 		zap.Int("port", port))
@@ -150,6 +155,11 @@ func Bind(ip string, port int) (types.Chrome, error) {
 
 	if exists {
 		return nil, fmt.Errorf("port:%d occupied", port)
+	}
+
+	addr := util.GetAddr(ip, port)
+	if pool.GlobalPool.GetChrome(addr) != nil {
+		return nil, fmt.Errorf("instance:%s in pool", addr)
 	}
 
 	ok, url := util.RetryCheckChromeHealth(fmt.Sprintf("%s:%d", ip, port), 3, 1)
