@@ -120,33 +120,6 @@ func RetryCheckChromeHealth(addr string, retryCount int, retryDelay time.Duratio
 	return false, ""
 }
 
-// ConvertIPv4ToInt converts an IPv4 address to a 32-bit unsigned integer
-func ConvertIPv4ToInt(ip string) (uint32, error) {
-	parts := strings.Split(ip, ".")
-	if len(parts) != 4 {
-		return 0, fmt.Errorf("invalid IPv4 address")
-	}
-
-	var result uint32
-	for i := 0; i < 4; i++ {
-		part, err := strconv.Atoi(parts[i])
-		if err != nil || part < 0 || part > 255 {
-			return 0, fmt.Errorf("invalid IPv4 address part: %s", parts[i])
-		}
-		result = result<<8 + uint32(part)
-	}
-	return result, nil
-}
-
-// CombineIPAndPort combines an IP address and port into a unique 64-bit unsigned integer
-func CombineIPAndPort(ip string, port uint16) (uint64, error) {
-	ipInt, err := ConvertIPv4ToInt(ip)
-	if err != nil {
-		return 0, err
-	}
-	return (uint64(ipInt) << 16) | uint64(port), nil
-}
-
 func IsValidIPv4(ip string) bool {
 	parsedIP := net.ParseIP(ip)
 	return parsedIP != nil && parsedIP.To4() != nil

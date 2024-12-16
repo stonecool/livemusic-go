@@ -10,48 +10,34 @@ import (
 
 type category struct {
 	name    string
-	chromes map[string]types.Chrome
-	mu      sync.RWMutex
+	chromes sync.Map
 }
 
 func newCategory(name string) *category {
 	return &category{
-		name:    name,
-		chromes: make(map[string]types.Chrome),
+		name: name,
 	}
 }
 
 func (c *category) AddChrome(chrome types.Chrome) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if _, ok := c.chromes[chrome.GetAddr()]; ok {
+	if _, loaded := c.chromes.LoadOrStore(chrome.GetAddr(), chrome); loaded {
 		internal.Logger.Warn("chrome already exists in category",
 			zap.String("category", c.name),
 			zap.Int("chromeID", chrome.GetID()),
 			zap.String("addr", chrome.GetAddr()))
-		return
 	}
-
-	c.chromes[chrome.GetAddr()] = chrome
 }
 
 func (c *category) GetChromes() []types.Chrome {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	result := make([]types.Chrome, 0, len(c.chromes))
-	for _, chrome := range c.chromes {
-		result = append(result, chrome)
-	}
-
+	var result []types.Chrome
+	c.chromes.Range(func(key, value interface{}) bool {
+		result = append(result, value.(types.Chrome))
+		return true
+	})
 	return result
 }
 
 func (c *category) ContainChrome(addr string) bool {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	_, ok := c.chromes[addr]
+	_, ok := c.chromes.Load(addr)
 	return ok
 }

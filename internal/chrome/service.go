@@ -22,7 +22,7 @@ func newInstance(model *types.Model, instanceType types.InstanceType, init bool)
 		State:       types.InstanceState(model.State),
 		Type:        instanceType,
 		Opts: &types.InstanceOptions{
-			InitTimeout:       time.Second,
+			LoginTimeout:      time.Second,
 			HeartbeatInterval: time.Second * 5,
 		},
 		StateChan: make(chan types.StateEvent, 1),
@@ -78,10 +78,6 @@ func Create() (types.Chrome, error) {
 		internal.Logger.Error("failed to find available port",
 			zap.Error(err))
 		return nil, err
-	}
-
-	if !util.IsValidPort(port) {
-		return nil, fmt.Errorf("invalid ip or port")
 	}
 
 	ip := "127.0.0.1"

@@ -37,18 +37,11 @@ func (i *Instance) GetID() int {
 }
 
 func (i *Instance) GetAddr() string {
-	return fmt.Sprintf("%s:%d", i.IP, i.Port)
+	return util.GetAddr(i.IP, i.Port)
 }
 
 func (i *Instance) Initialize() {
-	ctx, cancel := context.WithTimeout(context.Background(), i.Opts.InitTimeout*100000)
-	allocatorCtx, allocatorCancel := chromedp.NewRemoteAllocator(ctx, i.DebuggerURL)
-
-	i.allocatorCtx = allocatorCtx
-	i.cancelFunc = func() {
-		allocatorCancel()
-		cancel()
-	}
+	i.allocatorCtx, i.cancelFunc = chromedp.NewRemoteAllocator(context.Background(), i.DebuggerURL)
 
 	go i.stateManager()
 	go i.heartBeat()

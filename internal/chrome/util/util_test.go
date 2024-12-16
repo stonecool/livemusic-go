@@ -2,8 +2,6 @@ package util
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIsValidIPv4(t *testing.T) {
@@ -44,43 +42,5 @@ func TestIsValidPort(t *testing.T) {
 		if result != test.expected {
 			t.Errorf("IsValidPort(%d) = %v; want %v", test.port, result, test.expected)
 		}
-	}
-}
-
-func TestConvertIPv4ToInt(t *testing.T) {
-	tests := []struct {
-		name    string
-		ip      string
-		want    uint32
-		wantErr bool
-	}{
-		{
-			name:    "localhost",
-			ip:      "127.0.0.1",
-			want:    2130706433,
-			wantErr: false,
-		},
-		{
-			name:    "invalid format",
-			ip:      "127.0.0",
-			wantErr: true,
-		},
-		{
-			name:    "invalid number",
-			ip:      "127.0.0.256",
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ConvertIPv4ToInt(tt.ip)
-			if tt.wantErr {
-				assert.Error(t, err)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tt.want, got)
-			}
-		})
 	}
 }

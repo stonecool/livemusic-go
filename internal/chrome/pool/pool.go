@@ -21,7 +21,7 @@ var GlobalPool *pool
 type pool struct {
 	chromes    map[string]types.Chrome
 	categories map[string]*category
-	mu         sync.Mutex
+	mu         sync.RWMutex
 }
 
 // init 在包初始化时创建实例池
@@ -52,62 +52,68 @@ func (p *pool) AddChrome(chrome types.Chrome) error {
 }
 
 func (p *pool) Login(chrome types.Chrome, cat string) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	instance, exists := p.chromes[chrome.GetAddr()]
-	if !exists {
-		internal.Logger.Error("instance not exists in pool",
-			zap.Int("chromeID", chrome.GetID()),
-			zap.String("addr", chrome.GetAddr()))
-		return
-	}
-
-	category, ok := p.categories[cat]
-	if ok {
-		if category.ContainChrome(chrome.GetAddr()) {
-			internal.Logger.Warn("instance already in category",
-				zap.Int("chromeID", chrome.GetID()),
-				zap.String("category", cat))
-			return
-		}
-	}
-
-	acc, err := account.GetAccount(chrome.GetID())
+	category, acc, err := p.prepareLogin(chrome, cat)
 	if err != nil {
-		internal.Logger.Error("failed to get account",
-			zap.Error(err),
-			zap.Int("chromeID", chrome.GetID()))
-		return
-	}
-
-	ctx, cancel := instance.GetNewContext()
-	defer cancel()
-
-	ctx, cancel = context.WithTimeout(ctx, 150*time.Second)
-	defer cancel()
-
-	err = chromedp.Run(ctx,
-		util.GetQRCode(acc),
-		acc.WaitLogin(),
-		util.SaveCookies(acc),
-		chromedp.Stop(),
-	)
-
-	if err != nil {
-		internal.Logger.Error("failed to run chrome commands",
+		internal.Logger.Error("failed to prepare login",
 			zap.Error(err),
 			zap.Int("chromeID", chrome.GetID()),
 			zap.String("category", cat))
 		return
 	}
 
-	category.AddChrome(instance)
+	if err := p.doLogin(chrome, acc); err != nil {
+		internal.Logger.Error("failed to login",
+			zap.Error(err),
+			zap.Int("chromeID", chrome.GetID()),
+			zap.String("category", cat))
+		return
+	}
+
+	p.mu.Lock()
+	category.AddChrome(chrome)
+	p.mu.Unlock()
+}
+
+func (p *pool) prepareLogin(chrome types.Chrome, cat string) (*category, account.IAccount, error) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	_, exists := p.chromes[chrome.GetAddr()]
+	if !exists {
+		return nil, nil, fmt.Errorf("instance not exists in pool: %s", chrome.GetAddr())
+	}
+
+	category, ok := p.categories[cat]
+	if ok && category.ContainChrome(chrome.GetAddr()) {
+		return nil, nil, fmt.Errorf("instance already in category: %s", cat)
+	}
+
+	acc, err := account.GetAccount(chrome.GetID())
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get account: %w", err)
+	}
+
+	return category, acc, nil
+}
+
+func (p *pool) doLogin(chrome types.Chrome, acc account.IAccount) error {
+	ctx, cancel := chrome.GetNewContext()
+	defer cancel()
+
+	ctx, cancel = context.WithTimeout(ctx, 150*time.Second)
+	defer cancel()
+
+	return chromedp.Run(ctx,
+		util.GetQRCode(acc),
+		acc.WaitLogin(),
+		util.SaveCookies(acc),
+		chromedp.Stop(),
+	)
 }
 
 func (p *pool) GetChromesByCategory(cat string) []types.Chrome {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 
 	if cat, exists := p.categories[cat]; exists {
 		return cat.GetChromes()
@@ -128,6 +134,10 @@ func (p *pool) DispatchTask(category string, message *message.AsyncMessage) erro
 
 	// 遍历实例找到可用的账号
 	for _, instance := range instances {
+		if !instance.IsAvailable() {
+			continue
+		}
+		
 		if err := instance.ExecuteTask(message.ITask); err == nil {
 			return nil
 		}
@@ -137,12 +147,15 @@ func (p *pool) DispatchTask(category string, message *message.AsyncMessage) erro
 }
 
 func (p *pool) GetAllChromes() map[string]types.Chrome {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
 	return p.chromes
 }
 
 func (p *pool) GetChrome(addr string) types.Chrome {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 
 	return p.chromes[addr]
 }

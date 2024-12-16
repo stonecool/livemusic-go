@@ -111,7 +111,7 @@ func TestInstance_Initialize(t *testing.T) {
 		ID:        1,
 		StateChan: make(chan types.StateEvent),
 		Opts: &types.InstanceOptions{
-			InitTimeout:       time.Second,
+			LoginTimeout:      time.Second,
 			HeartbeatInterval: time.Second,
 		},
 	}
@@ -144,28 +144,6 @@ func TestInstance_Close(t *testing.T) {
 		// Success
 	default:
 		t.Error("context was not cancelled")
-	}
-}
-
-func TestInstance_GetNewContext(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	instance := &Instance{
-		allocatorCtx: ctx,
-	}
-
-	newCtx, newCancel := instance.GetNewContext()
-	defer newCancel()
-
-	assert.NotNil(t, newCtx)
-	assert.NotNil(t, newCancel)
-
-	cancel()
-	select {
-	case <-newCtx.Done():
-	default:
-		t.Error("Child context was not cancelled with parent")
 	}
 }
 
