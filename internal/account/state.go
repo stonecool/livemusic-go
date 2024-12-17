@@ -7,8 +7,7 @@ import (
 type accountState int
 
 const (
-	stateNew accountState = iota
-	stateInitialized
+	stateInitialized accountState = iota
 	stateNotLoggedIn
 	stateReady
 	stateRunning
@@ -17,8 +16,6 @@ const (
 
 func (s accountState) String() string {
 	switch s {
-	case stateNew:
-		return "new"
 	case stateInitialized:
 		return "initialized"
 	case stateNotLoggedIn:
@@ -44,10 +41,6 @@ type BaseStateManager struct{}
 
 func (b *BaseStateManager) getNextState(state accountState, cmd message.CrawlCmd) accountState {
 	switch state {
-	case stateNew:
-		if cmd == message.CrawlCmd_Initial {
-			return stateInitialized
-		}
 	case stateReady:
 		if cmd == message.CrawlCmd_Crawl {
 			return stateRunning
@@ -62,10 +55,6 @@ func (b *BaseStateManager) getNextState(state accountState, cmd message.CrawlCmd
 
 func (b *BaseStateManager) getErrorState(state accountState) accountState {
 	switch state {
-	case stateNew:
-		return stateNew // 新建状态出错保持原状态
-	case stateInitialized:
-		return stateNew // 初始化失败回到新建状态
 	case stateRunning:
 		return stateReady // 运行出错回到就绪状态
 	case stateTerminated:
@@ -77,10 +66,8 @@ func (b *BaseStateManager) getErrorState(state accountState) accountState {
 
 func (b *BaseStateManager) isValidTransition(from, to accountState) bool {
 	switch from {
-	case stateNew:
-		return to == stateInitialized
 	case stateInitialized:
-		return to == stateReady || to == stateNew
+		return to == stateReady
 	case stateReady:
 		return to == stateRunning || to == stateTerminated
 	case stateRunning:
@@ -99,8 +86,6 @@ type DefaultStateManager struct {
 
 func (mgr *DefaultStateManager) getNextState(currentState accountState, cmd message.CrawlCmd) accountState {
 	switch currentState {
-	case stateNew:
-		return stateInitialized
 	case stateInitialized:
 		return stateNotLoggedIn
 	case stateNotLoggedIn:

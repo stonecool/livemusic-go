@@ -61,7 +61,6 @@ func (p *pool) GetChrome(addr string) types.Chrome {
 
 func (p *pool) Login(chrome types.Chrome, cat string) {
 	p.mu.RLock()
-	p.mu.RUnlock()
 
 	_, exists := p.chromes[chrome.GetAddr()]
 	if !exists {
@@ -80,6 +79,7 @@ func (p *pool) Login(chrome types.Chrome, cat string) {
 		fmt.Errorf("failed to get account: %w", err)
 		return
 	}
+	p.mu.RUnlock()
 
 	if err := chrome.Login(acc); err != nil {
 		internal.Logger.Error("failed to login",

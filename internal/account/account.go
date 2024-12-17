@@ -57,13 +57,6 @@ func (a *account) processTask() {
 
 func (a *account) handleCommand(currentState accountState, msg *message.AsyncMessage) interface{} {
 	switch currentState {
-	case stateNew:
-		if msg.Cmd != message.CrawlCmd_Initial {
-			return fmt.Errorf("invalid command:%v for new accountState", msg.Cmd)
-		}
-		go a.processTask()
-		return nil
-
 	case stateInitialized:
 		if msg.Cmd != message.CrawlCmd_Login {
 			return fmt.Errorf("invalid command:%v for initialized accountState", msg.Cmd)

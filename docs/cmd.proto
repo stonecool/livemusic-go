@@ -9,7 +9,7 @@ enum CrawlState {
 }
 
 enum CrawlCmd {
-  Initial       = 0;
+  Invalid       = 0;
   Login         = 1;
   LoginAck      = 2;
   StateAck      = 3;
