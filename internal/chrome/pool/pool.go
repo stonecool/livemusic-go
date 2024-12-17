@@ -1,19 +1,13 @@
 package pool
 
 import (
-	"context"
 	"fmt"
-	"sync"
-	"time"
-
 	"github.com/stonecool/livemusic-go/internal"
-
-	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
-	"github.com/stonecool/livemusic-go/internal/chrome/util"
 	"github.com/stonecool/livemusic-go/internal/message"
 	"go.uber.org/zap"
+	"sync"
 )
 
 var GlobalPool *pool
@@ -51,17 +45,43 @@ func (p *pool) AddChrome(chrome types.Chrome) error {
 	return nil
 }
 
+func (p *pool) GetAllChromes() map[string]types.Chrome {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	return p.chromes
+}
+
+func (p *pool) GetChrome(addr string) types.Chrome {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	return p.chromes[addr]
+}
+
 func (p *pool) Login(chrome types.Chrome, cat string) {
-	category, acc, err := p.prepareLogin(chrome, cat)
-	if err != nil {
-		internal.Logger.Error("failed to prepare login",
-			zap.Error(err),
-			zap.Int("chromeID", chrome.GetID()),
-			zap.String("category", cat))
+	p.mu.RLock()
+	p.mu.RUnlock()
+
+	_, exists := p.chromes[chrome.GetAddr()]
+	if !exists {
+		fmt.Errorf("instance not exists in pool: %s", chrome.GetAddr())
 		return
 	}
 
-	if err := p.doLogin(chrome, acc); err != nil {
+	category, ok := p.categories[cat]
+	if ok && category.ContainChrome(chrome.GetAddr()) {
+		fmt.Errorf("instance already in category: %s", cat)
+		return
+	}
+
+	acc, err := account.GetAccount(chrome.GetID())
+	if err != nil {
+		fmt.Errorf("failed to get account: %w", err)
+		return
+	}
+
+	if err := chrome.Login(acc); err != nil {
 		internal.Logger.Error("failed to login",
 			zap.Error(err),
 			zap.Int("chromeID", chrome.GetID()),
@@ -72,43 +92,6 @@ func (p *pool) Login(chrome types.Chrome, cat string) {
 	p.mu.Lock()
 	category.AddChrome(chrome)
 	p.mu.Unlock()
-}
-
-func (p *pool) prepareLogin(chrome types.Chrome, cat string) (*category, account.IAccount, error) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	_, exists := p.chromes[chrome.GetAddr()]
-	if !exists {
-		return nil, nil, fmt.Errorf("instance not exists in pool: %s", chrome.GetAddr())
-	}
-
-	category, ok := p.categories[cat]
-	if ok && category.ContainChrome(chrome.GetAddr()) {
-		return nil, nil, fmt.Errorf("instance already in category: %s", cat)
-	}
-
-	acc, err := account.GetAccount(chrome.GetID())
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get account: %w", err)
-	}
-
-	return category, acc, nil
-}
-
-func (p *pool) doLogin(chrome types.Chrome, acc account.IAccount) error {
-	ctx, cancel := chrome.GetNewContext()
-	defer cancel()
-
-	ctx, cancel = context.WithTimeout(ctx, 150*time.Second)
-	defer cancel()
-
-	return chromedp.Run(ctx,
-		util.GetQRCode(acc),
-		acc.WaitLogin(),
-		util.SaveCookies(acc),
-		chromedp.Stop(),
-	)
 }
 
 func (p *pool) GetChromesByCategory(cat string) []types.Chrome {
@@ -137,25 +120,11 @@ func (p *pool) DispatchTask(category string, message *message.AsyncMessage) erro
 		if !instance.IsAvailable() {
 			continue
 		}
-		
+
 		if err := instance.ExecuteTask(message.ITask); err == nil {
 			return nil
 		}
 	}
 
 	return fmt.Errorf("no available account found for category: %s", category)
-}
-
-func (p *pool) GetAllChromes() map[string]types.Chrome {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	return p.chromes
-}
-
-func (p *pool) GetChrome(addr string) types.Chrome {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	return p.chromes[addr]
 }

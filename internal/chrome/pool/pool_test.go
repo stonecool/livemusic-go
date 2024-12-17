@@ -77,9 +77,6 @@ func TestPool_GetChromesByCategory(t *testing.T) {
 	err := p.AddChrome(chrome)
 	assert.NoError(t, err)
 
-	// Then login to add it to category
-	p.Login(chrome, "test-category")
-
 	// Test getting chromes by category
 	chromes = p.GetChromesByCategory("test-category")
 	assert.Len(t, chromes, 1)
@@ -114,26 +111,4 @@ func TestPool_GetAllChromes(t *testing.T) {
 	assert.Len(t, chromes, 1)
 	assert.Contains(t, chromes, chrome.GetAddr())
 	assert.Equal(t, chrome, chromes[chrome.GetAddr()])
-}
-
-func TestPool_Login(t *testing.T) {
-	p := GetPool()
-
-	// Add chrome instance
-	mockChrome := &mockChrome{
-		addr: "127.0.0.1:9222",
-		accounts: map[string]account.IAccount{
-			"test-category": &account.MockAccount{Category: "test-category"},
-		},
-		state: types.InstanceStateAvailable,
-	}
-
-	err := p.AddChrome(mockChrome)
-	assert.NoError(t, err)
-
-	// Test login
-	p.Login(mockChrome, "test-category")
-	chromes := p.GetChromesByCategory("test-category")
-	assert.Len(t, chromes, 1)
-	assert.Equal(t, mockChrome, chromes[0])
 }

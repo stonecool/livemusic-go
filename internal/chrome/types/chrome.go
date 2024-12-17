@@ -24,6 +24,7 @@ type Chrome interface {
 
 	// 账号管理
 	GetAccounts() map[string]account.IAccount
+	Login(account.IAccount) error
 
 	// 任务执行
 	ExecuteTask(task.ITask) error

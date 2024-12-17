@@ -302,3 +302,18 @@ func (i *Instance) checkZombieProcess() {
 		}
 	}
 }
+
+func (i *Instance) Login(acc account.IAccount) error {
+	ctx, cancel := i.GetNewContext()
+	defer cancel()
+
+	ctx, cancel = context.WithTimeout(ctx, 150*time.Second)
+	defer cancel()
+
+	return chromedp.Run(ctx,
+		util.GetQRCode(acc),
+		acc.WaitLogin(),
+		util.SaveCookies(acc),
+		chromedp.Stop(),
+	)
+}
