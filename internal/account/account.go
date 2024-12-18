@@ -2,9 +2,9 @@ package account
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/account/state"
 	"github.com/stonecool/livemusic-go/internal/message"
 )
 
@@ -15,32 +15,22 @@ type account struct {
 	lastURL      string
 	cookies      []byte
 	instanceID   int
-	State        accountState
-	mu           sync.RWMutex
+	stateHandler state.Handler
 	msgChan      chan *message.AsyncMessage
 	done         chan struct{}
-	stateManager stateManager
 }
 
 func (a *account) processTask() {
 	for {
 		select {
 		case msg := <-a.msgChan:
-			state := a.getState()
 			var err error
 
-			ret := a.handleCommand(state, msg)
-			err = ret.(error)
-
-			if err != nil {
-				newState := a.stateManager.getErrorState(state)
-				if a.stateManager.isValidTransition(state, newState) {
-					a.SetState(newState)
-				}
+			if err = a.handleCommand(msg); err != nil {
+				a.stateHandler.HandleError(err)
 			} else {
-				newState := a.stateManager.getNextState(state, msg.Cmd)
-				if a.stateManager.isValidTransition(state, newState) {
-					a.SetState(newState)
+				if err = a.stateHandler.HandleStateTransition(msg.Cmd); err != nil {
+					a.stateHandler.HandleError(err)
 				}
 			}
 
@@ -55,38 +45,40 @@ func (a *account) processTask() {
 	}
 }
 
-func (a *account) handleCommand(currentState accountState, msg *message.AsyncMessage) interface{} {
+func (a *account) handleCommand(msg *message.AsyncMessage) error {
+	currentState := a.stateHandler.GetState()
+
 	switch currentState {
-	case stateInitialized:
-		if msg.Cmd != message.CrawlCmd_Login {
-			return fmt.Errorf("invalid command:%v for initialized accountState", msg.Cmd)
+	case message.AccountState_New:
+		return fmt.Errorf("account not initialized")
+
+	case message.AccountState_NotLoggedIn:
+		if msg.Cmd != message.AccountCmd_Login {
+			return fmt.Errorf("invalid command:%v for not logged in state", msg.Cmd)
 		}
 		return a.handleLogin()
 
-	case stateNotLoggedIn:
-		if msg.Cmd != message.CrawlCmd_Login {
-			return fmt.Errorf("invalid command:%v for not logged in accountState", msg.Cmd)
-		}
-		return a.handleLogin()
-
-	case stateReady:
+	case message.AccountState_Ready:
 		switch msg.Cmd {
-		case message.CrawlCmd_Crawl:
+		case message.AccountCmd_Crawl:
 			return a.handleCrawl(msg.Data)
-		case message.CrawlCmd_Login:
+		case message.AccountCmd_Login:
 			return a.handleLogin()
 		default:
-			return fmt.Errorf("invalid command:%v for ready accountState", msg.Cmd)
+			return fmt.Errorf("invalid command:%v for ready state", msg.Cmd)
 		}
 
-	case stateRunning:
+	case message.AccountState_Running:
 		return fmt.Errorf("account is busy")
 
-	case stateTerminated:
-		return fmt.Errorf("account is terminated")
+	case message.AccountState_Expired:
+		if msg.Cmd != message.AccountCmd_Login {
+			return fmt.Errorf("invalid command:%v for expired state", msg.Cmd)
+		}
+		return a.handleLogin()
 
 	default:
-		return nil
+		return fmt.Errorf("invalid state: %v", currentState)
 	}
 }
 
@@ -94,14 +86,14 @@ func (a *account) Close() {
 	close(a.done)
 }
 
-func (a *account) handleLogin() interface{} {
+func (a *account) handleLogin() error {
 	// 处理登录任务的具体逻辑
 	return nil
 }
 
-func (a *account) handleCrawl(payload interface{}) interface{} {
+func (a *account) handleCrawl(payload interface{}) error {
 	// 处理爬取任务的具体逻辑
-	return payload
+	return nil
 }
 
 func (a *account) Get() error {
@@ -139,18 +131,20 @@ func (a *account) GetName() string {
 	return a.Name
 }
 
-func (a *account) getState() accountState {
-	a.mu.RLock()
-	defer a.mu.RUnlock()
-
-	return a.State
+func (a *account) IsAvailable() bool {
+	return a.stateHandler.GetState() == message.AccountState_Ready
 }
 
-func (a *account) SetState(s accountState) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+func (a *account) GetMsgChan() chan *message.AsyncMessage {
+	return a.msgChan
+}
 
-	a.State = s
+func (a *account) GetID() int {
+	return a.ID
+}
+
+func (a *account) GetCategory() string {
+	return a.Category
 }
 
 func (a *account) CheckLogin() chromedp.ActionFunc {
@@ -189,23 +183,4 @@ func (a *account) GetLastURL() string {
 }
 
 func (a *account) SetLastURL(url string) {
-}
-
-func (a *account) IsAvailable() bool {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	return a.State == stateInitialized
-}
-
-func (a *account) GetMsgChan() chan *message.AsyncMessage {
-	return a.msgChan
-}
-
-func (a *account) GetID() int {
-	return a.ID
-}
-
-func (a *account) GetCategory() string {
-	return a.Category
 }

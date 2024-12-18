@@ -1,6 +1,7 @@
 package account
 
 import (
+	"github.com/stonecool/livemusic-go/internal/account/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -69,9 +70,9 @@ func TestRepositoryDB_Create(t *testing.T) {
 
 	mockDB.On("Create", mock.AnythingOfType("*account.model")).Return(nil)
 
-	acc, err := repo.create("wechat", stateNew)
+	acc, err := repo.create("wechat", state.stateNew)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "wechat", acc.Category)
-	assert.Equal(t, stateNew, acc.State)
+	assert.Equal(t, state.stateNew, acc.State)
 }

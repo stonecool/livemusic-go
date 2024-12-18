@@ -1,7 +1,9 @@
 package account
 
 import (
+	"github.com/stonecool/livemusic-go/internal/account/state"
 	"github.com/stonecool/livemusic-go/internal/database"
+	"github.com/stonecool/livemusic-go/internal/message"
 )
 
 var (
@@ -13,12 +15,14 @@ func init() {
 }
 
 func CreateAccount(category string) (IAccount, error) {
-	acc, err := repo.create(category, stateNew)
-	if err != nil {
-		return nil, err
+	acc := &account{
+		Category:     category,
+		msgChan:      make(chan *message.AsyncMessage),
+		done:         make(chan struct{}),
+		stateHandler: state.NewStateHandler(category),
 	}
 
-	return GetAccount(acc.ID)
+	return acc, nil
 }
 
 func GetAccount(id int) (IAccount, error) {
@@ -27,7 +31,7 @@ func GetAccount(id int) (IAccount, error) {
 		return nil, err
 	}
 
-	acc.stateManager = selectStateManager(acc.Category)
+	acc.stateManager = state.selectStateManager(acc.Category)
 
 	var instance IAccount
 	switch acc.Category {

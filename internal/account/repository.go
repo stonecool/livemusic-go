@@ -2,13 +2,15 @@ package account
 
 import (
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/account/state"
+
 	"github.com/stonecool/livemusic-go/internal/database"
 	"gorm.io/gorm"
 )
 
 type repository interface {
 	get(int) (*account, error)
-	create(string, accountState) (*account, error)
+	create(string, state.accountState) (*account, error)
 }
 
 type repositoryDB struct {
@@ -21,7 +23,7 @@ func newRepositoryDB(db *gorm.DB) repository {
 	}
 }
 
-func (r *repositoryDB) create(category string, state accountState) (*account, error) {
+func (r *repositoryDB) create(category string, state state.accountState) (*account, error) {
 	m := &model{
 		Category: category,
 		State:    int(state),

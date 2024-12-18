@@ -2,6 +2,7 @@ package account
 
 import (
 	"github.com/chromedp/chromedp"
+	"github.com/stonecool/livemusic-go/internal/account/state"
 	"github.com/stonecool/livemusic-go/internal/message"
 )
 
@@ -18,11 +19,11 @@ func (m *MockAccount) GetName() string {
 	return "MockAccount"
 }
 
-func (m *MockAccount) getState() accountState {
-	return stateNew
+func (m *MockAccount) getState() state.accountState {
+	return state.stateNew
 }
 
-func (m *MockAccount) SetState(state accountState) {}
+func (m *MockAccount) SetState(state state.accountState) {}
 
 func (m *MockAccount) CheckLogin() chromedp.ActionFunc {
 	return nil

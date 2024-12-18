@@ -2,6 +2,7 @@ package account
 
 import (
 	"fmt"
+
 	"github.com/stonecool/livemusic-go/internal/config"
 )
 

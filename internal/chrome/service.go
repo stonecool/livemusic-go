@@ -96,7 +96,7 @@ func Create() (types.Chrome, error) {
 
 	addr := util.GetAddr(ip, port)
 	if pool.GlobalPool.GetChrome(addr) != nil {
-		return nil, fmt.Errorf("instance:%s in pool", addr)
+		return nil, fmt.Errorf("instance:%s already in pool", addr)
 	}
 
 	internal.Logger.Info("using port for new instance",

@@ -2,22 +2,31 @@ syntax = "proto3";
 
 option go_package = "./internal/message";
 
-enum CrawlState {
-  Uninitialized = 0;
-  NotLogged     = 1;
-  Ready         = 2;
+enum AccountState {
+  Undefined     = 0;
+  New           = 1;
+  NotLoggedIn   = 2;
+  Ready         = 3;
+  Running       = 4;
+  Expired       = 5;
 }
 
-enum CrawlCmd {
+enum AccountCmd {
   Invalid       = 0;
   Login         = 1;
   LoginAck      = 2;
-  StateAck      = 3;
   Crawl         = 4;
+  CrawlAck      = 5;
+  StateAck      = 6;
+//  Stop          = 7;
+//  Pause         = 8;
+//  Resume        = 9;
 }
 
 message Message {
-  CrawlCmd cmd = 1;
-  optional CrawlState state = 2;
+  AccountCmd cmd = 1;
+  optional AccountState state = 2;
   optional bytes data = 3;
+  optional string error = 4;
+  optional int64 timestamp = 5;
 }
