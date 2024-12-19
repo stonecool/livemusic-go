@@ -24,26 +24,16 @@ func (*model) TableName() string {
 
 func (m *model) toEntity() *account {
 	return &account{
-		ID:         m.ID,
-		Category:   m.Category,
-		Name:       m.Name,
-		lastURL:    m.LastURL,
-		cookies:    m.Cookies,
-		instanceID: m.InstanceID,
-		State:      state.accountState(m.State),
-		msgChan:    make(chan *message.AsyncMessage),
-		done:       make(chan struct{}),
+		ID:           m.ID,
+		Category:     m.Category,
+		Name:         m.Name,
+		lastURL:      m.LastURL,
+		cookies:      m.Cookies,
+		instanceID:   m.InstanceID,
+		stateHandler: state.NewStateHandler(m.Category),
+		msgChan:      make(chan *message.AsyncMessage),
+		done:         make(chan struct{}),
 	}
-}
-
-func (m *model) fromEntity(account *account) {
-	m.ID = account.ID
-	m.Category = account.Category
-	m.Name = account.Name
-	m.LastURL = account.lastURL
-	m.Cookies = account.cookies
-	m.InstanceID = account.instanceID
-	m.State = int(account.State)
 }
 
 func (m *model) Validate() error {

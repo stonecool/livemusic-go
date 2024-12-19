@@ -16,7 +16,7 @@ func NewAsyncMessageWithMsg(msg *Message, task task.ITask) *AsyncMessage {
 	}
 }
 
-func NewAsyncMessageWithCmd(cmd CrawlCmd, task task.ITask) *AsyncMessage {
+func NewAsyncMessageWithCmd(cmd AccountCmd, task task.ITask) *AsyncMessage {
 	return &AsyncMessage{
 		Message: &Message{
 			Cmd: cmd,

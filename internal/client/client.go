@@ -121,14 +121,14 @@ func (c *Client) writePump() {
 
 func (c *Client) handleWebSocketMessage(msg *message.Message) error {
 	switch msg.Cmd {
-	case message.CrawlCmd_Login:
+	case message.AccountCmd_Login:
 		asyncMessage := message.NewAsyncMessageWithMsg(msg, nil)
 
 		c.account.GetMsgChan() <- asyncMessage
 		result := <-asyncMessage.Result
 
 		msg := &message.Message{
-			Cmd:  message.CrawlCmd_Login,
+			Cmd:  message.AccountCmd_Login,
 			Data: []byte(fmt.Sprintf("%v", result)),
 		}
 		c.account.GetMsgChan() <- message.NewAsyncMessageWithMsg(msg, nil)
