@@ -1,8 +1,6 @@
 package account
 
 import (
-	"fmt"
-
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/account/state"
 	"github.com/stonecool/livemusic-go/internal/message"
@@ -26,12 +24,8 @@ func (a *account) processTask() {
 		case msg := <-a.msgChan:
 			var err error
 
-			if err = a.handleCommand(msg); err != nil {
+			if err = a.stateHandler.HandleStateTransition(msg.Cmd); err != nil {
 				a.stateHandler.HandleError(err)
-			} else {
-				if err = a.stateHandler.HandleStateTransition(msg.Cmd); err != nil {
-					a.stateHandler.HandleError(err)
-				}
 			}
 
 			if msg.Result != nil {
@@ -42,43 +36,6 @@ func (a *account) processTask() {
 		case <-a.done:
 			return
 		}
-	}
-}
-
-func (a *account) handleCommand(msg *message.AsyncMessage) error {
-	currentState := a.stateHandler.GetState()
-
-	switch currentState {
-	case message.AccountState_New:
-		return fmt.Errorf("account not initialized")
-
-	case message.AccountState_NotLoggedIn:
-		if msg.Cmd != message.AccountCmd_Login {
-			return fmt.Errorf("invalid command:%v for not logged in state", msg.Cmd)
-		}
-		return a.handleLogin()
-
-	case message.AccountState_Ready:
-		switch msg.Cmd {
-		case message.AccountCmd_Crawl:
-			return a.handleCrawl(msg.Data)
-		case message.AccountCmd_Login:
-			return a.handleLogin()
-		default:
-			return fmt.Errorf("invalid command:%v for ready state", msg.Cmd)
-		}
-
-	case message.AccountState_Running:
-		return fmt.Errorf("account is busy")
-
-	case message.AccountState_Expired:
-		if msg.Cmd != message.AccountCmd_Login {
-			return fmt.Errorf("invalid command:%v for expired state", msg.Cmd)
-		}
-		return a.handleLogin()
-
-	default:
-		return fmt.Errorf("invalid state: %v", currentState)
 	}
 }
 
@@ -97,35 +54,8 @@ func (a *account) handleCrawl(payload interface{}) error {
 }
 
 func (a *account) Get() error {
-	//if crawlcaount, err := database.Getcaount(a.ID); err != nil {
-	//	return err
-	//} else {
 	return nil
-	//}
 }
-
-//func (ca *account) Edit() error {
-//	if ca.ID == 0 {
-//		return fmt.Errorf("invalid crawlcaount id")
-//	}
-//
-//	data := map[string]interface{}{
-//		"caount_name":   ca.caountName,
-//		"last_login_url": ca.lastURL,
-//		"cookies":        ca.cookies,
-//	}
-//
-//	return database.Editcaount(ca.ID, data)
-//}
-//
-//func (ca *account) Delete() error {
-//	crawlcaount, err := database.Getcaount(ca.ID)
-//	if err != nil {
-//		return err
-//	}
-//
-//	return database.Deletecaount(crawlcaount)
-//}
 
 func (a *account) GetName() string {
 	return a.Name

@@ -31,7 +31,7 @@ func GetAccount(id int) (IAccount, error) {
 		return nil, err
 	}
 
-	acc.stateManager = state.selectStateManager(acc.Category)
+	acc.stateHandler = state.NewStateHandler(acc.Category)
 
 	var instance IAccount
 	switch acc.Category {
