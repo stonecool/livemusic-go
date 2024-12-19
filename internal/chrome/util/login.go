@@ -3,12 +3,12 @@ package util
 import (
 	"context"
 	"fmt"
+	"github.com/stonecool/livemusic-go/internal/account/types"
 	"log"
 	"os"
 
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/account"
 	"go.uber.org/zap"
 )
 
@@ -35,7 +35,7 @@ func QRCodeLogin() error {
 }
 
 // GetQRCode get qr code
-func GetQRCode(account account.IAccount) chromedp.ActionFunc {
+func GetQRCode(account types.Account) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		if err := chromedp.Navigate(account.GetLoginURL()).Do(ctx); err != nil {
 			internal.Logger.Error("failed to navigate to login URL",

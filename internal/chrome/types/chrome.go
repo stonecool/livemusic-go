@@ -2,8 +2,7 @@ package types
 
 import (
 	"context"
-
-	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/account/types"
 	"github.com/stonecool/livemusic-go/internal/task"
 )
 
@@ -23,8 +22,8 @@ type Chrome interface {
 	SetState(InstanceState)
 
 	// 账号管理
-	GetAccounts() map[string]account.IAccount
-	Login(account.IAccount) error
+	GetAccounts() map[string]types.Account
+	Login(types.Account) error
 
 	// 任务执行
 	ExecuteTask(task.ITask) error

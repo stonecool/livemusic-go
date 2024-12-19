@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/account/types"
 	"github.com/stonecool/livemusic-go/internal/message"
 	"log"
 	"sync"
@@ -28,16 +29,16 @@ const (
 
 type Client struct {
 	conn    *websocket.Conn
-	account account.IAccount
+	account types.Account
 	done    chan struct{}
 }
 
 var (
-	clients = make(map[account.IAccount]*Client)
+	clients = make(map[types.Account]*Client)
 	mu      sync.Mutex
 )
 
-func newClient(account account.IAccount, ctx *gin.Context) (*Client, error) {
+func newClient(account types.Account, ctx *gin.Context) (*Client, error) {
 	var upgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,

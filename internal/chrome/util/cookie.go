@@ -2,15 +2,14 @@ package util
 
 import (
 	"context"
-
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/account"
+	"github.com/stonecool/livemusic-go/internal/account/types"
 	"go.uber.org/zap"
 )
 
-func SetCookies(account account.IAccount) chromedp.ActionFunc {
+func SetCookies(account types.Account) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookiesParams := network.SetCookiesParams{}
 		if err = cookiesParams.UnmarshalJSON(account.GetCookies()); err != nil {
@@ -24,7 +23,7 @@ func SetCookies(account account.IAccount) chromedp.ActionFunc {
 	}
 }
 
-func SaveCookies(account account.IAccount) chromedp.ActionFunc {
+func SaveCookies(account types.Account) chromedp.ActionFunc {
 	return func(ctx context.Context) (err error) {
 		cookies, err := network.GetCookies().Do(ctx)
 		if err != nil {

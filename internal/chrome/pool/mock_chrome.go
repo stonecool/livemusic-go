@@ -3,7 +3,6 @@ package pool
 import (
 	"context"
 
-	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"github.com/stretchr/testify/mock"
@@ -50,11 +49,6 @@ func (m *MockChrome) SetState(state types.InstanceState) {
 func (m *MockChrome) GetStateChan() chan types.StateEvent {
 	args := m.Called()
 	return args.Get(0).(chan types.StateEvent)
-}
-
-func (m *MockChrome) GetAccounts() map[string]account.IAccount {
-	args := m.Called()
-	return args.Get(0).(map[string]account.IAccount)
 }
 
 func (m *MockChrome) ExecuteTask(task task.ITask) error {

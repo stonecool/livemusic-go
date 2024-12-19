@@ -3,7 +3,6 @@ package state
 import "github.com/stonecool/livemusic-go/internal/message"
 
 type transitions struct {
-	ValidTransitions map[message.AccountState][]message.AccountState
 	CmdTransitions   map[message.AccountState]map[message.AccountCmd]message.AccountState
 	ErrorTransitions map[message.AccountState]message.AccountState
 }
@@ -28,28 +27,7 @@ func (m *Manager) GetErrorState(state message.AccountState) message.AccountState
 	return state
 }
 
-func (m *Manager) IsValidTransition(from, to message.AccountState) bool {
-	validStates, exists := m.transitions.ValidTransitions[from]
-	if !exists {
-		return false
-	}
-	for _, validState := range validStates {
-		if to == validState {
-			return true
-		}
-	}
-	return false
-}
-
 var defaultTransitions = transitions{
-	ValidTransitions: map[message.AccountState][]message.AccountState{
-		message.AccountState_Undefined:   {},
-		message.AccountState_New:         {message.AccountState_NotLoggedIn},
-		message.AccountState_NotLoggedIn: {message.AccountState_Ready},
-		message.AccountState_Ready:       {message.AccountState_Running, message.AccountState_Expired},
-		message.AccountState_Running:     {message.AccountState_Ready, message.AccountState_Expired},
-		message.AccountState_Expired:     {message.AccountState_NotLoggedIn},
-	},
 	CmdTransitions: map[message.AccountState]map[message.AccountCmd]message.AccountState{
 		message.AccountState_New: {
 			message.AccountCmd_Invalid: message.AccountState_NotLoggedIn,
@@ -75,14 +53,6 @@ var defaultTransitions = transitions{
 }
 
 var noLoginTransitions = transitions{
-	ValidTransitions: map[message.AccountState][]message.AccountState{
-		message.AccountState_Undefined:   {},
-		message.AccountState_New:         {message.AccountState_Ready},
-		message.AccountState_NotLoggedIn: {},
-		message.AccountState_Ready:       {message.AccountState_Running, message.AccountState_Expired},
-		message.AccountState_Running:     {message.AccountState_Ready, message.AccountState_Expired},
-		message.AccountState_Expired:     {message.AccountState_Ready},
-	},
 	CmdTransitions: map[message.AccountState]map[message.AccountCmd]message.AccountState{
 		message.AccountState_New: {
 			message.AccountCmd_Invalid: message.AccountState_Ready,

@@ -1,11 +1,11 @@
-package account
+package types
 
 import (
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal/message"
 )
 
-type IAccount interface {
+type Account interface {
 	GetID() int
 	GetName() string
 	CheckLogin() chromedp.ActionFunc

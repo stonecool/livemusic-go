@@ -3,16 +3,15 @@ package instance
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
-
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
-	"github.com/stonecool/livemusic-go/internal/account"
+	types2 "github.com/stonecool/livemusic-go/internal/account/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"go.uber.org/zap"
+	"sync"
+	"time"
 )
 
 var _ types.Chrome = (*Instance)(nil)
@@ -24,7 +23,7 @@ type Instance struct {
 	DebuggerURL  string
 	State        types.InstanceState
 	mu           sync.RWMutex
-	Accounts     map[string]account.IAccount
+	Accounts     map[string]types2.Account
 	StateChan    chan types.StateEvent
 	allocatorCtx context.Context
 	cancelFunc   context.CancelFunc
@@ -202,11 +201,11 @@ func (i *Instance) heartBeat() {
 	}
 }
 
-func (i *Instance) GetAccounts() map[string]account.IAccount {
+func (i *Instance) GetAccounts() map[string]types2.Account {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
 
-	accounts := make(map[string]account.IAccount, len(i.Accounts))
+	accounts := make(map[string]types2.Account, len(i.Accounts))
 	for k, v := range i.Accounts {
 		accounts[k] = v
 	}
@@ -278,7 +277,7 @@ func (i *Instance) ExecuteTask(task task.ITask) error {
 	return nil
 }
 
-func (i *Instance) SetAccount(category string, acc account.IAccount) {
+func (i *Instance) SetAccount(category string, acc types2.Account) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
 
@@ -303,7 +302,7 @@ func (i *Instance) checkZombieProcess() {
 	}
 }
 
-func (i *Instance) Login(acc account.IAccount) error {
+func (i *Instance) Login(acc types2.Account) error {
 	ctx, cancel := i.GetNewContext()
 	defer cancel()
 
