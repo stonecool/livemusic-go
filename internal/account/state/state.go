@@ -99,12 +99,3 @@ var noLoginTransitions = transitions{
 		message.AccountState_Running: message.AccountState_Expired,
 	},
 }
-
-func SelectStateManager(category string) *Manager {
-	switch category {
-	case "noLogin":
-		return &Manager{transitions: noLoginTransitions}
-	default:
-		return &Manager{transitions: defaultTransitions}
-	}
-}
