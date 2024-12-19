@@ -43,38 +43,12 @@ func (a *account) Close() {
 	close(a.done)
 }
 
-func (a *account) handleLogin() error {
-	// 处理登录任务的具体逻辑
-	return nil
-}
-
-func (a *account) handleCrawl(payload interface{}) error {
-	// 处理爬取任务的具体逻辑
-	return nil
-}
-
-func (a *account) Get() error {
-	return nil
-}
-
-func (a *account) GetName() string {
-	return a.Name
-}
-
-func (a *account) IsAvailable() bool {
-	return a.stateHandler.GetState() == message.AccountState_Ready
-}
-
-func (a *account) GetMsgChan() chan *message.AsyncMessage {
-	return a.msgChan
-}
-
 func (a *account) GetID() int {
 	return a.ID
 }
 
-func (a *account) GetCategory() string {
-	return a.Category
+func (a *account) GetName() string {
+	return a.Name
 }
 
 func (a *account) CheckLogin() chromedp.ActionFunc {
@@ -113,4 +87,16 @@ func (a *account) GetLastURL() string {
 }
 
 func (a *account) SetLastURL(url string) {
+}
+
+func (a *account) GetMsgChan() chan *message.AsyncMessage {
+	return a.msgChan
+}
+
+func (a *account) IsAvailable() bool {
+	return a.stateHandler.GetState() == message.AccountState_Ready
+}
+
+func (a *account) GetCategory() string {
+	return a.Category
 }
