@@ -79,7 +79,7 @@ func (s *Scheduler) executeTask(task task.ITask) error {
 		retryDelay = 5 // 重试间隔(秒)
 	)
 
-	msg := message.NewAsyncMessageWithCmd(message.CrawlCmd_Crawl, task)
+	msg := message.NewAsyncMessageWithCmd(message.AccountCmd_Crawl, task)
 	var lastErr error
 	for retry := 0; retry < maxRetries; retry++ {
 		// 如果不是第一次尝试,等待一段时间
