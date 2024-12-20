@@ -7,6 +7,7 @@ import (
 	"github.com/stonecool/livemusic-go/internal/account/types"
 	"github.com/stonecool/livemusic-go/internal/message"
 	"go.uber.org/zap"
+	"time"
 )
 
 type account struct {
@@ -21,43 +22,60 @@ type account struct {
 	done         chan struct{}
 }
 
-// 确保 account 类型实现了 interfaces.Account 接口
 var _ types.Account = (*account)(nil)
 
 func (a *account) processTask() {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
 	for {
 		select {
-		case msg := <-a.msgChan:
+		case msg := <-a.GetMsgChan():
 			a.stateHandler.Transit(a, msg.Cmd)
-
-			err := a.executeCommand(msg.Cmd)
-			if err != nil {
-				internal.Logger.Error("Account command execution failed",
-					zap.Int("account_id", a.ID),
-					zap.String("command", msg.Cmd.String()),
-					zap.Error(err),
-				)
-				a.stateHandler.HandleError(a, err)
-				if msg.Result != nil {
-					msg.Result <- err
-					close(msg.Result)
-				}
-				continue
-			}
-
-			internal.Logger.Info("Account command completed",
-				zap.Int("account_id", a.ID),
-				zap.String("command", msg.Cmd.String()),
-			)
-
 			if msg.Result != nil {
 				msg.Result <- nil
 				close(msg.Result)
 			}
 
+		case <-ticker.C:
+			// 只有在 Ready 状态才尝试获取任务
+			if a.stateHandler.GetState() == message.AccountState_Ready {
+				task, err := message.DefaultQueue.PopTaskByCategory(a.Category)
+				if err != nil {
+					continue // 队列为空或没有匹配的任务，继续等待
+				}
+
+				// 执行任务
+				if err := a.executeCommand(task.Message.Cmd); err != nil {
+					internal.Logger.Error("Failed to execute task",
+						zap.Int("account_id", a.ID),
+						zap.String("category", a.Category),
+						zap.Error(err))
+					a.stateHandler.HandleError(a, err)
+					if task.Message.Result != nil {
+						task.Message.Result <- err
+						close(task.Message.Result)
+					}
+				}
+			}
+
 		case <-a.done:
 			return
 		}
+	}
+}
+
+func (a *account) canExecuteCommand(cmd message.AccountCmd) bool {
+	currentState := a.stateHandler.GetState()
+	switch cmd {
+	case message.AccountCmd_Crawl:
+		return currentState == message.AccountState_Ready
+	case message.AccountCmd_CrawlAck:
+		return currentState == message.AccountState_Running
+	case message.AccountCmd_Login:
+		return currentState == message.AccountState_NotLoggedIn
+	default:
+		return true
 	}
 }
 
@@ -75,22 +93,23 @@ func (a *account) executeCommand(cmd message.AccountCmd) error {
 }
 
 func (a *account) doCrawl() error {
-	// 启动一个新��� goroutine 来执行爬虫任务
 	go func() {
-		// 执行具体的爬虫逻辑
-		//err := a.executeCrawlTask()
+		err := a.executeCrawlTask()
 
-		// 任务完成后发送 CrawlAck 消息
+		// 爬虫完成后，发送状态转换命令到控制通道
 		result := make(chan error, 1)
-		//a.msgChan <- &message.AsyncMessage{
-		//	Cmd:    message.AccountCmd_CrawlAck,
-		//	Result: result,
-		//}
+		ackMsg := message.NewAsyncMessage(message.AccountCmd_CrawlAck, result)
 
-		// 等待状态转换完成
-		<-result
+		select {
+		case a.controlChan <- ackMsg:
+			<-result
+		case <-a.done:
+			return
+		case <-time.After(5 * time.Second):
+			internal.Logger.Error("Failed to send CrawlAck command",
+				zap.Int("account_id", a.ID))
+		}
 	}()
-
 	return nil
 }
 

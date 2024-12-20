@@ -2,15 +2,22 @@ package account
 
 import (
 	"fmt"
-	"github.com/stonecool/livemusic-go/internal/message"
-
 	"github.com/stonecool/livemusic-go/internal/database"
+	"github.com/stonecool/livemusic-go/internal/message"
 	"gorm.io/gorm"
 )
 
+var (
+	repo repository
+)
+
+func init() {
+	repo = newRepositoryDB(database.DB)
+}
+
 type repository interface {
-	get(int) (*account, error)
 	create(string, message.AccountState) (*account, error)
+	get(int) (*account, error)
 }
 
 type repositoryDB struct {

@@ -15,12 +15,10 @@ enum AccountCmd {
   Invalid       = 0;
   Login         = 1;
   LoginAck      = 2;
-  Crawl         = 4;
-  CrawlAck      = 5;
-  StateAck      = 6;
-//  Stop          = 7;
-//  Pause         = 8;
-//  Resume        = 9;
+  StateAck      = 3;
+//  Stop          = 4;
+//  Pause         = 5;
+//  Resume        = 6;
 }
 
 message Message {

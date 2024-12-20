@@ -1,19 +1,12 @@
 package account
 
 import (
+	"fmt"
+
 	"github.com/stonecool/livemusic-go/internal/account/state"
 	"github.com/stonecool/livemusic-go/internal/account/types"
-	"github.com/stonecool/livemusic-go/internal/database"
 	"github.com/stonecool/livemusic-go/internal/message"
 )
-
-var (
-	repo repository
-)
-
-func init() {
-	repo = newRepositoryDB(database.DB)
-}
 
 func CreateAccount(category string) (types.Account, error) {
 	acc := &account{
@@ -43,4 +36,18 @@ func GetAccount(id int) (types.Account, error) {
 	}
 
 	return instance, nil
+}
+
+func SubmitCrawlTask(category string) error {
+	result := make(chan error, 1)
+	task := &message.CrawlTask{
+		Category: category,
+		Message:  message.NewAsyncMessage(message.AccountCmd_Crawl, result),
+	}
+
+	if err := message.DefaultQueue.PushTask(task); err != nil {
+		return fmt.Errorf("failed to submit task: %w", err)
+	}
+
+	return <-result
 }
