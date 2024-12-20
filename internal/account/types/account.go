@@ -19,6 +19,5 @@ type Account interface {
 	GetLastURL() string
 	SetLastURL(string)
 	GetMsgChan() chan *message.AsyncMessage
-	IsAvailable() bool
 	GetCategory() string
 }

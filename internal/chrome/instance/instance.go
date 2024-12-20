@@ -50,18 +50,6 @@ func (i *Instance) IsAvailable() bool {
 	return i.GetState() == types.InstanceStateAvailable
 }
 
-func (i *Instance) isAvailable(cat string) bool {
-	i.mu.RLock()
-	defer i.mu.RUnlock()
-	acc, exists := i.Accounts[cat]
-
-	if !exists {
-		return false
-	}
-
-	return acc.IsAvailable()
-}
-
 func (i *Instance) Close() {
 	if i.cancelFunc == nil {
 		return
@@ -251,7 +239,7 @@ func (i *Instance) cleanupTabs() {
 func (i *Instance) ExecuteTask(task task.ITask) error {
 	i.mu.RLock()
 	defer i.mu.RUnlock()
-	acc, exists := i.Accounts[task.GetCategory()]
+	_, exists := i.Accounts[task.GetCategory()]
 
 	if !exists {
 		internal.Logger.Error("no account found for category",
@@ -260,12 +248,12 @@ func (i *Instance) ExecuteTask(task task.ITask) error {
 		return fmt.Errorf("no account found for category: %s", task.GetCategory())
 	}
 
-	if !acc.IsAvailable() {
-		internal.Logger.Error("account not available",
-			zap.String("category", task.GetCategory()),
-			zap.Int("chromeID", i.ID))
-		return fmt.Errorf("account not available")
-	}
+	//if !acc.IsAvailable() {
+	//	internal.Logger.Error("account not available",
+	//		zap.String("category", task.GetCategory()),
+	//		zap.Int("chromeID", i.ID))
+	//	return fmt.Errorf("account not available")
+	//}
 
 	// TODO
 	//select {

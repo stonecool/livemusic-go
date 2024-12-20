@@ -5,7 +5,6 @@ import (
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
-	"github.com/stonecool/livemusic-go/internal/message"
 	"go.uber.org/zap"
 	"sync"
 )
@@ -92,39 +91,4 @@ func (p *pool) Login(chrome types.Chrome, cat string) {
 	p.mu.Lock()
 	category.AddChrome(chrome)
 	p.mu.Unlock()
-}
-
-func (p *pool) GetChromesByCategory(cat string) []types.Chrome {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	if cat, exists := p.categories[cat]; exists {
-		return cat.GetChromes()
-	} else {
-		return nil
-	}
-}
-
-func (p *pool) DispatchTask(category string, message *message.AsyncMessage) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	// 获取该分类下的所有实例
-	instances := p.GetChromesByCategory(category)
-	if len(instances) == 0 {
-		return fmt.Errorf("no instance available for category: %s", category)
-	}
-
-	// 遍历实例找到可用的账号
-	for _, instance := range instances {
-		if !instance.IsAvailable() {
-			continue
-		}
-
-		if err := instance.ExecuteTask(message.ITask); err == nil {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("no available account found for category: %s", category)
 }

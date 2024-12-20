@@ -29,43 +29,29 @@ func (m *Manager) GetErrorState(state message.AccountState) message.AccountState
 
 var defaultTransitions = transitions{
 	CmdTransitions: map[message.AccountState]map[message.AccountCmd]message.AccountState{
-		message.AccountState_New: {
-			message.AccountCmd_Invalid: message.AccountState_NotLoggedIn,
+		message.AccountState_AS_New: {
+			message.AccountCmd_AC_INITIALIZE: message.AccountState_AS_NotLoggedIn,
 		},
-		message.AccountState_NotLoggedIn: {
-			message.AccountCmd_Login: message.AccountState_Ready,
+		message.AccountState_AS_NotLoggedIn: {
+			message.AccountCmd_AC_Login: message.AccountState_AS_Ready,
 		},
-		message.AccountState_Ready: {
-			message.AccountCmd_Crawl: message.AccountState_Running,
+		message.AccountState_AS_Ready: {
+			message.AccountCmd_AC_EXPIRED: message.AccountState_AS_Expired,
 		},
-		message.AccountState_Running: {
-			message.AccountCmd_CrawlAck: message.AccountState_Ready,
-		},
-		message.AccountState_Expired: {
-			message.AccountCmd_Login: message.AccountState_NotLoggedIn,
+		message.AccountState_AS_Expired: {
+			message.AccountCmd_AC_Login: message.AccountState_AS_Ready,
 		},
 	},
 	ErrorTransitions: map[message.AccountState]message.AccountState{
-		message.AccountState_NotLoggedIn: message.AccountState_New,
-		message.AccountState_Ready:       message.AccountState_NotLoggedIn,
-		message.AccountState_Running:     message.AccountState_Expired,
+		message.AccountState_AS_Ready: message.AccountState_AS_Expired,
 	},
 }
 
 var noLoginTransitions = transitions{
 	CmdTransitions: map[message.AccountState]map[message.AccountCmd]message.AccountState{
-		message.AccountState_New: {
-			message.AccountCmd_Invalid: message.AccountState_Ready,
-		},
-		message.AccountState_Ready: {
-			message.AccountCmd_Crawl: message.AccountState_Running,
-		},
-		message.AccountState_Running: {
-			message.AccountCmd_CrawlAck: message.AccountState_Ready,
+		message.AccountState_AS_New: {
+			message.AccountCmd_AC_INITIALIZE: message.AccountState_AS_Ready,
 		},
 	},
-	ErrorTransitions: map[message.AccountState]message.AccountState{
-		message.AccountState_Ready:   message.AccountState_NotLoggedIn,
-		message.AccountState_Running: message.AccountState_Expired,
-	},
+	ErrorTransitions: map[message.AccountState]message.AccountState{},
 }

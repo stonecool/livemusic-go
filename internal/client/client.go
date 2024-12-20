@@ -1,9 +1,8 @@
 package client
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/account/types"
@@ -81,15 +80,14 @@ func (c *Client) readPump() {
 		}
 
 		msg := &message.Message{}
-		if err := json.Unmarshal(data, msg); err != nil {
+
+		if err := proto.Unmarshal(data, msg); err != nil {
 			log.Printf("error parsing data: %v", err)
 			continue
 		}
 
-		if err := c.handleWebSocketMessage(msg); err != nil {
-			log.Printf("error handling websocket data: %v", err)
-			continue
-		}
+		asyncMessage := message.NewAsyncMessage(msg)
+		c.account.GetMsgChan() <- asyncMessage
 	}
 }
 
@@ -103,7 +101,7 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case msg := <-c.account.GetMsgChan():
-			if err := c.handleAccountMessage(msg); err != nil {
+			if err := c.conn.WriteMessage(websocket.TextMessage, msg.Data); err != nil {
 				log.Printf("handle account message error: %v", err)
 				return
 			}
@@ -118,27 +116,6 @@ func (c *Client) writePump() {
 			return
 		}
 	}
-}
-
-func (c *Client) handleWebSocketMessage(msg *message.Message) error {
-	switch msg.Cmd {
-	case message.AccountCmd_Login:
-		asyncMessage := message.NewAsyncMessageWithMsg(msg, nil)
-
-		c.account.GetMsgChan() <- asyncMessage
-		result := <-asyncMessage.Result
-
-		msg := &message.Message{
-			Cmd:  message.AccountCmd_Login,
-			Data: []byte(fmt.Sprintf("%v", result)),
-		}
-		c.account.GetMsgChan() <- message.NewAsyncMessageWithMsg(msg, nil)
-	}
-	return nil
-}
-
-func (c *Client) handleAccountMessage(msg *message.AsyncMessage) error {
-	return c.conn.WriteMessage(websocket.TextMessage, msg.Data)
 }
 
 func (c *Client) Close() {

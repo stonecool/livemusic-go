@@ -10,7 +10,7 @@ import (
 
 func NewStateHandler(category string) *AccountStateHandler {
 	return &AccountStateHandler{
-		state: message.AccountState_New,
+		state: message.AccountState_AS_New,
 		mgr:   SelectStateManager(category),
 	}
 }

@@ -54,10 +54,6 @@ func (m *MockAccount) GetLastURL() string {
 
 func (m *MockAccount) SetLastURL(url string) {}
 
-func (m *MockAccount) IsAvailable() bool {
-	return true
-}
-
 func (m *MockAccount) GetMsgChan() chan *message.AsyncMessage {
 	return make(chan *message.AsyncMessage)
 }

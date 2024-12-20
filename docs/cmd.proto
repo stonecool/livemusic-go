@@ -3,19 +3,19 @@ syntax = "proto3";
 option go_package = "./internal/message";
 
 enum AccountState {
-  Undefined     = 0;
-  New           = 1;
-  NotLoggedIn   = 2;
-  Ready         = 3;
-  Running       = 4;
-  Expired       = 5;
+  AS_Invalid        = 0;
+  AS_New            = 1;
+  AS_NotLoggedIn    = 2;
+  AS_Ready          = 3;
+  AS_Expired        = 4;
 }
 
 enum AccountCmd {
-  Invalid       = 0;
-  Login         = 1;
-  LoginAck      = 2;
-  StateAck      = 3;
+  AC_Invalid        = 0;
+  AC_INITIALIZE     = 1;
+  AC_EXPIRED        = 2;
+  AC_Login          = 3;
+  AC_LoginAck       = 4;
 //  Stop          = 4;
 //  Pause         = 5;
 //  Resume        = 6;

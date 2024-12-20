@@ -16,7 +16,8 @@ go test -v .\internal\chrome\... -v -cover 三个点，所有目录和子目录
 
 - 异常终止，资源释放，windows,linux
 - 是否将chrome替换为浏览器
-
+- 立即爬，命令
+- 
 ### 设计
 
 - chrome实例

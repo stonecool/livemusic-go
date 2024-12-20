@@ -1,4 +1,4 @@
-package message
+package task
 
 import (
 	"fmt"
@@ -6,13 +6,8 @@ import (
 	"go.uber.org/zap"
 )
 
-type CrawlTask struct {
-	Category string
-	Message  *AsyncMessage
-}
-
 type Queue struct {
-	taskChan chan *CrawlTask
+	taskChan chan ITask
 	done     chan struct{}
 }
 
@@ -20,22 +15,12 @@ var DefaultQueue *Queue
 
 func init() {
 	DefaultQueue = NewQueue(100)
-	go DefaultQueue.Start()
 }
 
 func NewQueue(size int) *Queue {
 	return &Queue{
-		taskChan: make(chan *CrawlTask, size),
+		taskChan: make(chan ITask, size),
 		done:     make(chan struct{}),
-	}
-}
-
-func (q *Queue) Start() {
-	for {
-		select {
-		case <-q.done:
-			return
-		}
 	}
 }
 
@@ -43,21 +28,21 @@ func (q *Queue) Stop() {
 	close(q.done)
 }
 
-func (q *Queue) PushTask(task *CrawlTask) error {
+func (q *Queue) PushTask(task ITask) error {
 	select {
 	case q.taskChan <- task:
 		internal.Logger.Info("Task pushed to queue",
-			zap.String("category", task.Category))
+			zap.String("category", task.GetCategory()))
 		return nil
 	default:
 		return fmt.Errorf("queue is full")
 	}
 }
 
-func (q *Queue) PopTaskByCategory(category string) (*CrawlTask, error) {
+func (q *Queue) PopTaskByCategory(category string) (ITask, error) {
 	select {
 	case task := <-q.taskChan:
-		if task.Category == category {
+		if task.GetCategory() == category {
 			return task, nil
 		}
 		// 如果类别不匹配，放回队列
