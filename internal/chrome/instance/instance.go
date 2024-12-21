@@ -3,6 +3,9 @@ package instance
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/chromedp/chromedp"
 	"github.com/stonecool/livemusic-go/internal"
 	types2 "github.com/stonecool/livemusic-go/internal/account/types"
@@ -10,8 +13,6 @@ import (
 	"github.com/stonecool/livemusic-go/internal/chrome/util"
 	"github.com/stonecool/livemusic-go/internal/task"
 	"go.uber.org/zap"
-	"sync"
-	"time"
 )
 
 var _ types.Chrome = (*Instance)(nil)

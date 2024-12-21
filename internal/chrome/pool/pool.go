@@ -2,11 +2,12 @@ package pool
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/stonecool/livemusic-go/internal"
 	"github.com/stonecool/livemusic-go/internal/account"
 	"github.com/stonecool/livemusic-go/internal/chrome/types"
 	"go.uber.org/zap"
-	"sync"
 )
 
 var GlobalPool *pool
